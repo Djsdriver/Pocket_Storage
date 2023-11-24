@@ -1,20 +1,20 @@
 package com.example.pocketstorage.screen
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,25 +22,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
@@ -62,7 +58,8 @@ fun Inventory() {
 fun InventoryScreen() {
 
     Column(
-        modifier = Modifier.fillMaxSize()) {
+        modifier = Modifier.fillMaxSize()
+    ) {
 
         Row(
             modifier = Modifier
@@ -70,17 +67,19 @@ fun InventoryScreen() {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            var textIdInventory by rememberSaveable { mutableStateOf("") }
 
 
             Box(Modifier.weight(1f)) {
-                OutlinedTextField(
+                TextFieldSearchProductName(
                     modifier = Modifier
                         .padding(end = 24.dp)
                         .fillMaxWidth(),
-                    value = textIdInventory,
-                    onValueChange = { textIdInventory = it },
-                    label = { Text(text = "product name or id", color = colorResource(id = R.color.gray)) },
+                    label = {
+                        Text(
+                            text = "product name or id",
+                            color = colorResource(id = R.color.gray)
+                        )
+                    },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
@@ -93,12 +92,9 @@ fun InventoryScreen() {
                     )
                 )
             }
-
-            Image(
-                painter = painterResource(id = R.drawable.qr_scanner),
-                contentDescription = "qr",
-                modifier = Modifier.size(48.dp)
-            )
+            ImageQRScanner {
+                //Click
+            }
         }
 
         Row(
@@ -109,25 +105,19 @@ fun InventoryScreen() {
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Button(
-                onClick = { /* TODO */ },
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.blue)),
-                modifier = Modifier
-                    .size(width = 150.dp, height = 48.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+
+            ButtonInventoryScreen(
+                modifier = Modifier.size(width = 150.dp, height = 48.dp),
+                rowContent = {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "addProduct",
                         modifier = Modifier.padding(end = 15.dp)
                     )
                     Text(text = "Product", fontSize = 16.sp)
-                }
-            }
+                },
+                onClick = { /* Обработчик нажатия кнопки */ }
+            )
 
 
         }
@@ -139,50 +129,36 @@ fun InventoryScreen() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
         ) {
-            Button(
-                onClick = { /* TODO */ },
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.blue)),
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(width = 150.dp, height = 48.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            ButtonInventoryScreen(modifier = Modifier
+                .padding(end = 16.dp)
+                .size(width = 150.dp, height = 48.dp),
+                rowContent = {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Export",
                         modifier = Modifier.padding(end = 15.dp)
                     )
                     Text(text = "Export", fontSize = 16.sp)
-                }
+                }) {
+                //Click
+
             }
 
-
-
-            Button(
-                onClick = { /* TODO */ },
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.blue)),
-                modifier = Modifier
-                    .size(width = 150.dp, height = 48.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            ButtonInventoryScreen(modifier = Modifier
+                .size(width = 150.dp, height = 48.dp),
+                rowContent = {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Import",
                         modifier = Modifier.padding(end = 15.dp)
                     )
                     Text(text = "Import", fontSize = 16.sp)
-                }
-            }
-        }
+                }) {
+                //Click
 
+            }
+
+        }
         Text(
             text = "Recently added",
             fontSize = 24.sp,
@@ -216,6 +192,60 @@ fun InventoryScreen() {
 
 
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TextFieldSearchProductName(
+    modifier: Modifier,
+    label: @Composable () -> Unit,
+    leadingIcon: @Composable () -> Unit,
+    colors: TextFieldColors
+) {
+    var textIdInventory by rememberSaveable { mutableStateOf("") }
+    OutlinedTextField(
+        modifier = modifier,
+        value = textIdInventory,
+        onValueChange = { textIdInventory = it },
+        label = label,
+        leadingIcon = leadingIcon,
+        colors = colors
+    )
+}
+
+@Composable
+fun ImageQRScanner(onClick: () -> Unit) {
+    Image(
+        painter = painterResource(id = R.drawable.qr_scanner),
+        contentDescription = "qr",
+        modifier = Modifier
+            .size(48.dp)
+            .clickable {
+                onClick
+            },
+    )
+}
+
+@Composable
+fun ButtonInventoryScreen(
+    modifier: Modifier,
+    rowContent: @Composable () -> Unit,
+    onClick: () -> Unit,
+) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.blue)),
+        modifier = modifier,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            rowContent()
+        }
+    }
+}
+
 @Composable
 fun ListRow(model: InventoryModel) {
     Row(
@@ -225,8 +255,7 @@ fun ListRow(model: InventoryModel) {
             .clip(RoundedCornerShape(8.dp))
             .wrapContentHeight()
             .fillMaxWidth()
-            .background(colorResource(id = R.color.blue_light))
-            ,
+            .background(colorResource(id = R.color.blue_light)),
     ) {
         Image(
             painter = painterResource(id = model.image),
@@ -245,4 +274,4 @@ fun ListRow(model: InventoryModel) {
     }
 }
 
-data class InventoryModel(val name:String,val image: Int)
+data class InventoryModel(val name: String, val image: Int)
