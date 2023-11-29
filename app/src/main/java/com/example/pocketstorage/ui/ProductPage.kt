@@ -1,9 +1,10 @@
 package com.example.pocketstorage.ui
 
-import android.telecom.Call.Details
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,20 +14,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LeadingIconTab
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -34,23 +39,25 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pocketstorage.R
 import com.example.pocketstorage.ui.theme.PocketStorageTheme
-import kotlinx.coroutines.launch
 
 @Composable
 fun ProductPage() {
@@ -159,14 +166,14 @@ fun TabScreen() {
     val tabs = listOf("Details", "Location", "QR")
 
     val pagerState = rememberPagerState(initialPage = tabIndex)
-    
-    LaunchedEffect(tabIndex){
+
+    LaunchedEffect(tabIndex) {
         pagerState.animateScrollToPage(tabIndex)
     }
 
-    LaunchedEffect(pagerState.currentPage,pagerState.isScrollInProgress){
-        if(!pagerState.isScrollInProgress){
-            tabIndex=pagerState.currentPage
+    LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
+        if (!pagerState.isScrollInProgress) {
+            tabIndex = pagerState.currentPage
         }
 
     }
@@ -187,7 +194,7 @@ fun TabScreen() {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     text = { Text(title) },
-                    selected = index==tabIndex,
+                    selected = index == tabIndex,
                     onClick = {
                         tabIndex = index
                     },
@@ -208,56 +215,229 @@ fun TabScreen() {
 }
 
 
-
-
 typealias ComposableFun = @Composable () -> Unit
 
-sealed class TabItem(var title: String, var screen: ComposableFun) {
-    object DetailsScreen : TabItem("Details", { DetailsScreen() })
-    object LocationsScreen : TabItem("Location", { LocationsScreen() })
-    object QRScreen : TabItem("QR", { QRScreen() })
+sealed class TabItem(var screen: ComposableFun) {
+    object DetailsScreen : TabItem({ DetailsScreen() })
+    object LocationsScreen : TabItem({ LocationsScreen() })
+    object QRScreen : TabItem({ QRScreen() })
 }
 
 
 @Composable
 fun QRScreen() {
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-                .background(Color.Gray),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "QR")
+    val context = LocalContext.current // Получение доступа к контексту
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painter = painterResource(id = R.drawable.qr_code_for_mobile1),
+                contentDescription = "qr",
+                modifier = Modifier
+                    .size(128.dp)
+                    .clickable {
+                        Toast.makeText(context,"Click",Toast.LENGTH_LONG).show()
+                    }
+            )
+            Row() {
+                IconButton(modifier = Modifier.padding(end = 40.dp), onClick = { /*TODO*/ }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.print),
+                        contentDescription = "print"
+                    )
+                }
+                IconButton(modifier = Modifier.padding(end = 40.dp), onClick = { /*TODO*/ }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.download_qr),
+                        contentDescription = "download_qr"
+                    )
+                }
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.visibility_off),
+                        contentDescription = "visibility_off"
+                    )
+                }
             }
+        }
+
+    }
 
 
 }
 
+@Preview(showBackground = true)
 @Composable
 fun LocationsScreen() {
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(300.dp)
-        .background(Color.Gray),
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Location")
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            ButtonSaveProduct {
+//click
+            }
+
+            //recycler
+            val list = mutableListOf<ItemSchoolModel>()
+            list.add(
+                ItemSchoolModel(
+                    "ГБОУ Школа №1500",
+                    "MSK-1",
+                    "Skornyazhnyy Pereulok, 3, Moscow",
+                    "Located at:\nRoom 202: 6 units \nRoom 211: 3 units",
+                    "Total count: 9"
+                )
+            )
+            list.add(
+                ItemSchoolModel(
+                    "ГБОУ Школа №1500",
+                    "MSK-1",
+                    "Skornyazhnyy Pereulok, 3, Moscow",
+                    "Located at:Room 202: 6 units \n Room 211: 3 units",
+                    "Total count: 9"
+                )
+            )
+            list.add(
+                ItemSchoolModel(
+                    "ГБОУ Школа №1500",
+                    "MSK-1",
+                    "Skornyazhnyy Pereulok, 3, Moscow",
+                    "Located at:Room 202: 6 units \n Room 211: 3 units",
+                    "Total count: 9"
+                )
+            )
+            list.add(
+                ItemSchoolModel(
+                    "ГБОУ Школа №1500",
+                    "MSK-1",
+                    "Skornyazhnyy Pereulok, 3, Moscow",
+                    "Located at:Room 202: 6 units \n Room 211: 3 units",
+                    "Total count: 9"
+                )
+            )
+            list.add(
+                ItemSchoolModel(
+                    "ГБОУ Школа №1500",
+                    "MSK-1",
+                    "Skornyazhnyy Pereulok, 3, Moscow",
+                    "Located at:Room 202: 6 units \n Room 211: 3 units",
+                    "Total count: 9"
+                )
+            )
+
+            LazyColumn(
+                modifier = Modifier
+                    .padding(start = 24.dp, end = 24.dp, bottom = 10.dp)
+                    .background(Color.White)
+            ) {
+                items(list) { model ->
+                    ListRow(model = model)
+                }
+            }
+        }
+
+
     }
+}
 
 
-
+@Composable
+fun ButtonSaveProduct(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.purple_500)),
+        shape = RoundedCornerShape(8.dp),
+    ) {
+        Icon(imageVector = Icons.Default.Add, contentDescription = "supply")
+        Text(text = "Supply", color = Color.White)
+    }
 }
 
 @Composable
 fun DetailsScreen() {
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(300.dp)
-        .background(Color.Gray),
-        contentAlignment = Alignment.Center
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(),
     ) {
-        Text(text = "Details")
+        Column {
+            Row {
+                Text(text = "Id:", fontSize = 12.sp)
+                Text(text = "123", fontSize = 12.sp)
+            }
+            Row {
+                Text(text = "Category:", fontSize = 12.sp)
+                Text(text = "Monitor", fontSize = 12.sp)
+            }
+            Row {
+                Text(text = "Description: ", fontSize = 12.sp)
+                Text(
+                    text = "Multiline text multiline text Multiline textMultiline textMultiline text Multiline text Multiline text Multiline text",
+                    fontSize = 12.sp
+                )
+            }
+            Row {
+                Text(text = "Inventory number: A111", fontSize = 12.sp)
+                Text(text = "A111", fontSize = 12.sp)
+            }
+        }
+
     }
 
 
 }
+
+@Composable
+fun ListRow(model: ItemSchoolModel) {
+    Column(
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .padding(2.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .wrapContentHeight()
+            .fillMaxWidth()
+            .background(colorResource(id = R.color.blue)),
+    ) {
+        Text(
+            modifier = Modifier.padding(start = 12.dp, top = 9.dp, bottom = 2.dp, end = 70.dp),
+            text = model.nameSchool,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White
+        )
+        Text(
+            modifier = Modifier.padding(start = 12.dp, bottom = 2.dp, end = 70.dp),
+            text = model.region,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White
+        )
+        Text(
+            modifier = Modifier.padding(start = 12.dp, bottom = 2.dp, end = 70.dp),
+            text = model.locatedAt,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White
+        )
+        Text(
+            modifier = Modifier.padding(start = 12.dp, bottom = 2.dp, end = 70.dp),
+            text = model.totalCount,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White
+        )
+    }
+}
+
+data class ItemSchoolModel(
+    val nameSchool: String,
+    val region: String,
+    val adress: String,
+    val locatedAt: String,
+    val totalCount: String,
+)
