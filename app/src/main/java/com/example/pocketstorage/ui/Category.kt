@@ -1,6 +1,5 @@
 package com.example.pocketstorage.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,10 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,23 +26,28 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +55,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pocketstorage.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun Inventory() {
@@ -61,95 +66,147 @@ fun Inventory() {
 @Preview(showBackground = true)
 @Composable
 fun InventoryScreen() {
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
-    Column(
+    Scaffold(
         modifier = Modifier.fillMaxSize()
-    ) {
-
-        Row(
-            modifier = Modifier
-                .padding(top = 56.dp, start = 24.dp, bottom = 24.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+    ) { contentPadding ->
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
 
+            Row(
+                modifier = Modifier
+                    .padding(top = 56.dp, start = 24.dp, bottom = 24.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
-            Box(Modifier.weight(1f)) {
-                TextFieldSearchProductName(
-                    modifier = Modifier
-                        .padding(end = 24.dp)
-                        .fillMaxWidth(),
-                    label = {
-                        Text(
-                            text = "product name or id",
-                            color = colorResource(id = R.color.gray)
+
+                Box(Modifier.weight(1f)) {
+                    TextFieldSearchProductName(
+                        modifier = Modifier
+                            .padding(end = 24.dp)
+                            .fillMaxWidth(),
+                        label = {
+                            Text(
+                                text = "product name or id",
+                                color = colorResource(id = R.color.gray)
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "SearchById"
+                            )
+                        },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = colorResource(id = R.color.blue),
+                            unfocusedBorderColor = colorResource(id = R.color.gray)
                         )
-                    },
-                    leadingIcon = {
+                    )
+                }
+
+            }
+
+            Row(
+                modifier = Modifier
+                    .padding(start = 24.dp, bottom = 16.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+
+                ButtonAddCategory(
+                    modifier = Modifier.wrapContentWidth(),
+                    rowContent = {
                         Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "SearchById"
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add category",
+                            modifier = Modifier.padding(end = 15.dp)
                         )
+                        Text(text = "Add category", fontSize = 16.sp)
                     },
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = colorResource(id = R.color.blue),
-                        unfocusedBorderColor = colorResource(id = R.color.gray)
-                    )
+                    onClick = {
+                        showBottomSheet = true
+                    }
                 )
+
+            }
+
+            //recycler
+            val list = mutableListOf<CategoryModel>()
+            list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
+            list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
+            list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
+            list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
+            list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
+            list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
+            list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
+            list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
+
+            LazyColumn(
+                modifier = Modifier
+                    .padding(start = 24.dp, end = 24.dp)
+                    .background(Color.White)
+            ) {
+                items(list) { model ->
+                    MyScreen()
+                }
             }
 
         }
 
-        Row(
-            modifier = Modifier
-                .padding(start = 24.dp, bottom = 16.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-
-            ButtonInventoryScreen(
-                modifier = Modifier.wrapContentWidth(),
-                rowContent = {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add category",
-                        modifier = Modifier.padding(end = 15.dp)
-                    )
-                    Text(text = "Add category", fontSize = 16.sp)
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                modifier = Modifier
+                    .wrapContentWidth(align = Alignment.CenterHorizontally)
+                    .height(400.dp),
+                onDismissRequest = {
+                    showBottomSheet = false
                 },
-                onClick = { /* Обработчик нажатия кнопки */ }
-            )
-
-        }
-
-        //recycler
-        val list = mutableListOf<CategoryModel>()
-        list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
-        list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
-        list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
-        list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
-        list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
-        list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
-        list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
-        list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
-
-        LazyColumn(
-            modifier = Modifier
-                .padding(start = 24.dp, end = 24.dp)
-                .background(Color.White)
-        ) {
-            items(list) { model ->
-               MyScreen()
+                sheetState = sheetState
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Sheet content
+                    Text("New category", fontSize = 20.sp)
+                    TextFieldSearchProductName(
+                        modifier = Modifier.wrapContentWidth().padding(top = 24.dp, bottom = 38.dp),
+                        label = { Text(text = "name") },
+                        leadingIcon = { /*TODO*/ },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = colorResource(id = R.color.blue),
+                            unfocusedBorderColor = colorResource(id = R.color.gray)
+                        )
+                    )
+                    ButtonAddCategory(
+                        modifier = Modifier.wrapContentWidth(),
+                        rowContent = { Text(text = "Save", fontSize = 16.sp) },
+                        onClick = {
+                            // Click
+                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                if (!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
-
     }
-
-
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+
+
+
 @Composable
 fun TextFieldSearchProductName(
     modifier: Modifier,
@@ -170,7 +227,7 @@ fun TextFieldSearchProductName(
 
 
 @Composable
-fun ButtonInventoryScreen(
+fun ButtonAddCategory(
     modifier: Modifier,
     rowContent: @Composable () -> Unit,
     onClick: () -> Unit,
@@ -189,42 +246,6 @@ fun ButtonInventoryScreen(
     }
 }
 
-@Composable
-fun ListRow(model: CategoryModel) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(2.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .wrapContentHeight()
-            .fillMaxWidth()
-            .background(colorResource(id = R.color.blue_light)),
-    ) {
-        Image(
-            painter = painterResource(id = model.image),
-            contentDescription = "",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(100.dp)
-                .padding(5.dp)
-        )
-        Column {
-            Text(
-                text = model.name,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
-            Text(
-                text = model.countProduct,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
-        }
-
-    }
-}
 
 data class CategoryModel(val name: String, val image: Int, val countProduct: String)
 data class ItemsCategoryModel(val nameProduct: String)
@@ -290,7 +311,7 @@ fun ExpandableListItem(
                     .size(width = 300.dp, height = 150.dp)
                     .padding(horizontal = 8.dp)
                     .verticalScroll(state)
-                    ) {
+            ) {
                 items.forEach { item ->
                     Text(
                         text = item.nameProduct,
@@ -312,7 +333,7 @@ fun MyScreen() {
     val list = mutableListOf<CategoryModel>()
     list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
 
-    Column  {
+    Column {
         // Список расширяемых элементов
         list.forEach { item ->
             ExpandableListItem(
@@ -325,7 +346,8 @@ fun MyScreen() {
                     ItemsCategoryModel("Philiphs 241V8L"),
                     ItemsCategoryModel("Philiphs 241V8L"),
                     ItemsCategoryModel("Philiphs 241V8L"),
-                    ItemsCategoryModel("Philiphs 241V8L"),),
+                    ItemsCategoryModel("Philiphs 241V8L"),
+                ),
                 onItemClick = { subitem ->
                     if (selectedItems.contains(subitem)) {
                         selectedItems.remove(subitem)
@@ -337,4 +359,31 @@ fun MyScreen() {
         }
 
     }
+}
+
+@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ModalBottom() {
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+
+    ModalBottomSheet(
+        onDismissRequest = { showBottomSheet = true },
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(text = "New category")
+        TextFieldSearchProductName(
+            modifier = Modifier.wrapContentWidth(),
+            label = { /*TODO*/ },
+            leadingIcon = { /*TODO*/ },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = colorResource(id = R.color.blue),
+                unfocusedBorderColor = colorResource(id = R.color.gray),
+            )
+        )
+
+    }
+
 }
