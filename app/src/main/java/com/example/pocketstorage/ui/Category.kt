@@ -1,5 +1,6 @@
 package com.example.pocketstorage.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +28,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -58,21 +58,22 @@ import com.example.pocketstorage.R
 import kotlinx.coroutines.launch
 
 @Composable
-fun Inventory() {
-    InventoryScreen()
+fun Category() {
+    CategoryScreen()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun InventoryScreen() {
+fun CategoryScreen() {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize()
-    ) { contentPadding ->
+    ) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -86,13 +87,13 @@ fun InventoryScreen() {
 
 
                 Box(Modifier.weight(1f)) {
-                    TextFieldSearchProductName(
+                    TextFieldSearchCategory(
                         modifier = Modifier
                             .padding(end = 24.dp)
                             .fillMaxWidth(),
                         label = {
                             Text(
-                                text = "product name or id",
+                                text = "category",
                                 color = colorResource(id = R.color.gray)
                             )
                         },
@@ -102,9 +103,9 @@ fun InventoryScreen() {
                                 contentDescription = "SearchById"
                             )
                         },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = colorResource(id = R.color.blue),
-                            unfocusedBorderColor = colorResource(id = R.color.gray)
+                            unfocusedBorderColor = colorResource(id = R.color.gray),
                         )
                     )
                 }
@@ -152,7 +153,7 @@ fun InventoryScreen() {
                     .padding(start = 24.dp, end = 24.dp)
                     .background(Color.White)
             ) {
-                items(list) { model ->
+                items(list) { 
                     MyScreen()
                 }
             }
@@ -176,8 +177,10 @@ fun InventoryScreen() {
                 ) {
                     // Sheet content
                     Text("New category", fontSize = 20.sp)
-                    TextFieldSearchProductName(
-                        modifier = Modifier.wrapContentWidth().padding(top = 24.dp, bottom = 38.dp),
+                    TextFieldSearchCategory(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .padding(top = 24.dp, bottom = 38.dp),
                         label = { Text(text = "name") },
                         leadingIcon = { /*TODO*/ },
                         colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -208,7 +211,7 @@ fun InventoryScreen() {
 
 
 @Composable
-fun TextFieldSearchProductName(
+fun TextFieldSearchCategory(
     modifier: Modifier,
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
@@ -365,8 +368,6 @@ fun MyScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModalBottom() {
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
@@ -374,7 +375,7 @@ fun ModalBottom() {
         shape = RoundedCornerShape(8.dp)
     ) {
         Text(text = "New category")
-        TextFieldSearchProductName(
+        TextFieldSearchCategory(
             modifier = Modifier.wrapContentWidth(),
             label = { /*TODO*/ },
             leadingIcon = { /*TODO*/ },
