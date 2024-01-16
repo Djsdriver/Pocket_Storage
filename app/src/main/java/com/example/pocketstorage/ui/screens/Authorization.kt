@@ -44,8 +44,7 @@ fun Authorization() {
 @Composable
 fun TextMainApp(nameApp: String) {
     Text(
-        modifier = Modifier
-            .padding(top = 80.dp, bottom = 50.dp),
+        modifier = Modifier.padding(top = 80.dp, bottom = 50.dp),
         text = nameApp,
         color = Color.Black,
         fontSize = 26.sp
@@ -99,7 +98,7 @@ fun ButtonLogInAuthorizationApp(onClick: () -> Unit) {
 
     Button(
         onClick = { onClick },
-        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.blue)),
+        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.RetroBlue)),
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
             .padding(bottom = 24.dp)
@@ -121,11 +120,10 @@ fun ButtonContinueApp(onClick: () -> Unit) {
     OutlinedButton(
         onClick = { onClick },
         shape = RoundedCornerShape(8.dp),
-        modifier = Modifier
-            .size(height = 48.dp, width = 312.dp),
-        border = BorderStroke(2.dp, colorResource(id = R.color.blue))
+        modifier = Modifier.size(height = 48.dp, width = 312.dp),
+        border = BorderStroke(2.dp, colorResource(id = R.color.RetroBlue))
     ) {
-        Text(text = "Continue without registration", color = colorResource(R.color.blue))
+        Text(text = "Continue without registration", color = colorResource(R.color.RetroBlue))
 
     }
 }
@@ -140,17 +138,15 @@ fun AuthorizationScreen() {
 
         TextFieldAuthorizationApp(
             textHint = "Email",
-            color = colorResource(R.color.gray),
-            modifier = Modifier
-                .padding(bottom = 10.dp),
+            color = colorResource(R.color.SpanishGrey),
+            modifier = Modifier.padding(bottom = 10.dp),
             keyOption = KeyboardOptions(keyboardType = KeyboardType.Email)
         ) { Icon(imageVector = Icons.Default.Person, contentDescription = "emailIcon") }
 
         TextFieldAuthorizationApp(
             textHint = "Password",
-            color = colorResource(R.color.gray),
-            modifier = Modifier
-                .padding(bottom = 36.dp),
+            color = colorResource(R.color.SpanishGrey),
+            modifier = Modifier.padding(bottom = 36.dp),
             keyOption = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = PasswordVisualTransformation()
         ) { Icon(imageVector = Icons.Default.Lock, contentDescription = "emailIcon") }
@@ -187,17 +183,15 @@ fun PreviewAuthorization() {
 
         TextFieldAuthorizationApp(
             textHint = "Email",
-            color = colorResource(R.color.gray),
-            modifier = Modifier
-                .padding(bottom = 10.dp),
+            color = colorResource(R.color.SpanishGrey),
+            modifier = Modifier.padding(bottom = 10.dp),
             keyOption = KeyboardOptions(keyboardType = KeyboardType.Email)
         ) { Icon(imageVector = Icons.Default.Person, contentDescription = "emailIcon") }
 
         TextFieldAuthorizationApp(
             textHint = "Password",
-            color = colorResource(R.color.gray),
-            modifier = Modifier
-                .padding(bottom = 36.dp),
+            color = colorResource(R.color.SpanishGrey),
+            modifier = Modifier.padding(bottom = 36.dp),
             keyOption = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = PasswordVisualTransformation()
         ) { Icon(imageVector = Icons.Default.Lock, contentDescription = "emailIcon") }
