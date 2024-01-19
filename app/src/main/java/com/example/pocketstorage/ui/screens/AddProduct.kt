@@ -1,4 +1,4 @@
-package com.example.pocketstorage.ui
+package com.example.pocketstorage.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
@@ -55,7 +55,7 @@ fun addProduct() {
                 contentDescription = "back"
             )
         })*/
-    ScaffoldWithTopBar()
+    ScaffoldWithTopBarProductPage()
 
 }
 
@@ -91,7 +91,7 @@ fun ScaffoldWithTopBar() {
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
                 )
-                Category()
+                AddWithoutCategory()
                 TextFieldCreateProduct(
                     textHint = "description (optional)",
                     colorHint = colorResource(id = R.color.black),
@@ -101,7 +101,7 @@ fun ScaffoldWithTopBar() {
                         .fillMaxWidth()
                 )
 
-                ButtonSaveProduct {
+                ButtonSaveProductPage {
                     //Click
                 }
 
@@ -150,7 +150,7 @@ fun ButtonSaveProduct(onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Category() {
+fun AddWithoutCategory() {
     val moviesList = listOf(
         "Iron Man",
         "Thor: Ragnarok",
