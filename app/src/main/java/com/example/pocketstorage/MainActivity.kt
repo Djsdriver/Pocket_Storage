@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
+import com.example.pocketstorage.graphs.RootNavigationGraph
 import com.example.pocketstorage.ui.screens.Category
 import com.example.pocketstorage.ui.theme.PocketStorageTheme
 
@@ -19,7 +21,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Category()
+                    RootNavigationGraph(navController = rememberNavController())
                 }
             }
         }
