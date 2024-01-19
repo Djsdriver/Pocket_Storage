@@ -1,7 +1,6 @@
-package com.example.pocketstorage.ui
+package com.example.pocketstorage.ui.screens
 
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,9 +21,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,10 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,13 +63,13 @@ fun BuildingScreen() {
 
 
             Box(Modifier.weight(1f)) {
-                TextFieldSearchProductName(
+                TextFieldSearchBuildingName(
                     modifier = Modifier
                         .fillMaxWidth(),
                     label = {
                         Text(
                             text = "building",
-                            color = colorResource(id = R.color.gray)
+                            color = colorResource(id = R.color.SpanishGrey)
                         )
                     },
                     leadingIcon = {
@@ -83,9 +78,9 @@ fun BuildingScreen() {
                             contentDescription = "SearchById"
                         )
                     },
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = colorResource(id = R.color.blue),
-                        unfocusedBorderColor = colorResource(id = R.color.gray)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colorResource(id = R.color.RetroBlue),
+                        unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                     )
                 )
             }
@@ -99,7 +94,7 @@ fun BuildingScreen() {
         ) {
 
 
-            ButtonInventoryScreen(
+            ButtonBuildingScreen(
                 modifier = Modifier.wrapContentWidth(),
                 rowContent = {
                     Icon(
@@ -137,7 +132,7 @@ fun BuildingScreen() {
                 .background(Color.White)
         ) {
             items(list) { model ->
-                ListRow(model = model)
+                ListRowBuilding(model = model)
             }
         }
 
@@ -146,19 +141,19 @@ fun BuildingScreen() {
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun TextFieldSearchProductName(
+fun TextFieldSearchBuildingName(
     modifier: Modifier,
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
     colors: TextFieldColors
 ) {
-    var textIdInventory by rememberSaveable { mutableStateOf("") }
+    var state by rememberSaveable { mutableStateOf("") }
     OutlinedTextField(
         modifier = modifier,
-        value = textIdInventory,
-        onValueChange = { textIdInventory = it },
+        value = state,
+        onValueChange = { state = it },
         label = label,
         leadingIcon = leadingIcon,
         colors = colors
@@ -167,7 +162,7 @@ fun TextFieldSearchProductName(
 
 
 @Composable
-fun ButtonInventoryScreen(
+fun ButtonBuildingScreen(
     modifier: Modifier,
     rowContent: @Composable () -> Unit,
     onClick: () -> Unit,
@@ -175,7 +170,7 @@ fun ButtonInventoryScreen(
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.blue)),
+        colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.RetroBlue)),
         modifier = modifier,
     ) {
         Row(
@@ -188,14 +183,14 @@ fun ButtonInventoryScreen(
 }
 
 @Composable
-fun ListRow(model: BuildingModel) {
+fun ListRowBuilding(model: BuildingModel) {
     Column(
         modifier = Modifier
             .padding(2.dp)
             .clip(RoundedCornerShape(8.dp))
             .wrapContentHeight()
             .fillMaxWidth()
-            .background(colorResource(id = R.color.blue_light)),
+            .background(colorResource(id = R.color.AdamantineBlue)),
     ) {
         Text(
             modifier = Modifier.padding(start = 12.dp, top = 8.dp),

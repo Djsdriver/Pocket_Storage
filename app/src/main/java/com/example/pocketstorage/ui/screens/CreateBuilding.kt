@@ -1,4 +1,4 @@
-package com.example.pocketstorage
+package com.example.pocketstorage.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
@@ -16,10 +16,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,11 +32,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.pocketstorage.R
 
 
 @Composable
 fun CreateBuilding() {
-    ScaffoldWithTopBar()
+    ScaffoldWithTopBarCreatingBuilding()
 }
 
 
@@ -44,7 +45,7 @@ fun CreateBuilding() {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 @Preview(showBackground = true)
-fun ScaffoldWithTopBar() {
+fun ScaffoldWithTopBarCreatingBuilding() {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -74,12 +75,12 @@ fun ScaffoldWithTopBar() {
                         label = {
                             Text(
                                 text = "name",
-                                color = colorResource(id = R.color.gray)
+                                color = colorResource(id = R.color.SpanishGrey)
                             )
                         },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = colorResource(id = R.color.blue),
-                            unfocusedBorderColor = colorResource(id = R.color.gray)
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colorResource(id = R.color.RetroBlue),
+                            unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         )
                     )
                     TextFieldCreateBuilding(
@@ -88,12 +89,12 @@ fun ScaffoldWithTopBar() {
                         label = {
                             Text(
                                 text = "address",
-                                color = colorResource(id = R.color.gray)
+                                color = colorResource(id = R.color.SpanishGrey)
                             )
                         },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = colorResource(id = R.color.blue),
-                            unfocusedBorderColor = colorResource(id = R.color.gray)
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colorResource(id = R.color.RetroBlue),
+                            unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         )
                     )
                     TextFieldCreateBuilding(
@@ -102,12 +103,12 @@ fun ScaffoldWithTopBar() {
                         label = {
                             Text(
                                 text = "short code (ex: MSK-1)",
-                                color = colorResource(id = R.color.gray)
+                                color = colorResource(id = R.color.SpanishGrey)
                             )
                         },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = colorResource(id = R.color.blue),
-                            unfocusedBorderColor = colorResource(id = R.color.gray)
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colorResource(id = R.color.RetroBlue),
+                            unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         )
                     )
 
@@ -125,7 +126,7 @@ fun ScaffoldWithTopBar() {
 fun ButtonSaveBuilding(onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.purple_500)),
+        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.RetroBlue)),
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
             .padding(top = 200.dp)
@@ -142,11 +143,11 @@ fun TextFieldCreateBuilding(
     label: @Composable () -> Unit,
     colors: TextFieldColors
 ) {
-    var textId by rememberSaveable { mutableStateOf("") }
+    var state by rememberSaveable { mutableStateOf("") }
     OutlinedTextField(
         modifier = modifier,
-        value = textId,
-        onValueChange = { textId = it },
+        value = state,
+        onValueChange = { state = it },
         label = label,
         colors = colors
     )

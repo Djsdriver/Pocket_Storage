@@ -1,4 +1,4 @@
-package com.example.pocketstorage.screen
+package com.example.pocketstorage.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -7,13 +7,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -70,14 +67,14 @@ fun InventoryScreen() {
 
 
             Box(Modifier.weight(1f)) {
-                TextFieldSearchProductName(
+                TextFieldSearchInventoryNameOrId(
                     modifier = Modifier
                         .padding(end = 24.dp)
                         .fillMaxWidth(),
                     label = {
                         Text(
                             text = "product name or id",
-                            color = colorResource(id = R.color.gray)
+                            color = colorResource(id = R.color.SpanishGrey)
                         )
                     },
                     leadingIcon = {
@@ -87,8 +84,8 @@ fun InventoryScreen() {
                         )
                     },
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = colorResource(id = R.color.blue),
-                        unfocusedBorderColor = colorResource(id = R.color.gray)
+                        focusedBorderColor = colorResource(id = R.color.SpanishGrey),
+                        unfocusedBorderColor = colorResource(id = R.color.SpanishGrey)
                     )
                 )
             }
@@ -195,7 +192,7 @@ fun InventoryScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TextFieldSearchProductName(
+fun TextFieldSearchInventoryNameOrId(
     modifier: Modifier,
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
@@ -234,7 +231,7 @@ fun ButtonInventoryScreen(
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.blue)),
+        colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.RetroBlue)),
         modifier = modifier,
     ) {
         Row(
@@ -255,7 +252,7 @@ fun ListRow(model: InventoryModel) {
             .clip(RoundedCornerShape(8.dp))
             .wrapContentHeight()
             .fillMaxWidth()
-            .background(colorResource(id = R.color.blue_light)),
+            .background(colorResource(id = R.color.AdamantineBlue)),
     ) {
         Image(
             painter = painterResource(id = model.image),

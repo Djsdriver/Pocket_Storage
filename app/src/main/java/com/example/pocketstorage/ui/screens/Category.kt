@@ -1,4 +1,4 @@
-package com.example.pocketstorage.ui
+package com.example.pocketstorage.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -33,7 +33,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -94,7 +93,7 @@ fun CategoryScreen() {
                         label = {
                             Text(
                                 text = "category",
-                                color = colorResource(id = R.color.gray)
+                                color = colorResource(id = R.color.SpanishGrey)
                             )
                         },
                         leadingIcon = {
@@ -104,8 +103,8 @@ fun CategoryScreen() {
                             )
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = colorResource(id = R.color.blue),
-                            unfocusedBorderColor = colorResource(id = R.color.gray),
+                            focusedBorderColor = colorResource(id = R.color.RetroBlue),
+                            unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         )
                     )
                 }
@@ -120,7 +119,7 @@ fun CategoryScreen() {
             ) {
 
 
-                ButtonAddCategory(
+                ButtonForTheCategoryScreen(
                     modifier = Modifier.wrapContentWidth(),
                     rowContent = {
                         Icon(
@@ -153,8 +152,8 @@ fun CategoryScreen() {
                     .padding(start = 24.dp, end = 24.dp)
                     .background(Color.White)
             ) {
-                items(list) { 
-                    MyScreen()
+                items(list) {
+                    ProductsOfTheCategories()
                 }
             }
 
@@ -177,20 +176,33 @@ fun CategoryScreen() {
                 ) {
                     // Sheet content
                     Text("New category", fontSize = 20.sp)
-                    TextFieldSearchCategory(
+                    TextFieldSearchCategoryWithoutIcon(
                         modifier = Modifier
                             .wrapContentWidth()
-                            .padding(top = 24.dp, bottom = 38.dp),
+                            .padding(top = 24.dp),
                         label = { Text(text = "name") },
-                        leadingIcon = { /*TODO*/ },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = colorResource(id = R.color.blue),
-                            unfocusedBorderColor = colorResource(id = R.color.gray)
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colorResource(id = R.color.RetroBlue),
+                            unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         )
                     )
-                    ButtonAddCategory(
+                    Text(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .padding(bottom = 38.dp),
+                        text = "*this category already exists",
+                        fontSize = 16.sp,
+                        color = colorResource(
+                            id = R.color.error
+                        )
+                    )
+                    ButtonForTheCategoryScreen(
                         modifier = Modifier.wrapContentWidth(),
-                        rowContent = { Text(text = "Save", fontSize = 16.sp) },
+                        rowContent = {
+                            Column {
+                                Text(text = "Save", fontSize = 16.sp)
+                            }
+                        },
                         onClick = {
                             // Click
                             scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -205,9 +217,6 @@ fun CategoryScreen() {
         }
     }
 }
-
-
-
 
 
 @Composable
@@ -228,9 +237,25 @@ fun TextFieldSearchCategory(
     )
 }
 
+@Composable
+fun TextFieldSearchCategoryWithoutIcon(
+    modifier: Modifier,
+    label: @Composable () -> Unit,
+    colors: TextFieldColors
+) {
+    var textIdInventory by rememberSaveable { mutableStateOf("") }
+    OutlinedTextField(
+        modifier = modifier,
+        value = textIdInventory,
+        onValueChange = { textIdInventory = it },
+        label = label,
+        colors = colors
+    )
+}
+
 
 @Composable
-fun ButtonAddCategory(
+fun ButtonForTheCategoryScreen(
     modifier: Modifier,
     rowContent: @Composable () -> Unit,
     onClick: () -> Unit,
@@ -238,7 +263,7 @@ fun ButtonAddCategory(
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.blue)),
+        colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.RetroBlue)),
         modifier = modifier,
     ) {
         Row(
@@ -270,7 +295,7 @@ fun ExpandableListItem(
                 .clickable { expanded = !expanded }
                 .padding(bottom = 8.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(colorResource(id = R.color.blue_light))
+                .background(colorResource(id = R.color.AdamantineBlue))
         ) {
             Icon(
                 painter = painterResource(id = model.image),
@@ -331,7 +356,7 @@ fun ExpandableListItem(
 
 @Preview(showBackground = true)
 @Composable
-fun MyScreen() {
+fun ProductsOfTheCategories() {
     val selectedItems = remember { mutableStateListOf<String>() }
     val list = mutableListOf<CategoryModel>()
     list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
@@ -364,27 +389,4 @@ fun MyScreen() {
     }
 }
 
-@Preview(showBackground = true)
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ModalBottom() {
-    var showBottomSheet by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(
-        onDismissRequest = { showBottomSheet = true },
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Text(text = "New category")
-        TextFieldSearchCategory(
-            modifier = Modifier.wrapContentWidth(),
-            label = { /*TODO*/ },
-            leadingIcon = { /*TODO*/ },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = colorResource(id = R.color.blue),
-                unfocusedBorderColor = colorResource(id = R.color.gray),
-            )
-        )
-
-    }
-
-}

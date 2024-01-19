@@ -1,4 +1,4 @@
-package com.example.pocketstorage.ui
+package com.example.pocketstorage.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -48,7 +48,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -70,7 +69,7 @@ fun ProductPage() {
 @Composable
 fun InfoProductInfo() {
     PocketStorageTheme { // Обернуть в PocketStorageTheme
-        ScaffoldWithTopBar()
+        ScaffoldWithTopBarProductPage()
     }
 }
 
@@ -78,14 +77,14 @@ fun InfoProductInfo() {
 @Composable
 fun InfoProductInfoPreview() {
     PocketStorageTheme { // Обернуть в PocketStorageTheme
-        ScaffoldWithTopBar()
+        ScaffoldWithTopBarProductPage()
     }
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScaffoldWithTopBar() {
+fun ScaffoldWithTopBarProductPage() {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -136,7 +135,7 @@ fun DashedBorderWithImage() {
         width = 2f,
         pathEffect = PathEffect.dashPathEffect(floatArrayOf(30f, 30f), 0f)
     )
-    val blueColor = colorResource(id = R.color.blue)
+    val blueColor = colorResource(id = R.color.AdamantineBlue)
     Box(
         Modifier
             .fillMaxWidth()
@@ -165,15 +164,16 @@ fun TabScreen() {
 
     val tabs = listOf("Details", "Location", "QR")
 
-    val pagerState = rememberPagerState(initialPage = tabIndex)
+
+    val state = rememberPagerState(pageCount = { 3 })
 
     LaunchedEffect(tabIndex) {
-        pagerState.animateScrollToPage(tabIndex)
+        state.animateScrollToPage(tabIndex)
     }
 
-    LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
-        if (!pagerState.isScrollInProgress) {
-            tabIndex = pagerState.currentPage
+    LaunchedEffect(state.currentPage, state.isScrollInProgress) {
+        if (!state.isScrollInProgress) {
+            tabIndex = state.currentPage
         }
 
     }
@@ -183,7 +183,7 @@ fun TabScreen() {
             edgePadding = (0).dp,
             selectedTabIndex = tabIndex,
             containerColor = Color.Transparent,
-            contentColor = colorResource(id = R.color.blue),
+            contentColor = colorResource(id = R.color.RetroBlue),
             indicator = {
 
             },
@@ -198,14 +198,23 @@ fun TabScreen() {
                     onClick = {
                         tabIndex = index
                     },
-                    selectedContentColor = colorResource(id = R.color.blue),
-                    unselectedContentColor = colorResource(id = R.color.gray_tab)
+                    selectedContentColor = colorResource(id = R.color.RetroBlue),
+                    unselectedContentColor = colorResource(id = R.color.SpanishGrey)
                 )
             }
         }
 
-        HorizontalPager(pageCount = tabs.size, state = pagerState) { page ->
-            when (page) {
+        //старая версия не поддерживается больше
+        /* HorizontalPager(pageCount = tabs.size, state = pagerState) { page ->
+             when (page) {
+                 0 -> TabItem.DetailsScreen.screen.invoke()
+                 1 -> TabItem.LocationsScreen.screen.invoke()
+                 2 -> TabItem.QRScreen.screen.invoke()
+             }
+         }*/
+
+        HorizontalPager(state = state) {
+            when (it) {
                 0 -> TabItem.DetailsScreen.screen.invoke()
                 1 -> TabItem.LocationsScreen.screen.invoke()
                 2 -> TabItem.QRScreen.screen.invoke()
@@ -234,12 +243,14 @@ fun QRScreen() {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(id = R.drawable.qr_code_for_mobile1),
+                painter = painterResource(id = R.drawable.qr_code_for_mobile),
                 contentDescription = "qr",
                 modifier = Modifier
                     .size(128.dp)
                     .clickable {
-                        Toast.makeText(context,"Click",Toast.LENGTH_LONG).show()
+                        Toast
+                            .makeText(context, "Click", Toast.LENGTH_LONG)
+                            .show()
                     }
             )
             Row() {
@@ -279,7 +290,7 @@ fun LocationsScreen() {
     ) {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            ButtonSaveProduct {
+            ButtonSaveProductPage {
 //click
             }
 
@@ -337,7 +348,7 @@ fun LocationsScreen() {
                     .background(Color.White)
             ) {
                 items(list) { model ->
-                    ListRow(model = model)
+                    ListRowForLocationProduct(model = model)
                 }
             }
         }
@@ -348,7 +359,7 @@ fun LocationsScreen() {
 
 
 @Composable
-fun ButtonSaveProduct(onClick: () -> Unit) {
+fun ButtonSaveProductPage(onClick: () -> Unit) {
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.purple_500)),
@@ -393,7 +404,7 @@ fun DetailsScreen() {
 }
 
 @Composable
-fun ListRow(model: ItemSchoolModel) {
+fun ListRowForLocationProduct(model: ItemSchoolModel) {
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = Modifier
@@ -401,7 +412,7 @@ fun ListRow(model: ItemSchoolModel) {
             .clip(RoundedCornerShape(8.dp))
             .wrapContentHeight()
             .fillMaxWidth()
-            .background(colorResource(id = R.color.blue)),
+            .background(colorResource(id = R.color.RetroBlue)),
     ) {
         Text(
             modifier = Modifier.padding(start = 12.dp, top = 9.dp, bottom = 2.dp, end = 70.dp),
