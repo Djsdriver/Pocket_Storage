@@ -1,5 +1,6 @@
 package com.example.pocketstorage.ui.screens
 
+import android.widget.Toast
 import androidx.annotation.DimenRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -39,10 +41,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pocketstorage.R
 
-@Composable
+/*@Composable
 fun Authorization() {
     AuthorizationScreen()
-}
+}*/
 
 @Composable
 @ReadOnlyComposable
@@ -103,7 +105,7 @@ fun TextFieldAuthorizationApp(
 fun ButtonLogInAuthorizationApp(onClick: () -> Unit) {
 
     Button(
-        onClick = { onClick },
+        onClick = { onClick() },
         colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.RetroBlue)),
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
@@ -124,7 +126,7 @@ fun ButtonLogInAuthorizationApp(onClick: () -> Unit) {
 fun ButtonContinueApp(onClick: () -> Unit) {
 
     OutlinedButton(
-        onClick = { onClick },
+        onClick = { onClick() },
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier.size(height = 48.dp, width = 312.dp),
         border = BorderStroke(2.dp, colorResource(id = R.color.RetroBlue))
@@ -135,7 +137,11 @@ fun ButtonContinueApp(onClick: () -> Unit) {
 }
 
 @Composable
-fun AuthorizationScreen() {
+fun AuthorizationScreen(
+    onClick: () -> Unit,
+    onSignUpClick: () -> Unit,
+    onForgotClick: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -163,6 +169,7 @@ fun AuthorizationScreen() {
 
         ButtonContinueApp {
             // обработка нажатия без регистрации
+            onClick()
         }
 
         Spacer(modifier = Modifier.weight(1f)) // Добавляем Spacer для занятия доступного пространства

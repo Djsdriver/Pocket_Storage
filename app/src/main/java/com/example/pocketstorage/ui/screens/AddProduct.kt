@@ -19,6 +19,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -38,14 +39,14 @@ import androidx.compose.ui.unit.dp
 import com.example.pocketstorage.R
 
 @Composable
-fun CreateProduct() {
-    addProduct()
+fun CreateProduct(onClick: () -> Unit) {
+    addProduct(onClick)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun addProduct() {
+fun addProduct(onClick: () -> Unit) {
 
     /*TopAppBar(
         title = { Text(text = "Create Product") },
@@ -55,14 +56,14 @@ fun addProduct() {
                 contentDescription = "back"
             )
         })*/
-    ScaffoldWithTopBarProductPage()
+    ScaffoldWithTopBar(onClick)
 
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ScaffoldWithTopBar() {
+fun ScaffoldWithTopBar(onClick: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -70,7 +71,9 @@ fun ScaffoldWithTopBar() {
                     Text(text = "Create Product")
                 },
                 navigationIcon = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = {
+                        onClick()
+                    }) {
                         Icon(Icons.Filled.ArrowBack, "backIcon")
                     }
                 }
@@ -101,8 +104,8 @@ fun ScaffoldWithTopBar() {
                         .fillMaxWidth()
                 )
 
-                ButtonSaveProductPage {
-                    //Click
+                ButtonSaveProduct {
+                    onClick()
                 }
 
             }
@@ -112,7 +115,6 @@ fun ScaffoldWithTopBar() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextFieldCreateProduct(
     textHint: String,
@@ -126,9 +128,9 @@ fun TextFieldCreateProduct(
         onValueChange = { text = it },
         label = { Text(text = textHint, color = colorHint) },
         shape = RoundedCornerShape(8.dp),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = colorResource(id = R.color.purple_700),
-            unfocusedBorderColor = colorResource(id = R.color.purple_500)
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colorResource(id = R.color.AdamantineBlue),
+            unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
         )
     )
 
@@ -138,7 +140,7 @@ fun TextFieldCreateProduct(
 fun ButtonSaveProduct(onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.purple_500)),
+        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.RetroBlue)),
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
             .padding(top = 200.dp)
@@ -193,8 +195,8 @@ fun AddWithoutCategory() {
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             shape = RoundedCornerShape(8.dp),
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = colorResource(id = R.color.purple_700),
-                unfocusedBorderColor = colorResource(id = R.color.purple_500)
+                focusedBorderColor = colorResource(id = R.color.AdamantineBlue),
+                unfocusedBorderColor = colorResource(id = R.color.SpanishGrey)
             )
         )
 
