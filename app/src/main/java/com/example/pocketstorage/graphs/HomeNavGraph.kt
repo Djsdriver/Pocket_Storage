@@ -5,11 +5,12 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navigation
 import com.example.pocketstorage.ui.screens.Building
 import com.example.pocketstorage.ui.screens.Category
-import com.example.pocketstorage.ui.screens.Inventory
+import com.example.pocketstorage.ui.screens.CreateBuilding
+import com.example.pocketstorage.ui.screens.CreateProduct
 import com.example.pocketstorage.ui.screens.InventoryScreen
+import com.example.pocketstorage.ui.screens.ProductPage
 
 
 @Composable
@@ -20,40 +21,55 @@ fun HomeNavGraph(navController: NavHostController) {
         startDestination = BottomBarScreen.Inventory.route
     ) {
         composable(route = BottomBarScreen.Inventory.route) {
-            InventoryScreen()
+            InventoryScreen(
+                {
+                    navController.navigate(InventoryScreenState.InfoProduct.route)
+                },
+                {
+                    navController.navigate(InventoryScreenState.CreateProduct.route)
+                }
+            )
         }
         composable(route = BottomBarScreen.Category.route) {
             Category()
         }
         composable(route = BottomBarScreen.Building.route) {
-            Building()
+            Building {
+                navController.navigate(BuildingScreenState.CreateBuilding.route)
+            }
         }
-        //detailsNavGraph(navController = navController)
+        inventoryNavGraph(navController = navController)
+        buildingNavGraph(navController = navController)
     }
 }
 
-/*fun NavGraphBuilder.detailsNavGraph(navController: NavHostController) {
-    navigation(
-        route = Graph.DETAILS,
-        startDestination = DetailsScreen.Information.route
-    ) {
-        composable(route = DetailsScreen.Information.route) {
-            ScreenContent(name = DetailsScreen.Information.route) {
-                navController.navigate(DetailsScreen.Overview.route)
-            }
-        }
-        composable(route = DetailsScreen.Overview.route) {
-            ScreenContent(name = DetailsScreen.Overview.route) {
-                navController.popBackStack(
-                    route = DetailsScreen.Information.route,
-                    inclusive = false
-                )
-            }
+fun NavGraphBuilder.inventoryNavGraph(navController: NavHostController) {
+    composable(route = InventoryScreenState.CreateProduct.route) {
+        CreateProduct {
+            navController.navigateUp()
         }
     }
-}*/
+    composable(route = InventoryScreenState.InfoProduct.route) {
+        ProductPage {
+            navController.navigateUp()
+        }
+    }
+}
 
-sealed class DetailsScreen(val route: String) {
-    data object Information : DetailsScreen(route = "INFORMATION")
-    data object Overview : DetailsScreen(route = "OVERVIEW")
+fun NavGraphBuilder.buildingNavGraph(navController: NavHostController) {
+    composable(route = BuildingScreenState.CreateBuilding.route) {
+        CreateBuilding {
+            navController.navigateUp()
+        }
+    }
+
+}
+
+sealed class InventoryScreenState(val route: String) {
+    data object CreateProduct : InventoryScreenState(route = "CREATE_PRODUCT")
+    data object InfoProduct : InventoryScreenState(route = "INFO_PRODUCT")
+}
+
+sealed class BuildingScreenState(val route: String) {
+    data object CreateBuilding : BuildingScreenState(route = "CREATE_BUILDING")
 }

@@ -36,16 +36,16 @@ import com.example.pocketstorage.R
 
 
 @Composable
-fun CreateBuilding() {
-    ScaffoldWithTopBarCreatingBuilding()
+fun CreateBuilding(onClick: () -> Unit) {
+    ScaffoldWithTopBarCreatingBuilding(onClick)
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-@Preview(showBackground = true)
-fun ScaffoldWithTopBarCreatingBuilding() {
+//@Preview(showBackground = true)
+fun ScaffoldWithTopBarCreatingBuilding(onClick: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -53,7 +53,7 @@ fun ScaffoldWithTopBarCreatingBuilding() {
                     Text(text = "Create Building")
                 },
                 navigationIcon = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = { onClick() }) {
                         Icon(Icons.Filled.ArrowBack, "backIcon")
                     }
                 }
@@ -67,11 +67,12 @@ fun ScaffoldWithTopBarCreatingBuilding() {
                     .fillMaxSize()
             ) {
                 Spacer(modifier = Modifier.height(24.dp)) // Добавлен Spacer с высотой 24dp
-                Column(horizontalAlignment = Alignment.CenterHorizontally){
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
                     TextFieldCreateBuilding(
                         modifier = Modifier
-                            .fillMaxWidth().padding(bottom = 8.dp),
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
                         label = {
                             Text(
                                 text = "name",
@@ -85,7 +86,8 @@ fun ScaffoldWithTopBarCreatingBuilding() {
                     )
                     TextFieldCreateBuilding(
                         modifier = Modifier
-                            .fillMaxWidth().padding(bottom = 8.dp),
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
                         label = {
                             Text(
                                 text = "address",
@@ -113,7 +115,7 @@ fun ScaffoldWithTopBarCreatingBuilding() {
                     )
 
                     ButtonSaveBuilding {
-                        //Click
+                        onClick()
                     }
                 }
             }

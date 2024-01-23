@@ -41,14 +41,14 @@ import androidx.compose.ui.unit.sp
 import com.example.pocketstorage.R
 
 @Composable
-fun Building() {
-    BuildingScreen()
+fun Building(onClick: () -> Unit) {
+    BuildingScreen(onClick)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun BuildingScreen() {
+fun BuildingScreen(onClick: () -> Unit) {
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -105,7 +105,7 @@ fun BuildingScreen() {
                     Text(text = "Add building", fontSize = 16.sp)
                 },
                 onClick = {
-
+                    onClick()
                 }
             )
 

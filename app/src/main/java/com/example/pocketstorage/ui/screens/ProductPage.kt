@@ -59,32 +59,32 @@ import com.example.pocketstorage.R
 import com.example.pocketstorage.ui.theme.PocketStorageTheme
 
 @Composable
-fun ProductPage() {
+fun ProductPage(onClick: () -> Unit) {
     PocketStorageTheme {
-        InfoProductInfo()
+        InfoProductInfo(onClick)
     }
 }
 
 
 @Composable
-fun InfoProductInfo() {
+fun InfoProductInfo(onClick: () -> Unit) {
     PocketStorageTheme { // Обернуть в PocketStorageTheme
-        ScaffoldWithTopBarProductPage()
+        ScaffoldWithTopBarProductPage(onClick)
     }
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun InfoProductInfoPreview() {
+fun InfoProductInfoPreview(onClick: () -> Unit) {
     PocketStorageTheme { // Обернуть в PocketStorageTheme
-        ScaffoldWithTopBarProductPage()
+        ScaffoldWithTopBarProductPage(onClick)
     }
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScaffoldWithTopBarProductPage() {
+fun ScaffoldWithTopBarProductPage(onClick: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -92,7 +92,9 @@ fun ScaffoldWithTopBarProductPage() {
                     Text(text = "Product")
                 },
                 navigationIcon = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = {
+                        onClick()
+                    }) {
                         Icon(Icons.Filled.ArrowBack, "backIcon")
                     }
                 }
