@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.pocketstorage.ui.screens.Building
 import com.example.pocketstorage.ui.screens.Category
+import com.example.pocketstorage.ui.screens.Auth
 import com.example.pocketstorage.ui.screens.CreateBuilding
 import com.example.pocketstorage.ui.screens.CreateProduct
 import com.example.pocketstorage.ui.screens.InventoryScreen
@@ -62,8 +63,8 @@ fun NavGraphBuilder.buildingNavGraph(navController: NavHostController) {
             navController.navigateUp()
         }
     }
-
 }
+
 
 sealed class InventoryScreenState(val route: String) {
     data object CreateProduct : InventoryScreenState(route = "CREATE_PRODUCT")

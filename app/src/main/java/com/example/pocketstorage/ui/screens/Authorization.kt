@@ -121,6 +121,26 @@ fun ButtonLogInAuthorizationApp(onClick: () -> Unit) {
 
     }
 }
+@Composable
+fun ButtonSignUpAuthorizationApp(onClick: () -> Unit) {
+
+    Button(
+        onClick = { onClick() },
+        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.RetroBlue)),
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .padding(bottom = 24.dp)
+            .size(height = 48.dp, width = 218.dp)
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.baseline_login_24),
+            contentDescription = "logIn",
+            modifier = Modifier.padding(end = 10.dp)
+        )
+        Text(text = "Sign up", color = Color.White)
+
+    }
+}
 
 @Composable
 fun ButtonContinueApp(onClick: () -> Unit) {
@@ -165,6 +185,9 @@ fun AuthorizationScreen(
 
         ButtonLogInAuthorizationApp {
             //обработка нажатия с регистрацией
+        }
+        ButtonSignUpAuthorizationApp {
+            onSignUpClick()
         }
 
         ButtonContinueApp {

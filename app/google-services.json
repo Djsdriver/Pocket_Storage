@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "959111245365",
+    "project_id": "testfirebase-62c48",
+    "storage_bucket": "testfirebase-62c48.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:959111245365:android:10821f733106bdececcb7c",
+        "android_client_info": {
+          "package_name": "com.example.pocketstorage"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBC2bKOgu3qGhSsiyurjJ4CQ66TOXNU08g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

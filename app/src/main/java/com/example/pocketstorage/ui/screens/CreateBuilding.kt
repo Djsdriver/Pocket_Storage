@@ -30,14 +30,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.pocketstorage.R
 
 
 @Composable
 fun CreateBuilding(onClick: () -> Unit) {
-    ScaffoldWithTopBarCreatingBuilding(onClick)
+    CreateBuilding(onClick)
 }
 
 
@@ -69,7 +68,7 @@ fun ScaffoldWithTopBarCreatingBuilding(onClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(24.dp)) // Добавлен Spacer с высотой 24dp
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                    TextFieldCreateBuilding(
+                    InputMailAndPass(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 8.dp),
@@ -84,7 +83,7 @@ fun ScaffoldWithTopBarCreatingBuilding(onClick: () -> Unit) {
                             unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         )
                     )
-                    TextFieldCreateBuilding(
+                    InputMailAndPass(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 8.dp),
@@ -99,7 +98,7 @@ fun ScaffoldWithTopBarCreatingBuilding(onClick: () -> Unit) {
                             unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         )
                     )
-                    TextFieldCreateBuilding(
+                    InputMailAndPass(
                         modifier = Modifier
                             .fillMaxWidth(),
                         label = {
@@ -114,7 +113,7 @@ fun ScaffoldWithTopBarCreatingBuilding(onClick: () -> Unit) {
                         )
                     )
 
-                    ButtonSaveBuilding {
+                    Create {
                         onClick()
                     }
                 }

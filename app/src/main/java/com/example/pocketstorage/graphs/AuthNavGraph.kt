@@ -4,6 +4,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.example.pocketstorage.ui.screens.Auth
 import com.example.pocketstorage.ui.screens.AuthorizationScreen
 
 
@@ -26,10 +27,12 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
             )
         }
 
-        /*composable(route = AuthScreen.SignUp.route) {
-            ScreenContent(name = AuthScreen.SignUp.route) {}
+        composable(route = AuthScreen.SignUp.route) {
+            Auth() {
+                navController.navigateUp()
+            }
         }
-        composable(route = AuthScreen.Forgot.route) {
+        /*composable(route = AuthScreen.Forgot.route) {
             ScreenContent(name = AuthScreen.Forgot.route) {}
         }*/
     }
