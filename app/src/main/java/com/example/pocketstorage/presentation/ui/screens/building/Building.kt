@@ -1,4 +1,4 @@
-package com.example.pocketstorage.ui.screens
+package com.example.pocketstorage.presentation.ui.screens.building
 
 
 import androidx.compose.foundation.background
@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -25,10 +26,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,18 +37,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
+import com.example.pocketstorage.presentation.ui.viewmodel.BuildingModel2
+import com.example.pocketstorage.presentation.ui.viewmodel.BuildingViewModel
+
 
 @Composable
 fun Building(onClick: () -> Unit) {
     BuildingScreen(onClick)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-//@Preview(showBackground = true)
+@Preview(showBackground = true)
+@Composable
+fun PreviewBuildingScreen() {
+    BuildingScreen(onClick = {})
+}
+
 @Composable
 fun BuildingScreen(onClick: () -> Unit) {
-
+    val viewModel = viewModel<BuildingViewModel>()
+    val persons by viewModel.filteredPersons.collectAsState()
+    val isSearching by viewModel.isSearching.collectAsState()
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -63,6 +72,7 @@ fun BuildingScreen(onClick: () -> Unit) {
 
 
             Box(Modifier.weight(1f)) {
+
                 TextFieldSearchBuildingName(
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -81,7 +91,9 @@ fun BuildingScreen(onClick: () -> Unit) {
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = colorResource(id = R.color.RetroBlue),
                         unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
-                    )
+                    ),
+                    viewModel
+
                 )
             }
 
@@ -126,15 +138,24 @@ fun BuildingScreen(onClick: () -> Unit) {
         list.add(BuildingModel("Школа № 1284", "MSK-2", "Ulanskiy Pereulok, 8, Moscow"))
         list.add(BuildingModel("Школа №57", "MSK-1", "Malyy Znamenskiy Ln, 7/10 стр. 5, Moscow"))
 
-        LazyColumn(
-            modifier = Modifier
-                .padding(start = 24.dp, end = 24.dp)
-                .background(Color.White)
-        ) {
-            items(list) { model ->
-                ListRowBuilding(model = model)
+        if (isSearching) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(start = 24.dp, end = 24.dp)
+                    .background(Color.White)
+            ) {
+                items(persons) { person ->
+                    ListRowBuilding(model = person)
+                }
             }
         }
+
 
     }
 
@@ -147,13 +168,14 @@ fun TextFieldSearchBuildingName(
     modifier: Modifier,
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
-    colors: TextFieldColors
+    colors: TextFieldColors,
+    viewModel: BuildingViewModel
 ) {
-    var state by rememberSaveable { mutableStateOf("") }
+    val searchText by viewModel.searchText.collectAsState()
     OutlinedTextField(
         modifier = modifier,
-        value = state,
-        onValueChange = { state = it },
+        value = searchText,
+        onValueChange = viewModel::onSearchTextChange,
         label = label,
         leadingIcon = leadingIcon,
         colors = colors
@@ -183,7 +205,7 @@ fun ButtonBuildingScreen(
 }
 
 @Composable
-fun ListRowBuilding(model: BuildingModel) {
+fun ListRowBuilding(model: BuildingModel2) {
     Column(
         modifier = Modifier
             .padding(2.dp)
@@ -217,3 +239,4 @@ fun ListRowBuilding(model: BuildingModel) {
 }
 
 data class BuildingModel(val nameSchool: String, val shortCode: String, val address: String)
+
