@@ -11,7 +11,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pocketstorage.graphs.RootNavigationGraph
 import com.example.pocketstorage.ui.theme.PocketStorageTheme
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
