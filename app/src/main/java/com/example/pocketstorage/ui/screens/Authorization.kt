@@ -57,6 +57,7 @@ fun Authorization() {
 @Composable
 @ReadOnlyComposable
 fun fontDimensionResource(@DimenRes id: Int) = dimensionResource(id = id).value.sp
+
 @Composable
 fun TextMainApp(nameApp: String) {
     Text(
@@ -144,7 +145,10 @@ fun ButtonContinueApp(onClick: () -> Unit) {
         modifier = Modifier.size(height = 48.dp, width = 312.dp),
         border = BorderStroke(2.dp, colorResource(id = R.color.RetroBlue))
     ) {
-        Text(text = stringResource(id = R.string.continue_without_registration), color = colorResource(R.color.RetroBlue))
+        Text(
+            text = stringResource(id = R.string.continue_without_registration),
+            color = colorResource(R.color.RetroBlue)
+        )
 
     }
 }
@@ -198,6 +202,7 @@ fun AuthorizationScreen(
         ButtonLogInAuthorizationApp(
             onClick = {
                 // обработка нажатия с регистрацией
+                onSignUpClick()
             },
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.MildGreen)),
             text = stringResource(id = R.string.sign_up),

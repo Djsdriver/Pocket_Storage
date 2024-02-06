@@ -78,7 +78,7 @@ fun RegistrationScreen(
         )
 
         ButtonLogInAuthorizationApp(
-            onClick = {},
+            onClick = { onSignUpClick() },
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.MildGreen)),
             text = stringResource(id = R.string.sign_up),
             iconResource = painterResource(id = R.drawable.account_plus)

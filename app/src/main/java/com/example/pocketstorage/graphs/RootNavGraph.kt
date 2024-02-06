@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.pocketstorage.ui.screens.Inventory
+import com.example.pocketstorage.ui.screens.RegistrationScreen
 
 
 @Composable
@@ -17,6 +18,11 @@ fun RootNavigationGraph(navController: NavHostController) {
         authNavGraph(navController = navController)
         composable(route = Graph.HOME) {
             Inventory()
+        }
+        composable(route = AuthScreen.SignUp.route) {
+            RegistrationScreen(
+                onSignUpClick = {}
+            )
         }
     }
 }
