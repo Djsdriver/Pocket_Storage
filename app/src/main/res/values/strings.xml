@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Pocket Storage</string>
+
+    //Common
+    <string name="sign_up">Sign Up</string>
+    <string name="email_or_telephone">Email or Telephone</string>
+    <string name="password">Password</string>
+
+
+    // Authorization Screen
+    <string name="log_in">Log In</string>
+    <string name="continue_without_registration">Continue without registration</string>
+    <string name="app_version">v 1.0.0</string>
+
+    // Registration Screen
+    <string name="repeat_password">Repeat Password</string>
 </resources>
