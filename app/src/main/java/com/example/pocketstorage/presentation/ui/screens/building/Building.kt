@@ -66,33 +66,24 @@ fun BuildingScreen(onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .padding(top = 56.dp, start = 24.dp, bottom = 24.dp, end = 24.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
         ) {
 
 
             Box(Modifier.weight(1f)) {
 
-                TextFieldSearchBuildingName(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    label = {
-                        Text(
-                            text = "building",
-                            color = colorResource(id = R.color.SpanishGrey)
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "SearchById"
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = colorResource(id = R.color.RetroBlue),
-                        unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
-                    ),
-                    viewModel
+                TextFieldSearchBuildingName(modifier = Modifier.fillMaxWidth(), label = {
+                    Text(
+                        text = "building", color = colorResource(id = R.color.SpanishGrey)
+                    )
+                }, leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search, contentDescription = "SearchById"
+                    )
+                }, colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = colorResource(id = R.color.RetroBlue),
+                    unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
+                ), viewModel
 
                 )
             }
@@ -106,20 +97,16 @@ fun BuildingScreen(onClick: () -> Unit) {
         ) {
 
 
-            ButtonBuildingScreen(
-                modifier = Modifier.wrapContentWidth(),
-                rowContent = {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add building",
-                        modifier = Modifier.padding(end = 15.dp)
-                    )
-                    Text(text = "Add building", fontSize = 16.sp)
-                },
-                onClick = {
-                    onClick()
-                }
-            )
+            ButtonBuildingScreen(modifier = Modifier.wrapContentWidth(), rowContent = {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add building",
+                    modifier = Modifier.padding(end = 15.dp)
+                )
+                Text(text = "Add building", fontSize = 16.sp)
+            }, onClick = {
+                onClick()
+            })
 
         }
 
@@ -155,10 +142,8 @@ fun BuildingScreen(onClick: () -> Unit) {
                 }
             }
         }
-
-
+        
     }
-
 
 }
 
@@ -175,7 +160,7 @@ fun TextFieldSearchBuildingName(
     OutlinedTextField(
         modifier = modifier,
         value = searchText,
-        onValueChange = viewModel::onSearchTextChange,
+        onValueChange = viewModel::onSearchTextChange, // тоже можно использовать такую конструкцию onValueChange = { newText-> viewModel.onSearchTextChange(newText) }
         label = label,
         leadingIcon = leadingIcon,
         colors = colors
@@ -196,8 +181,7 @@ fun ButtonBuildingScreen(
         modifier = modifier,
     ) {
         Row(
-            modifier = Modifier.wrapContentWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.wrapContentWidth(), verticalAlignment = Alignment.CenterVertically
         ) {
             rowContent()
         }
