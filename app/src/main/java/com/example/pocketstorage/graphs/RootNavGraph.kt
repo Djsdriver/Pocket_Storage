@@ -19,11 +19,6 @@ fun RootNavigationGraph(navController: NavHostController) {
         composable(route = Graph.HOME) {
             Inventory()
         }
-        composable(route = AuthScreen.SignUp.route) {
-            RegistrationScreen(
-                onSignUpClick = {}
-            )
-        }
     }
 }
 
