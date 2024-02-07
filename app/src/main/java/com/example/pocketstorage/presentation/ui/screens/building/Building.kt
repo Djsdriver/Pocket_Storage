@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -39,8 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
-import com.example.pocketstorage.presentation.ui.viewmodel.BuildingModel2
-import com.example.pocketstorage.presentation.ui.viewmodel.BuildingViewModel
+import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.BuildingModel2
+import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.BuildingViewModel
 
 
 @Composable
@@ -57,7 +56,7 @@ fun PreviewBuildingScreen() {
 @Composable
 fun BuildingScreen(onClick: () -> Unit) {
     val viewModel = viewModel<BuildingViewModel>()
-    val persons by viewModel.filteredPersons.collectAsState()
+    val buildings by viewModel.filteredPersons.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
     Column(
         modifier = Modifier.fillMaxSize()
@@ -137,7 +136,7 @@ fun BuildingScreen(onClick: () -> Unit) {
                     .padding(start = 24.dp, end = 24.dp)
                     .background(Color.White)
             ) {
-                items(persons) { person ->
+                items(buildings) { person ->
                     ListRowBuilding(model = person)
                 }
             }

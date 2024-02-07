@@ -1,4 +1,4 @@
-package com.example.pocketstorage.ui.screens
+package com.example.pocketstorage.presentation.ui.screens.inventory
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -46,8 +48,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -57,6 +61,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pocketstorage.R
 import com.example.pocketstorage.graphs.BottomBarScreen
 import com.example.pocketstorage.graphs.HomeNavGraph
+import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryModel
+import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryViewModel
 
 
 /*@Composable
@@ -75,11 +81,19 @@ fun Inventory(navController: NavHostController = rememberNavController()) {
     }
 }
 
+@Composable
+@Preview(showBackground = true)
+fun InventoryScreenPreview(){
+    InventoryScreen(onClick = {}, onClickAdd = {})
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 //@Preview(showBackground = true)
 @Composable
 fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit) {
-
+    val viewModel = viewModel<InventoryViewModel>()
+    val inventory by viewModel.filteredInventory.collectAsState()
+    val isSearch by viewModel.isSearching.collectAsState()
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -112,7 +126,8 @@ fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit) {
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         unfocusedBorderColor = colorResource(id = R.color.SpanishGrey)
-                    )
+                    ),
+                    viewModel
                 )
             }
             ImageQRScanner {
@@ -191,25 +206,24 @@ fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit) {
         )
 
         //recycler
-        val list = mutableListOf<InventoryModel>()
-        list.add(InventoryModel("HP LaserJet Pro 4003dw", R.drawable.ic_launcher_foreground))
-        list.add(InventoryModel("Logitech M110", R.drawable.ic_launcher_foreground))
-        list.add(InventoryModel("Samsung UR55", R.drawable.ic_launcher_foreground))
-        list.add(InventoryModel("HP LaserJet Pro 4003dw", R.drawable.ic_launcher_foreground))
-        list.add(InventoryModel("Logitech M110", R.drawable.ic_launcher_foreground))
-        list.add(InventoryModel("Samsung UR55", R.drawable.ic_launcher_foreground))
-        list.add(InventoryModel("HP LaserJet Pro 4003dw", R.drawable.ic_launcher_foreground))
-        list.add(InventoryModel("Logitech M110", R.drawable.ic_launcher_foreground))
-        list.add(InventoryModel("Samsung UR55", R.drawable.ic_launcher_foreground))
-        LazyColumn(
-            modifier = Modifier
-                .padding(start = 24.dp, end = 24.dp)
-                .background(Color.White)
-        ) {
-            items(list) { model ->
-                ListRow(onClick, model = model)
+        if (isSearch){
+            Box(modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        } else{
+            LazyColumn(
+                modifier = Modifier
+                    .padding(start = 24.dp, end = 24.dp)
+                    .background(Color.White)
+            ) {
+                items(inventory) { inventory ->
+                    ListRow(onClick, model = inventory)
+                }
             }
         }
+
 
     }
 
@@ -222,13 +236,16 @@ fun TextFieldSearchInventoryNameOrId(
     modifier: Modifier,
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
-    colors: TextFieldColors
+    colors: TextFieldColors,
+    viewModel: InventoryViewModel
 ) {
-    var textIdInventory by rememberSaveable { mutableStateOf("") }
+    val searchText by viewModel.searchText.collectAsState()
     OutlinedTextField(
         modifier = modifier,
-        value = textIdInventory,
-        onValueChange = { textIdInventory = it },
+        value = searchText,
+        onValueChange = { newText->
+            viewModel.onSearchTextChange(newText)
+        },
         label = label,
         leadingIcon = leadingIcon,
         colors = colors
@@ -298,7 +315,6 @@ fun ListRow(onClick: () -> Unit, model: InventoryModel) {
     }
 }
 
-data class InventoryModel(val name: String, val image: Int)
 
 @Composable
 fun BottomBar(navController: NavHostController) {

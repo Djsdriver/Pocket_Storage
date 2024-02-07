@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.pocketstorage.ui.screens.Inventory
+import com.example.pocketstorage.presentation.ui.screens.inventory.Inventory
 
 
 @Composable
