@@ -1,4 +1,4 @@
-package com.example.pocketstorage.presentation.ui.viewmodel
+package com.example.pocketstorage.presentation.ui.screens.building.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -76,7 +76,8 @@ BuildingModel2("Школа № 1284", "MSK-2", "Ulanskiy Pereulok, 8, Moscow"),
 BuildingModel2("Школа №57", "MSK-1", "Malyy Znamenskiy Ln, 7/10 стр. 5, Moscow"),
 BuildingModel2("ГБОУ Школа №1500", "MSK-1", "Skornyazhnyy Pereulok, 3, Moscow"),
 BuildingModel2("Школа № 1284", "MSK-2", "Ulanskiy Pereulok, 8, Moscow"),
-BuildingModel2("Школа №57", "MSK-1", "Malyy Znamenskiy Ln, 7/10 стр. 5, Moscow"))
+BuildingModel2("Школа №57", "MSK-1", "Malyy Znamenskiy Ln, 7/10 стр. 5, Moscow")
+)
 
 
 //Можно использовать такой подход через combine
