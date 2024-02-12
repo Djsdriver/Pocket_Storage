@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import com.example.pocketstorage.presentation.ui.screens.inventory.Inventory
 
 
+
 @Composable
 fun RootNavigationGraph(navController: NavHostController) {
     NavHost(

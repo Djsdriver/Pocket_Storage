@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.example.pocketstorage.ui.screens.AuthorizationScreen
+import com.example.pocketstorage.ui.screens.RegistrationScreen
 
 
 fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
@@ -23,6 +24,12 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
                 onForgotClick = {
                     navController.navigate(AuthScreen.Forgot.route)
                 }
+            )
+        }
+
+        composable(route = AuthScreen.SignUp.route) {
+            RegistrationScreen(
+                onSignUpClick = {}
             )
         }
 
