@@ -1,4 +1,4 @@
-package com.example.pocketstorage.ui.screens
+package com.example.pocketstorage.presentation.ui.screens.category
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -36,6 +37,7 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,7 +55,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
+import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryModel2
+import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -66,6 +71,11 @@ fun Category() {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun CategoryScreen() {
+
+    val viewModel = viewModel<CategoryViewModel>()
+    val categories by viewModel.filteredCategories.collectAsState()
+    val isSearching by viewModel.isSearching.collectAsState()
+
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -105,7 +115,8 @@ fun CategoryScreen() {
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = colorResource(id = R.color.RetroBlue),
                             unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
-                        )
+                        ),
+                        viewModel
                     )
                 }
 
@@ -136,27 +147,23 @@ fun CategoryScreen() {
 
             }
 
-            //recycler
-            val list = mutableListOf<CategoryModel>()
-            list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
-            list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
-            list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
-            list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
-            list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
-            list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
-            list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
-            list.add(CategoryModel("Monitor", R.drawable.ic_launcher_foreground, "Products: 4"))
-
-            LazyColumn(
-                modifier = Modifier
-                    .padding(start = 24.dp, end = 24.dp)
-                    .background(Color.White)
-            ) {
-                items(list) {
-                    ProductsOfTheCategories()
+            if (isSearching) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(start = 24.dp, end = 24.dp)
+                        .background(Color.White)
+                ) {
+                    items(categories) {
+                        ProductsOfTheCategories(it)
+                    }
                 }
             }
-
         }
 
         if (showBottomSheet) {
@@ -224,13 +231,15 @@ fun TextFieldSearchCategory(
     modifier: Modifier,
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
-    colors: TextFieldColors
+    colors: TextFieldColors,
+    viewModel: CategoryViewModel
 ) {
-    var textIdInventory by rememberSaveable { mutableStateOf("") }
+    val searchText by viewModel.searchText.collectAsState()
+
     OutlinedTextField(
         modifier = modifier,
-        value = textIdInventory,
-        onValueChange = { textIdInventory = it },
+        value = searchText,
+        onValueChange = viewModel::onSearchTextChange,
         label = label,
         leadingIcon = leadingIcon,
         colors = colors
@@ -280,7 +289,7 @@ data class ItemsCategoryModel(val nameProduct: String)
 
 @Composable
 fun ExpandableListItem(
-    model: CategoryModel,
+    model: CategoryModel2,
     items: List<ItemsCategoryModel>,
     onItemClick: (String) -> Unit
 ) {
@@ -354,38 +363,31 @@ fun ExpandableListItem(
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun ProductsOfTheCategories() {
+fun ProductsOfTheCategories(categoryModel: CategoryModel2) {
     val selectedItems = remember { mutableStateListOf<String>() }
-    val list = mutableListOf<CategoryModel>()
-    list.add(CategoryModel("Printer", R.drawable.ic_launcher_foreground, "Products: 4"))
 
     Column {
-        // Список расширяемых элементов
-        list.forEach { item ->
-            ExpandableListItem(
-                model = item,
-                items = listOf(
-                    ItemsCategoryModel("Philiphs 241V8L"),
-                    ItemsCategoryModel("Philiphs 241V8L"),
-                    ItemsCategoryModel("Philiphs 241V8L"),
-                    ItemsCategoryModel("Philiphs 241V8L"),
-                    ItemsCategoryModel("Philiphs 241V8L"),
-                    ItemsCategoryModel("Philiphs 241V8L"),
-                    ItemsCategoryModel("Philiphs 241V8L"),
-                    ItemsCategoryModel("Philiphs 241V8L"),
-                ),
-                onItemClick = { subitem ->
-                    if (selectedItems.contains(subitem)) {
-                        selectedItems.remove(subitem)
-                    } else {
-                        selectedItems.add(subitem)
-                    }
+        ExpandableListItem(
+            model = categoryModel,
+            items = listOf(
+                ItemsCategoryModel("Philiphs 241V8L"),
+                ItemsCategoryModel("Philiphs 241V8L"),
+                ItemsCategoryModel("Philiphs 241V8L"),
+                ItemsCategoryModel("Philiphs 241V8L"),
+                ItemsCategoryModel("Philiphs 241V8L"),
+                ItemsCategoryModel("Philiphs 241V8L"),
+                ItemsCategoryModel("Philiphs 241V8L"),
+                ItemsCategoryModel("Philiphs 241V8L"),
+            ),
+            onItemClick = { subitem ->
+                if (selectedItems.contains(subitem)) {
+                    selectedItems.remove(subitem)
+                } else {
+                    selectedItems.add(subitem)
                 }
-            )
-        }
-
+            }
+        )
     }
 }
 
