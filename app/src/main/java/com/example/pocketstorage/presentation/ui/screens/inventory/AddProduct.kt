@@ -1,4 +1,4 @@
-package com.example.pocketstorage.ui.screens
+package com.example.pocketstorage.presentation.ui.screens.inventory
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
@@ -34,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.pocketstorage.R
 

@@ -1,4 +1,4 @@
-package com.example.pocketstorage.ui.screens
+package com.example.pocketstorage.presentation.ui.screens.inventory
 
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi

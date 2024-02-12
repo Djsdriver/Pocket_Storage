@@ -5,12 +5,12 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.pocketstorage.ui.screens.Building
+import com.example.pocketstorage.presentation.ui.screens.building.Building
 import com.example.pocketstorage.ui.screens.Category
-import com.example.pocketstorage.ui.screens.CreateBuilding
-import com.example.pocketstorage.ui.screens.CreateProduct
-import com.example.pocketstorage.ui.screens.InventoryScreen
-import com.example.pocketstorage.ui.screens.ProductPage
+import com.example.pocketstorage.presentation.ui.screens.building.CreateBuilding
+import com.example.pocketstorage.presentation.ui.screens.inventory.CreateProduct
+import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryScreen
+import com.example.pocketstorage.presentation.ui.screens.inventory.ProductPage
 
 
 @Composable
