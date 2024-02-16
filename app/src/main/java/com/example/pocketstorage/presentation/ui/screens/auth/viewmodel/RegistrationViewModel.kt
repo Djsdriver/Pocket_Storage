@@ -1,5 +1,6 @@
 package com.example.pocketstorage.presentation.ui.screens.auth.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -35,12 +36,15 @@ class RegistrationViewModel @Inject constructor(
         private set
 
 
+
     fun onEmailChange(newValue: String) {
         uiState.value = uiState.value.copy(email = newValue)
+        Log.d("fire", "${uiState.value.email} ${uiState.value.password}")
     }
 
     fun onPasswordChange(newValue: String) {
         uiState.value = uiState.value.copy(password = newValue)
+        Log.d("fire", "${uiState.value.email} ${uiState.value.password}")
     }
 
     fun signUpWithEmailAndPassword(email: String, password: String) = viewModelScope.launch {
@@ -55,6 +59,7 @@ class RegistrationViewModel @Inject constructor(
                 _screenState.value.success
                 _email.value=email
                 _password.value=password
+                Log.d("fire", "${uiState.value.email} ${uiState.value.password}")
             }
             is TaskResult.Error -> _screenState.value.error
         }

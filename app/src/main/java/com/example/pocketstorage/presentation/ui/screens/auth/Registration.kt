@@ -44,8 +44,9 @@ fun RegistrationScreenPreview() {
 @Composable
 fun RegistrationScreen(
     onSignUpClick: () -> Unit,
-    authViewModel: RegistrationViewModel = viewModel()
+    authViewModel: RegistrationViewModel
 ) {
+
     val uiState by authViewModel.uiState
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -99,7 +100,7 @@ fun RegistrationScreen(
         )
 
         ButtonLogInAuthorizationApp(
-            onClick = { authViewModel.signUpWithEmailAndPassword(authViewModel.email.value,authViewModel.password.value) },
+            onClick = { authViewModel.signUpWithEmailAndPassword(authViewModel.uiState.value.email,authViewModel.uiState.value.password) },
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.MildGreen)),
             text = stringResource(id = R.string.sign_up),
             iconResource = painterResource(id = R.drawable.account_plus)

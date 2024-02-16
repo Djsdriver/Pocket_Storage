@@ -13,6 +13,7 @@ import javax.inject.Inject
 
 
 fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
+
     navigation(
         route = Graph.AUTHENTICATION,
         startDestination = AuthScreen.Login.route
@@ -32,9 +33,10 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
         }
 
         composable(route = AuthScreen.SignUp.route) {
+            val registrationViewModel = hiltViewModel<RegistrationViewModel>()
             RegistrationScreen(
                 onSignUpClick = {},
-                authViewModel = hiltViewModel<RegistrationViewModel>()
+                authViewModel = registrationViewModel
             )
         }
 
