@@ -14,4 +14,6 @@
 
     // Registration Screen
     <string name="repeat_password">Repeat Password</string>
+    <string name="already_signed_in_error">already_signed_in_error</string>
+    <string name="unknown_error">unknown_error</string>
 </resources>
