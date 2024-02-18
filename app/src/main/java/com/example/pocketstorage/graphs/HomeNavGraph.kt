@@ -45,9 +45,12 @@ fun HomeNavGraph(navController: NavHostController) {
 
 fun NavGraphBuilder.inventoryNavGraph(navController: NavHostController) {
     composable(route = InventoryScreenState.CreateProduct.route) {
-        CreateProduct {
-            navController.navigateUp()
-        }
+        CreateProduct (
+            onBackArrowClick = { navController.navigateUp() },
+            onAddPictureClick = {},
+            onGenerateQRClick = {},
+            onSaveClick = {}
+        )
     }
     composable(route = InventoryScreenState.InfoProduct.route) {
         ProductPage {
