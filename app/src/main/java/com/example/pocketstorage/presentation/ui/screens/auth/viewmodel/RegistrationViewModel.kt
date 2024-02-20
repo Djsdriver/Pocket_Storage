@@ -1,19 +1,15 @@
 package com.example.pocketstorage.presentation.ui.screens.auth.viewmodel
 
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pocketstorage.data.repository.AuthRepositoryImpl
 import com.example.pocketstorage.domain.usecase.SignUpUseCase
 import com.example.pocketstorage.presentation.ui.screens.auth.AuthFlowScreenState
-import com.example.pocketstorage.presentation.ui.screens.auth.LoginUiState
+import com.example.pocketstorage.presentation.ui.screens.auth.SignUpUiState
 import com.example.pocketstorage.presentation.ui.screens.auth.TaskResult
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -26,25 +22,30 @@ class RegistrationViewModel @Inject constructor(
 
     private val _screenState = MutableStateFlow(AuthFlowScreenState.INITIAL)
     val screenState = _screenState.asStateFlow()
-    private val _email = MutableStateFlow("")
-    val email = _email.asStateFlow()
-    private val _password = MutableStateFlow("")
-    val password = _password.asStateFlow()
 
-
-    var uiState = mutableStateOf(LoginUiState())
-        private set
+    private val _uiState = MutableStateFlow(SignUpUiState())
+    val uiState: StateFlow<SignUpUiState> = _uiState.asStateFlow()
 
 
 
     fun onEmailChange(newValue: String) {
-        uiState.value = uiState.value.copy(email = newValue)
+        _uiState.update {
+            it.copy(email = newValue)
+        }
         Log.d("fire", "${uiState.value.email} ${uiState.value.password}")
     }
 
     fun onPasswordChange(newValue: String) {
-        uiState.value = uiState.value.copy(password = newValue)
+        _uiState.update {
+            it.copy(password = newValue)
+        }
+
         Log.d("fire", "${uiState.value.email} ${uiState.value.password}")
+    }
+    fun onRepeatPasswordChange(newValue: String) {
+        _uiState.update {
+            it.copy(repeatPassword = newValue)
+        }
     }
 
     fun signUpWithEmailAndPassword(email: String, password: String) = viewModelScope.launch {
@@ -53,21 +54,26 @@ class RegistrationViewModel @Inject constructor(
                 loading = true)
         }
 
-        val authResult = signUp(email, password)
-        when (authResult) {
-            is TaskResult.Success -> {
-                _screenState.value.success
-                _email.value=email
-                _password.value=password
-                Log.d("fire", "${uiState.value.email} ${uiState.value.password}")
+
+        if (_uiState.value.password==_uiState.value.repeatPassword){
+            val authResult = signUp(email, password)
+            when (authResult) {
+                is TaskResult.Success -> {
+                    _uiState.update {
+                        it.copy(email = email.trim(), password = password.trim())
+                    }
+                    _screenState.update {
+                        it.copy(success = true)
+                    }
+
+                }
+                is TaskResult.Error -> {
+                    _screenState.value.error
+                }
             }
-            is TaskResult.Error -> _screenState.value.error
         }
     }
 
-    fun setEmail(newEmail: String) {
-        _email.value = newEmail
-    }
 
 
 }

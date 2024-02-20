@@ -1,5 +1,6 @@
 package com.example.pocketstorage.data.repository
 
+import android.util.Log
 import com.example.pocketstorage.domain.repository.AuthRepository
 import com.example.pocketstorage.presentation.ui.screens.auth.ErrorType
 import com.example.pocketstorage.presentation.ui.screens.auth.TaskResult
@@ -14,6 +15,8 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(private val authClient: FirebaseAuth): AuthRepository {
     override suspend fun signUp(email: String, password: String): TaskResult<Boolean> {
         if (authClient.currentUser != null) return TaskResult.Error(ErrorType.AlreadySignedIn)
+
+        Log.d("fire", "${authClient.currentUser}")
 
         return try {
             withContext(Dispatchers.IO) {

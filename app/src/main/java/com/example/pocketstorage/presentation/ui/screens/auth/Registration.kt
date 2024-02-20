@@ -1,5 +1,7 @@
 package com.example.pocketstorage.presentation.ui.screens.auth
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,19 +16,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
-import com.example.pocketstorage.data.repository.AuthRepositoryImpl
-import com.example.pocketstorage.domain.usecase.SignUpUseCase
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.RegistrationViewModel
-import com.google.firebase.auth.FirebaseAuth
 
 /*@Preview(showBackground = true)
 @Composable
@@ -43,15 +40,17 @@ fun RegistrationScreenPreview() {
 
 @Composable
 fun RegistrationScreen(
-    onSignUpClick: () -> Unit,
+    onSignUpClickDone: () -> Unit,
     authViewModel: RegistrationViewModel
 ) {
-
-    val uiState by authViewModel.uiState
+    val screenState by authViewModel.screenState.collectAsState()
+    val uiState by authViewModel.uiState.collectAsState()
+    val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         TextMainApp(nameApp = stringResource(id = R.string.sign_up))
 
         TextFieldAuthorizationApp(
@@ -66,7 +65,7 @@ fun RegistrationScreen(
                 )
             },
             value = uiState.email,
-            onValueChange =  authViewModel::onEmailChange
+            onValueChange = authViewModel::onEmailChange
         )
 
         TextFieldAuthorizationApp(
@@ -81,7 +80,7 @@ fun RegistrationScreen(
                 )
             },
             value = uiState.password,
-            onValueChange =  authViewModel::onPasswordChange
+            onValueChange = authViewModel::onPasswordChange
         )
 
         TextFieldAuthorizationApp(
@@ -95,15 +94,41 @@ fun RegistrationScreen(
                     contentDescription = stringResource(id = R.string.repeat_password)
                 )
             },
-            value = "",
-            onValueChange = {}
+            value = uiState.repeatPassword,
+            onValueChange = authViewModel::onRepeatPasswordChange
         )
 
         ButtonLogInAuthorizationApp(
-            onClick = { authViewModel.signUpWithEmailAndPassword(authViewModel.uiState.value.email,authViewModel.uiState.value.password) },
+            onClick = {
+                if (uiState.password==uiState.repeatPassword){
+                    Log.d("pass", "${uiState.password } ${uiState.repeatPassword}")
+                    authViewModel.signUpWithEmailAndPassword(
+                        authViewModel.uiState.value.email,
+                        authViewModel.uiState.value.password
+                    )
+                } else{
+                    Toast.makeText(
+                        context,
+                        "Пароли не совпадают",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            },
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.MildGreen)),
             text = stringResource(id = R.string.sign_up),
             iconResource = painterResource(id = R.drawable.account_plus)
         )
+
+        if (screenState.success) {
+            Toast.makeText(
+                context,
+                "Пользователь ${uiState.email} зарегистрирован",
+                Toast.LENGTH_LONG
+            ).show()
+            onSignUpClickDone()
+        }
+
+
     }
 }

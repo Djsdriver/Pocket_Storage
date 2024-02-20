@@ -1,4 +1,4 @@
-package com.example.pocketstorage.di
+package com.example.pocketstorage.di.auth
 
 import com.example.pocketstorage.data.repository.AuthRepositoryImpl
 import com.example.pocketstorage.domain.repository.AuthRepository
@@ -19,17 +19,17 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 class AuthModule {
 
-    @Provides
+    //если использовать эти закомментированный кусочек кода, тогда можно убрать метод из файла ServiceModule
+    /*@Provides
     @Singleton
     fun provideRepository(): AuthRepository {
         return AuthRepositoryImpl(auth())
-    }
+    }*/
 
-    @Provides
-    fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
-
+    @Singleton
     @Provides
     fun auth(): FirebaseAuth = Firebase.auth
+
 
 
 

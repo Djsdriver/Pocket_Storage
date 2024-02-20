@@ -1,4 +1,4 @@
-package com.example.pocketstorage.di
+package com.example.pocketstorage.di.auth
 
 import com.example.pocketstorage.data.repository.AuthRepositoryImpl
 import com.example.pocketstorage.domain.repository.AuthRepository
@@ -10,7 +10,7 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class ServiceModule {
-  /*@Binds
-  abstract fun provideAccountService(impl: AuthRepositoryImpl): AuthRepository*/
+  @Binds
+  abstract fun provideAccountService(impl: AuthRepositoryImpl): AuthRepository
 
 }

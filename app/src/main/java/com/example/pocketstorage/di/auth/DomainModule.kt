@@ -1,4 +1,4 @@
-package com.example.pocketstorage.di
+package com.example.pocketstorage.di.auth
 
 
 import com.example.pocketstorage.domain.repository.AuthRepository

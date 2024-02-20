@@ -1,4 +1,4 @@
-package com.example.pocketstorage.ui
+package com.example.pocketstorage
 
 import android.app.Application
 import com.google.firebase.FirebaseApp

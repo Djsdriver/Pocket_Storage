@@ -1,7 +1,6 @@
 package com.example.pocketstorage.graphs
 
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -9,7 +8,6 @@ import androidx.navigation.navigation
 import com.example.pocketstorage.presentation.ui.screens.auth.AuthorizationScreen
 import com.example.pocketstorage.presentation.ui.screens.auth.RegistrationScreen
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.RegistrationViewModel
-import javax.inject.Inject
 
 
 fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
@@ -35,8 +33,10 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
         composable(route = AuthScreen.SignUp.route) {
             val registrationViewModel = hiltViewModel<RegistrationViewModel>()
             RegistrationScreen(
-                onSignUpClick = {},
-                authViewModel = registrationViewModel
+                onSignUpClickDone = {
+                    navController.popBackStack(AuthScreen.Login.route, inclusive = false)
+                },
+                authViewModel = registrationViewModel,
             )
         }
 
