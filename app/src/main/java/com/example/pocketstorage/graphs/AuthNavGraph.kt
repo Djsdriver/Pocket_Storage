@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.example.pocketstorage.presentation.ui.screens.auth.AuthorizationScreen
 import com.example.pocketstorage.presentation.ui.screens.auth.RegistrationScreen
+import com.example.pocketstorage.presentation.ui.screens.auth.authorization.AuthorizationViewModel
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.RegistrationViewModel
 
 
@@ -17,6 +18,7 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
         startDestination = AuthScreen.Login.route
     ) {
         composable(route = AuthScreen.Login.route) {
+            val signInViewModel = hiltViewModel<AuthorizationViewModel>()
             AuthorizationScreen(
                 onClick = {
                     navController.navigate(Graph.HOME)
@@ -24,9 +26,13 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
                 onSignUpClick = {
                     navController.navigate(AuthScreen.SignUp.route)
                 },
+                onSignUpClickDone = {
+                    navController.navigate(Graph.HOME)
+                },
                 onForgotClick = {
                     navController.navigate(AuthScreen.Forgot.route)
-                }
+                },
+                signInViewModel
             )
         }
 

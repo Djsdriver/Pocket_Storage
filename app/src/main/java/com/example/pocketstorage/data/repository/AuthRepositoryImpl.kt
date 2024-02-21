@@ -29,7 +29,9 @@ class AuthRepositoryImpl @Inject constructor(private val authClient: FirebaseAut
     }
 
     override suspend fun signIn(email: String, password: String): TaskResult<Boolean> {
+        Log.d("user", "${authClient.currentUser}")
         if (authClient.currentUser != null) return TaskResult.Error(ErrorType.AlreadySignedIn)
+        Log.d("user", "${authClient.currentUser}")
 
         return try {
             withContext(Dispatchers.IO) {

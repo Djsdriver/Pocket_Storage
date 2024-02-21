@@ -1,5 +1,6 @@
 package com.example.pocketstorage.presentation.ui.screens.auth
 
+import android.util.Log
 import androidx.annotation.DimenRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,7 +42,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pocketstorage.R
+import com.example.pocketstorage.presentation.ui.screens.auth.authorization.AuthorizationViewModel
 
 @Preview(showBackground = true)
 @Composable
@@ -48,7 +52,9 @@ fun Authorization() {
     AuthorizationScreen(
         onClick = {},
         onSignUpClick = {},
-        onForgotClick = {}
+        onSignUpClickDone = {},
+        onForgotClick = {},
+        hiltViewModel()
     )
 }
 
@@ -156,8 +162,19 @@ fun ButtonContinueApp(onClick: () -> Unit) {
 fun AuthorizationScreen(
     onClick: () -> Unit,
     onSignUpClick: () -> Unit,
-    onForgotClick: () -> Unit
+    onSignUpClickDone: () -> Unit,
+    onForgotClick: () -> Unit,
+    authorizationViewModel: AuthorizationViewModel
 ) {
+
+    val signInState by authorizationViewModel.signInState.collectAsState()
+    val screenUiState by authorizationViewModel.screenState.collectAsState()
+    Log.d("user", "${screenUiState.success}")
+    if (screenUiState.success){
+        Log.d("user", "${signInState.email} ${signInState.password}")
+        onSignUpClickDone()
+    }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -176,25 +193,32 @@ fun AuthorizationScreen(
                 )
 
             },
-            value = "",
-            onValueChange = {})
+            value = signInState.email,
+            onValueChange = authorizationViewModel::onEmailChange
+        )
 
         TextFieldAuthorizationApp(
             textHint = stringResource(id = R.string.password),
             color = colorResource(R.color.SpanishGrey),
             modifier = Modifier.padding(bottom = 36.dp),
             keyOption = KeyboardOptions(keyboardType = KeyboardType.Password),
-            visualTransformation = PasswordVisualTransformation()
-        ) {
-            Icon(
-                imageVector = Icons.Default.Lock,
-                contentDescription = stringResource(id = R.string.password)
-            )
-        }
-
+            //visualTransformation = PasswordVisualTransformation(),
+            {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = stringResource(id = R.string.password)
+                )
+            },
+            value = signInState.password,
+            onValueChange = authorizationViewModel::onPasswordChange
+        )
         ButtonLogInAuthorizationApp(
             onClick = {
                 // обработка нажатия с аутентификацией
+                authorizationViewModel.signInLoginAndPassword(
+                    signInState.email,
+                    signInState.password
+                )
             },
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.RetroBlue)),
             text = stringResource(id = R.string.log_in),
@@ -227,6 +251,7 @@ fun AuthorizationScreen(
             fontSize = 12.sp
         )
     }
+
 }
 
 @Preview(showBackground = true)
