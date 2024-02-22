@@ -151,11 +151,11 @@ private fun SnackBarToast(
     snackbarMessage?.let { message ->
         Log.d("snack", "${message}")
         Snackbar(
-            modifier = Modifier.padding(4.dp),
-            actionOnNewLine = false,
-            action = {
+            modifier = Modifier.padding(8.dp),
+            actionOnNewLine = true,
+            dismissAction = {
                 TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
-                    Text(text = "Закрыть")
+                    Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
                 }
             }
         ) {
