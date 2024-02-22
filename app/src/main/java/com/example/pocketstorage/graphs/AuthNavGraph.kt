@@ -34,7 +34,7 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
             val registrationViewModel = hiltViewModel<RegistrationViewModel>()
             RegistrationScreen(
                 onSignUpClickDone = {
-                    navController.popBackStack(AuthScreen.Login.route, inclusive = false)
+                    navController.navigate(Graph.HOME)
                 },
                 authViewModel = registrationViewModel,
             )

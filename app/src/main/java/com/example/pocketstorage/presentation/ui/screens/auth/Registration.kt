@@ -1,5 +1,6 @@
 package com.example.pocketstorage.presentation.ui.screens.auth
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -11,9 +12,14 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,8 +28,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.pocketstorage.R
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.RegistrationViewModel
+import com.example.pocketstorage.utils.SnackbarManager
+import com.example.pocketstorage.utils.SnackbarMessage
+import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
+import com.example.pocketstorage.utils.isValidPassword
+import com.example.pocketstorage.utils.passwordMatches
 
 /*@Preview(showBackground = true)
 @Composable
@@ -46,6 +58,8 @@ fun RegistrationScreen(
     val screenState by authViewModel.screenState.collectAsState()
     val uiState by authViewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
+    val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -100,20 +114,14 @@ fun RegistrationScreen(
 
         ButtonLogInAuthorizationApp(
             onClick = {
-                if (uiState.password==uiState.repeatPassword){
-                    Log.d("pass", "${uiState.password } ${uiState.repeatPassword}")
+                if (!uiState.password.isValidPassword() || !uiState.password.passwordMatches(uiState.repeatPassword)) {
+                    authViewModel.onSignUpClick()
+                } else {
                     authViewModel.signUpWithEmailAndPassword(
                         authViewModel.uiState.value.email,
                         authViewModel.uiState.value.password
                     )
-                } else{
-                    Toast.makeText(
-                        context,
-                        "Пароли не совпадают",
-                        Toast.LENGTH_LONG
-                    ).show()
                 }
-
             },
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.MildGreen)),
             text = stringResource(id = R.string.sign_up),
@@ -121,14 +129,38 @@ fun RegistrationScreen(
         )
 
         if (screenState.success) {
-            Toast.makeText(
+            /*Toast.makeText(
                 context,
                 "Пользователь ${uiState.email} зарегистрирован",
                 Toast.LENGTH_LONG
-            ).show()
+            ).show()*/
             onSignUpClickDone()
         }
 
+        SnackBarToast(snackbarMessage, context)
+
+
+    }
+}
+
+@Composable
+private fun SnackBarToast(
+    snackbarMessage: SnackbarMessage?,
+    context: Context
+) {
+    snackbarMessage?.let { message ->
+        Log.d("snack", "${message}")
+        Snackbar(
+            modifier = Modifier.padding(4.dp),
+            actionOnNewLine = false,
+            action = {
+                TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
+                    Text(text = "Закрыть")
+                }
+            }
+        ) {
+            Text(message.toMessage(context.resources), fontSize = 12.sp)
+        }
 
     }
 }

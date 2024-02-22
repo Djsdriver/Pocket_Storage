@@ -20,15 +20,15 @@ import javax.inject.Singleton
 class AuthModule {
 
     //если использовать эти закомментированный кусочек кода, тогда можно убрать метод из файла ServiceModule
-    /*@Provides
+    @Provides
     @Singleton
     fun provideRepository(): AuthRepository {
-        return AuthRepositoryImpl(auth())
-    }*/
+        return AuthRepositoryImpl(provideAuth())
+    }
 
     @Singleton
     @Provides
-    fun auth(): FirebaseAuth = Firebase.auth
+    fun provideAuth(): FirebaseAuth = Firebase.auth
 
 
 
