@@ -11,7 +11,16 @@
     <string name="log_in">Log In</string>
     <string name="continue_without_registration">Continue without registration</string>
     <string name="app_version">v 1.0.0</string>
+    <string name="generic_error">Something wrong happened. Please try again.</string>
 
     // Registration Screen
     <string name="repeat_password">Repeat Password</string>
+    <string name="already_signed_in_error">already_signed_in_error</string>
+    <string name="unknown_error">unknown_error</string>
+
+    <string name="email_error">Пожалуйста, укажите действительный адрес электронной почты.</string>
+    <string name="create_account">Create account</string>
+    <string name="password_error">Ваш пароль должен состоять как минимум из шести символов, включать в себя цифры и заглавные буквы.</string>
+    <string name="password_format_error">Ваш пароль должен состоять как минимум из шести символов, включать в себя цифры и заглавные буквы.</string>
+    <string name="password_match_error">Пароли не совпадают.</string>
 </resources>

@@ -1,6 +1,5 @@
-package com.example.pocketstorage.ui.screens
+package com.example.pocketstorage.presentation.ui.screens.auth
 
-import android.widget.Toast
 import androidx.annotation.DimenRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -97,13 +95,14 @@ fun TextFieldAuthorizationApp(
     color: Color,
     modifier: Modifier,
     keyOption: KeyboardOptions,
-    icon: @Composable () -> Unit
+    icon: @Composable () -> Unit,
+    value: String,
+    onValueChange: (String) -> Unit
 ) {
-    var text by remember { mutableStateOf(TextFieldValue("")) }
     TextField(
         modifier = modifier,
-        value = text,
-        onValueChange = { text = it },
+        value = value,
+        onValueChange = { onValueChange(it) },
         label = { Text(text = textHint, color = color) },
         leadingIcon = icon,
         keyboardOptions = keyOption
@@ -169,13 +168,16 @@ fun AuthorizationScreen(
             textHint = stringResource(id = R.string.email_or_telephone),
             color = colorResource(R.color.SpanishGrey),
             modifier = Modifier.padding(bottom = 10.dp),
-            keyOption = KeyboardOptions(keyboardType = KeyboardType.Email)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = stringResource(id = R.string.email_or_telephone)
-            )
-        }
+            keyOption = KeyboardOptions(keyboardType = KeyboardType.Email),
+            {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = stringResource(id = R.string.email_or_telephone)
+                )
+
+            },
+            value = "",
+            onValueChange = {})
 
         TextFieldAuthorizationApp(
             textHint = stringResource(id = R.string.password),
@@ -240,8 +242,12 @@ fun PreviewAuthorization() {
             textHint = "Email",
             color = colorResource(R.color.SpanishGrey),
             modifier = Modifier.padding(bottom = 10.dp),
-            keyOption = KeyboardOptions(keyboardType = KeyboardType.Email)
-        ) { Icon(imageVector = Icons.Default.Person, contentDescription = "emailIcon") }
+            keyOption = KeyboardOptions(keyboardType = KeyboardType.Email),
+            {
+                Icon(imageVector = Icons.Default.Person, contentDescription = "emailIcon")
+            },
+            value = "",
+            onValueChange = {})
 
         TextFieldAuthorizationApp(
             textHint = "Password",
