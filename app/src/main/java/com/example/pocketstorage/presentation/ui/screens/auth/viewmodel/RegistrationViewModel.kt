@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.pocketstorage.R.string as AppText
+
 @HiltViewModel
 class RegistrationViewModel @Inject constructor(
     private val signUp: SignUpUseCase
@@ -31,7 +32,6 @@ class RegistrationViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SignUpUiState())
     val uiState: StateFlow<SignUpUiState> = _uiState.asStateFlow()
-
 
 
     fun onEmailChange(newValue: String) {
@@ -48,6 +48,7 @@ class RegistrationViewModel @Inject constructor(
 
         Log.d("fire", "${uiState.value.email} ${uiState.value.password}")
     }
+
     fun onRepeatPasswordChange(newValue: String) {
         _uiState.update {
             it.copy(repeatPassword = newValue)
@@ -57,25 +58,35 @@ class RegistrationViewModel @Inject constructor(
     fun signUpWithEmailAndPassword(email: String, password: String) = viewModelScope.launch {
         _screenState.update { currentState ->
             currentState.copy(
-                loading = true)
+                loading = true
+            )
         }
-            val authResult = signUp(email, password)
-            when (authResult) {
-                is TaskResult.Success -> {
-                    _uiState.update {
-                        it.copy(email = email.trim(), password = password.trim())
-                    }
-                    _screenState.update {
-                        it.copy(success = true)
-                    }
+        val authResult = signUp(email, password)
+        when (authResult) {
+            is TaskResult.Success -> {
+                _uiState.update {
+                    it.copy(email = email.trim(), password = password.trim())
                 }
-                is TaskResult.Error -> {
-                    _screenState.update {
-                        it.copy(error = ErrorType.AuthFailed("Ошибка регистрации"))
-                    }
+                _screenState.update {
+                    it.copy(
+                        success = true
+                    )
+                }
+            }
+
+            is TaskResult.Error -> {
+
+                if (_screenState.value.error == ErrorType.AlreadySignedUp) {
+                    SnackbarManager.showMessage(AppText.email_already_use)
+                } else {
+                    SnackbarManager.showMessage(AppText.email_error)
+                }
+                _screenState.update {
+                    it.copy(error = ErrorType.AlreadySignedUp)
                 }
             }
         }
+    }
 
 
     fun onSignUpClick() {
@@ -98,8 +109,12 @@ class RegistrationViewModel @Inject constructor(
             SnackbarManager.showMessage(AppText.password_format_error)
             return
         }
-    }
 
+        if (_screenState.value.error != ErrorType.AlreadySignedUp) {
+            SnackbarManager.showMessage(AppText.email_already_use)
+            return
+        }
+    }
 
 
 }
