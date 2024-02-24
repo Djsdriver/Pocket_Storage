@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(private val authClient: FirebaseAuth): AuthRepository {
     override suspend fun signUp(email: String, password: String): TaskResult<Boolean> {
-        if (authClient.currentUser != null) return TaskResult.Error(ErrorType.AlreadySignedIn)
+        if (authClient.currentUser != null) return TaskResult.Error(ErrorType.AlreadySignedUp)
 
         Log.d("fire", "${authClient.currentUser}")
 

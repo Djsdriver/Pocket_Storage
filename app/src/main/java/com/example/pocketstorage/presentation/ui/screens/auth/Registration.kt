@@ -1,8 +1,10 @@
 package com.example.pocketstorage.presentation.ui.screens.auth
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
@@ -36,6 +39,8 @@ import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import com.example.pocketstorage.utils.isValidPassword
 import com.example.pocketstorage.utils.passwordMatches
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /*@Preview(showBackground = true)
 @Composable
@@ -50,6 +55,7 @@ fun RegistrationScreenPreview() {
     )
 }*/
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun RegistrationScreen(
     onSignUpClickDone: () -> Unit,
@@ -129,17 +135,20 @@ fun RegistrationScreen(
         )
 
         if (screenState.success) {
-            /*Toast.makeText(
-                context,
-                "Пользователь ${uiState.email} зарегистрирован",
-                Toast.LENGTH_LONG
-            ).show()*/
-            onSignUpClickDone()
+            if (screenState.loading) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                scope.launch {
+                    delay(2000)
+                    onSignUpClickDone()
+                }
+            }
         }
 
         SnackBarToast(snackbarMessage, context)
-
-
     }
 }
 

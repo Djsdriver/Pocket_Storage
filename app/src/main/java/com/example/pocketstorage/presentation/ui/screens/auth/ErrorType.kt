@@ -6,6 +6,7 @@ import com.example.pocketstorage.R
 sealed class ErrorType {
     data class AuthFailed(val message: String) : ErrorType()
     data object AlreadySignedIn : ErrorType()
+    data object AlreadySignedUp : ErrorType()
     data object Unknown : ErrorType()
 
     // сюда нужно добавлять любые виды ошибок, которые хотим обработать
