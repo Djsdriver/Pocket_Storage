@@ -58,6 +58,11 @@ class DatabaseRepositoryImpl(private val appDatabase: AppDatabase) : DatabaseRep
         appDatabase.categoryDao().deleteCategory(category.toCategoryEntity())
     }
 
+    override suspend fun getCategoryById(categoryId: Long): Category {
+        val categoryEntity =  appDatabase.categoryDao().getCategoryById(categoryId)
+        return categoryEntity.toCategory()
+    }
+
     override fun getCategories(): Flow<List<Category>> = flow {
         val categoryEntityList = appDatabase.categoryDao().getCategories()
         val categoryList = categoryEntityList.map { categoryEntity -> categoryEntity.toCategory() }

@@ -25,6 +25,8 @@ interface DatabaseRepository {
 
     suspend fun deleteCategory(category: Category)
 
+    suspend fun getCategoryById(categoryId: Long): Category
+
     fun getCategories(): Flow<List<Category>>
 
     suspend fun insertLocation(location: Location)

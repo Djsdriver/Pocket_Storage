@@ -7,7 +7,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.pocketstorage.data.db.model.InventoryEntity
-import com.example.pocketstorage.domain.model.Inventory
 
 @Dao
 interface InventoryDao {

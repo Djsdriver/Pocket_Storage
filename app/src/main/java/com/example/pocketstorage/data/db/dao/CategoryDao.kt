@@ -16,6 +16,9 @@ interface CategoryDao {
     @Delete
     suspend fun deleteCategory(category: CategoryEntity)
 
-    @Query("SELECT * from category_table")
+    @Query("SELECT * FROM category_table")
     suspend fun getCategories(): List<CategoryEntity>
+
+    @Query("SELECT * FROM category_table WHERE id = :categoryId")
+    suspend fun getCategoryById(categoryId: Long): CategoryEntity
 }
