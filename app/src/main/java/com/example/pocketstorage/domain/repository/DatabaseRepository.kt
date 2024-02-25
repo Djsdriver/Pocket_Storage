@@ -34,4 +34,6 @@ interface DatabaseRepository {
     suspend fun deleteLocation(location: Location)
 
     fun getLocations(): Flow<List<Location>>
+
+    suspend fun getLocationById(locationId: Long): Location
 }

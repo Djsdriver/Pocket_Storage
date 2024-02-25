@@ -82,4 +82,9 @@ class DatabaseRepositoryImpl(private val appDatabase: AppDatabase) : DatabaseRep
         val locationList = locationEntityList.map { locationEntity -> locationEntity.toLocation() }
         emit(locationList)
     }
+
+    override suspend fun getLocationById(locationId: Long): Location {
+        val locationEntity = appDatabase.locationDao().getLocationById(locationId)
+        return locationEntity.toLocation()
+    }
 }

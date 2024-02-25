@@ -18,4 +18,7 @@ interface LocationDao {
 
     @Query("SELECT * FROM location_table")
     suspend fun getLocations(): List<LocationEntity>
+
+    @Query("SELECT * FROM location_table WHERE id = :locationId")
+    suspend fun getLocationById(locationId: Long): LocationEntity
 }
