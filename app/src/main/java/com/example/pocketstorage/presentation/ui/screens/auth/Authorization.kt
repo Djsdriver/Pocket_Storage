@@ -1,7 +1,11 @@
 package com.example.pocketstorage.presentation.ui.screens.auth
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.util.Log
 import androidx.annotation.DimenRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,21 +19,27 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -40,7 +50,14 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pocketstorage.R
+import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.AuthorizationViewModel
+import com.example.pocketstorage.utils.SnackbarManager
+import com.example.pocketstorage.utils.SnackbarMessage
+import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Preview(showBackground = true)
 @Composable
@@ -48,7 +65,9 @@ fun Authorization() {
     AuthorizationScreen(
         onClick = {},
         onSignUpClick = {},
-        onForgotClick = {}
+        onSignInClickDone = {},
+        onForgotClick = {},
+        hiltViewModel()
     )
 }
 
@@ -152,12 +171,23 @@ fun ButtonContinueApp(onClick: () -> Unit) {
     }
 }
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun AuthorizationScreen(
     onClick: () -> Unit,
     onSignUpClick: () -> Unit,
-    onForgotClick: () -> Unit
+    onSignInClickDone: () -> Unit,
+    onForgotClick: () -> Unit,
+    authorizationViewModel: AuthorizationViewModel
 ) {
+
+    val signInState by authorizationViewModel.signInState.collectAsState()
+    val screenUiState by authorizationViewModel.screenState.collectAsState()
+    val context = LocalContext.current
+    val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
+    val scope = rememberCoroutineScope()
+
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -176,25 +206,32 @@ fun AuthorizationScreen(
                 )
 
             },
-            value = "",
-            onValueChange = {})
+            value = signInState.email,
+            onValueChange = authorizationViewModel::onEmailChange
+        )
 
         TextFieldAuthorizationApp(
             textHint = stringResource(id = R.string.password),
             color = colorResource(R.color.SpanishGrey),
             modifier = Modifier.padding(bottom = 36.dp),
             keyOption = KeyboardOptions(keyboardType = KeyboardType.Password),
-            visualTransformation = PasswordVisualTransformation()
-        ) {
-            Icon(
-                imageVector = Icons.Default.Lock,
-                contentDescription = stringResource(id = R.string.password)
-            )
-        }
-
+            //visualTransformation = PasswordVisualTransformation(),
+            {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = stringResource(id = R.string.password)
+                )
+            },
+            value = signInState.password,
+            onValueChange = authorizationViewModel::onPasswordChange
+        )
         ButtonLogInAuthorizationApp(
             onClick = {
                 // обработка нажатия с аутентификацией
+                authorizationViewModel.signInLoginAndPassword(
+                    signInState.email,
+                    signInState.password
+                )
             },
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.RetroBlue)),
             text = stringResource(id = R.string.log_in),
@@ -226,7 +263,20 @@ fun AuthorizationScreen(
             color = Color.Black,
             fontSize = 12.sp
         )
+
+        if (screenUiState.success && screenUiState.loading) {
+            LoadingIndicator()
+            scope.launch {
+                delay(2000)
+                onSignInClickDone()
+            }
+
+        }
+
+        SnackBarToast(snackbarMessage, context)
     }
+
+
 }
 
 @Preview(showBackground = true)
@@ -279,6 +329,39 @@ fun PreviewAuthorization() {
             text = "v 1.0.0",
             color = Color.Black,
             fontSize = 12.sp
+        )
+    }
+
+
+}
+
+@Composable
+private fun SnackBarToast(
+    snackbarMessage: SnackbarMessage?,
+    context: Context
+) {
+    snackbarMessage?.let { message ->
+        Log.d("snack", "${message}")
+        Snackbar(
+            modifier = Modifier.padding(8.dp),
+            actionOnNewLine = true,
+            dismissAction = {
+                TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
+                    Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
+                }
+            }
+        ) {
+            Text(message.toMessage(context.resources), fontSize = 12.sp)
+        }
+
+    }
+}
+
+@Composable
+fun LoadingIndicator() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        CircularProgressIndicator(
+            modifier = Modifier.align(Alignment.Center)
         )
     }
 }

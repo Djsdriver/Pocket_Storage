@@ -5,6 +5,10 @@ import com.example.pocketstorage.domain.repository.AuthRepository
 import com.example.pocketstorage.presentation.ui.screens.auth.ErrorType
 import com.example.pocketstorage.presentation.ui.screens.auth.TaskResult
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -29,17 +33,36 @@ class AuthRepositoryImpl @Inject constructor(private val authClient: FirebaseAut
     }
 
     override suspend fun signIn(email: String, password: String): TaskResult<Boolean> {
-        if (authClient.currentUser != null) return TaskResult.Error(ErrorType.AlreadySignedIn)
+        if (authClient.currentUser != null) {
+            return TaskResult.Error(ErrorType.AlreadySignedIn)
+        }
 
         return try {
-            withContext(Dispatchers.IO) {
-                authClient.signInWithEmailAndPassword(email, password).await()
-                TaskResult.Success(true)
+            return withContext(Dispatchers.IO) {
+
+                val result = CompletableDeferred<TaskResult<Boolean>>()
+
+                authClient.signInWithEmailAndPassword(email, password).addOnSuccessListener { authResult ->
+                    // Вход в учетную запись прошел успешно
+                    result.complete(TaskResult.Success(true))
+                }.addOnFailureListener { exception ->
+                    // Обработка ошибок входа в учетную запись
+                    val errorType = when (exception) {
+                        is FirebaseAuthInvalidUserException -> ErrorType.EmailNotFound
+                        is FirebaseAuthInvalidCredentialsException -> ErrorType.InvalidCredentials
+                        else -> ErrorType.Unknown
+                    }
+                    result.complete(TaskResult.Error(errorType))
+                }
+
+                result.await()
             }
         } catch (e: Exception) {
-            TaskResult.Error(getAuthError(e.message))
+            TaskResult.Error(ErrorType.Unknown)
         }
     }
+
+
 
     /*override suspend fun sendNewPassword(email: String): TaskResult<Boolean> {
         TODO("Not yet implemented")
