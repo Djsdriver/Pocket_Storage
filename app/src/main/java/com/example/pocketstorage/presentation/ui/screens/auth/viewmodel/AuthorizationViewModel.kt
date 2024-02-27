@@ -75,6 +75,10 @@ class AuthorizationViewModel @Inject constructor(
                         SnackbarManager.showMessage(R.string.email_not_found)
                     }
 
+                    ErrorType.FirebaseNetworkException -> {
+                        SnackbarManager.showMessage(R.string.network_error)
+                    }
+
                     else -> {
                         SnackbarManager.showMessage(R.string.email_error)
                     }
@@ -84,8 +88,7 @@ class AuthorizationViewModel @Inject constructor(
                 }
             }
         }
-
-
     }
+
 
 }

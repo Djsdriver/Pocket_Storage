@@ -6,7 +6,7 @@ import com.example.pocketstorage.R
 sealed class ErrorType {
     data class AuthFailed(val message: String) : ErrorType()
     data object EmailNotFound: ErrorType()
-    data object InvalidCredentials: ErrorType()
+    data object FirebaseNetworkException: ErrorType()
     data object AlreadySignedIn : ErrorType()
     data object AlreadySignedUp : ErrorType()
     data object Unknown : ErrorType()

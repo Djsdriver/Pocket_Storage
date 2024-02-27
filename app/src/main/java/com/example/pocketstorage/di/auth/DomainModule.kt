@@ -2,6 +2,7 @@ package com.example.pocketstorage.di.auth
 
 
 import com.example.pocketstorage.domain.repository.AuthRepository
+import com.example.pocketstorage.domain.usecase.GetAuthStateUseCase
 import com.example.pocketstorage.domain.usecase.SignInUseCase
 import com.example.pocketstorage.domain.usecase.SignUpUseCase
 import dagger.Module
@@ -21,6 +22,11 @@ class DomainModule {
     @Provides
     fun provideSignInUseCase(authRepository: AuthRepository): SignInUseCase {
         return SignInUseCase(repository = authRepository)
+    }
+
+    @Provides
+    fun provideGetAuthUseCase(authRepository: AuthRepository): GetAuthStateUseCase {
+        return GetAuthStateUseCase(authRepository = authRepository)
     }
 
 

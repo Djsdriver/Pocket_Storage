@@ -264,13 +264,18 @@ fun AuthorizationScreen(
             fontSize = 12.sp
         )
 
-        if (screenUiState.success && screenUiState.loading) {
-            LoadingIndicator()
-            scope.launch {
-                delay(2000)
-                onSignInClickDone()
+        if (screenUiState.success) {
+            if (screenUiState.loading) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                scope.launch {
+                    delay(2000)
+                    onSignInClickDone()
+                }
             }
-
         }
 
         SnackBarToast(snackbarMessage, context)
@@ -354,14 +359,5 @@ private fun SnackBarToast(
             Text(message.toMessage(context.resources), fontSize = 12.sp)
         }
 
-    }
-}
-
-@Composable
-fun LoadingIndicator() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        CircularProgressIndicator(
-            modifier = Modifier.align(Alignment.Center)
-        )
     }
 }
