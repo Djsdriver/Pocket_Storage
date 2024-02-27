@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,15 +52,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.pocketstorage.R
+import com.example.pocketstorage.graphs.AuthScreen
+import com.example.pocketstorage.graphs.Graph
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.AuthorizationViewModel
 import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@Preview(showBackground = true)
+/*@Preview(showBackground = true)
 @Composable
 fun Authorization() {
     AuthorizationScreen(
@@ -69,7 +75,7 @@ fun Authorization() {
         onForgotClick = {},
         hiltViewModel()
     )
-}
+}*/
 
 @Composable
 @ReadOnlyComposable
@@ -96,8 +102,7 @@ fun TextFieldAuthorizationApp(
     icon: @Composable () -> Unit
 ) {
     var text by remember { mutableStateOf(TextFieldValue("")) }
-    TextField(
-        modifier = modifier,
+    TextField(modifier = modifier,
         value = text,
         onValueChange = { text = it },
         label = { Text(text = textHint, color = color) },
@@ -118,8 +123,7 @@ fun TextFieldAuthorizationApp(
     value: String,
     onValueChange: (String) -> Unit
 ) {
-    TextField(
-        modifier = modifier,
+    TextField(modifier = modifier,
         value = value,
         onValueChange = { onValueChange(it) },
         label = { Text(text = textHint, color = color) },
@@ -130,10 +134,7 @@ fun TextFieldAuthorizationApp(
 
 @Composable
 fun ButtonLogInAuthorizationApp(
-    onClick: () -> Unit,
-    colors: ButtonColors,
-    text: String,
-    iconResource: Painter
+    onClick: () -> Unit, colors: ButtonColors, text: String, iconResource: Painter
 ) {
 
     Button(
@@ -178,7 +179,8 @@ fun AuthorizationScreen(
     onSignUpClick: () -> Unit,
     onSignInClickDone: () -> Unit,
     onForgotClick: () -> Unit,
-    authorizationViewModel: AuthorizationViewModel
+    authorizationViewModel: AuthorizationViewModel,
+    navController: NavController
 ) {
 
     val signInState by authorizationViewModel.signInState.collectAsState()
@@ -186,6 +188,9 @@ fun AuthorizationScreen(
     val context = LocalContext.current
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
     val scope = rememberCoroutineScope()
+
+
+
 
 
     Column(
@@ -229,8 +234,7 @@ fun AuthorizationScreen(
             onClick = {
                 // обработка нажатия с аутентификацией
                 authorizationViewModel.signInLoginAndPassword(
-                    signInState.email,
-                    signInState.password
+                    signInState.email, signInState.password
                 )
             },
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.RetroBlue)),
@@ -277,11 +281,35 @@ fun AuthorizationScreen(
                 }
             }
         }
+        AuthStateUser(scope, navController)
+
+
 
         SnackBarToast(snackbarMessage, context)
     }
 
 
+}
+
+@Composable
+private fun AuthStateUser(
+    scope: CoroutineScope, navController: NavController
+) {
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    if (currentUser != null) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+        LaunchedEffect(Unit) {
+            scope.launch {
+                delay(2000)
+                navController.navigate(route = Graph.HOME)
+            }
+        }
+
+    }
 }
 
 @Preview(showBackground = true)
@@ -293,8 +321,7 @@ fun PreviewAuthorization() {
     ) {
         TextMainApp(nameApp = "Pocket Storage")
 
-        TextFieldAuthorizationApp(
-            textHint = "Email",
+        TextFieldAuthorizationApp(textHint = "Email",
             color = colorResource(R.color.SpanishGrey),
             modifier = Modifier.padding(bottom = 10.dp),
             keyOption = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -342,22 +369,29 @@ fun PreviewAuthorization() {
 
 @Composable
 private fun SnackBarToast(
-    snackbarMessage: SnackbarMessage?,
-    context: Context
+    snackbarMessage: SnackbarMessage?, context: Context
 ) {
     snackbarMessage?.let { message ->
         Log.d("snack", "${message}")
-        Snackbar(
-            modifier = Modifier.padding(8.dp),
-            actionOnNewLine = true,
-            dismissAction = {
-                TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
-                    Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
-                }
+        Snackbar(modifier = Modifier.padding(8.dp), actionOnNewLine = true, dismissAction = {
+            TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
+                Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
             }
-        ) {
+        }) {
             Text(message.toMessage(context.resources), fontSize = 12.sp)
         }
 
     }
 }
+
+@Composable
+fun YourComposableFunction(navController: NavController, box: @Composable () -> Unit) {
+    LaunchedEffect(Unit) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            box
+        }
+    }
+}
+
+
