@@ -6,5 +6,5 @@ import kotlinx.coroutines.CoroutineScope
 
 class GetAuthStateUseCase(private val authRepository: AuthRepository) {
 
-    operator fun invoke(coroutineScope: CoroutineScope) = authRepository.getAuthState(coroutineScope)
+    operator fun invoke() = authRepository.getAuthState()
 }

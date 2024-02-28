@@ -1,9 +1,14 @@
 package com.example.pocketstorage.presentation.ui.screens.auth
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import android.window.SplashScreen
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DimenRes
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.pocketstorage.R
+import com.example.pocketstorage.components.DialogWithImage
 import com.example.pocketstorage.graphs.AuthScreen
 import com.example.pocketstorage.graphs.Graph
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.AuthorizationViewModel
@@ -102,7 +108,8 @@ fun TextFieldAuthorizationApp(
     icon: @Composable () -> Unit
 ) {
     var text by remember { mutableStateOf(TextFieldValue("")) }
-    TextField(modifier = modifier,
+    TextField(
+        modifier = modifier,
         value = text,
         onValueChange = { text = it },
         label = { Text(text = textHint, color = color) },
@@ -123,7 +130,8 @@ fun TextFieldAuthorizationApp(
     value: String,
     onValueChange: (String) -> Unit
 ) {
-    TextField(modifier = modifier,
+    TextField(
+        modifier = modifier,
         value = value,
         onValueChange = { onValueChange(it) },
         label = { Text(text = textHint, color = color) },
@@ -172,6 +180,7 @@ fun ButtonContinueApp(onClick: () -> Unit) {
     }
 }
 
+
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun AuthorizationScreen(
@@ -188,8 +197,20 @@ fun AuthorizationScreen(
     val context = LocalContext.current
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
     val scope = rememberCoroutineScope()
+    val activity = (LocalContext.current as? Activity)
+    val shouldShowDialog = remember { mutableStateOf(false) }
+    BackHandler {
+        shouldShowDialog.value = true
+    }
 
-
+    if (shouldShowDialog.value) {
+        DialogWithImage(
+            onDismissRequest = { shouldShowDialog.value = false },
+            onConfirmation = { activity?.finish() },
+            painter = painterResource(id = R.drawable.cat_dialog),
+            imageDescription = "cat"
+        )
+    }
 
 
 
@@ -232,10 +253,14 @@ fun AuthorizationScreen(
         )
         ButtonLogInAuthorizationApp(
             onClick = {
-                // обработка нажатия с аутентификацией
-                authorizationViewModel.signInLoginAndPassword(
-                    signInState.email, signInState.password
-                )
+                if (signInState.email.isEmpty() || signInState.password.isEmpty()){
+                    return@ButtonLogInAuthorizationApp
+                } else{
+                    authorizationViewModel.signInLoginAndPassword(
+                        signInState.email, signInState.password
+                    )
+                }
+
             },
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.RetroBlue)),
             text = stringResource(id = R.string.log_in),
@@ -281,9 +306,7 @@ fun AuthorizationScreen(
                 }
             }
         }
-        AuthStateUser(scope, navController)
-
-
+        AuthStateUser(navController, authorizationViewModel)
 
         SnackBarToast(snackbarMessage, context)
     }
@@ -293,20 +316,12 @@ fun AuthorizationScreen(
 
 @Composable
 private fun AuthStateUser(
-    scope: CoroutineScope, navController: NavController
+    navController: NavController,
+    authorizationViewModel: AuthorizationViewModel
 ) {
-    val currentUser = FirebaseAuth.getInstance().currentUser
-    if (currentUser != null) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
+    if (authorizationViewModel.getAuth()) {
         LaunchedEffect(Unit) {
-            scope.launch {
-                delay(2000)
-                navController.navigate(route = Graph.HOME)
-            }
+            navController.navigate(route = Graph.HOME)
         }
 
     }
@@ -384,14 +399,5 @@ private fun SnackBarToast(
     }
 }
 
-@Composable
-fun YourComposableFunction(navController: NavController, box: @Composable () -> Unit) {
-    LaunchedEffect(Unit) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            box
-        }
-    }
-}
 
 

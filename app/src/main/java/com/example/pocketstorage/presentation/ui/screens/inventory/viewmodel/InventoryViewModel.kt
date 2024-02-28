@@ -3,6 +3,8 @@ package com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
+import com.example.pocketstorage.domain.usecase.LogOutUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,8 +14,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
-class InventoryViewModel : ViewModel() {
+@HiltViewModel
+class InventoryViewModel @Inject constructor(
+    private val logOutUseCase: LogOutUseCase
+) : ViewModel() {
 
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
@@ -43,6 +49,10 @@ class InventoryViewModel : ViewModel() {
 
     fun onSearchTextChange(text: String) {
         _searchText.value = text
+    }
+
+    fun logOut(){
+       logOutUseCase.invoke()
     }
 
 }

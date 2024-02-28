@@ -11,7 +11,7 @@ interface AuthRepository {
 
     suspend fun sendNewPassword(email: String): TaskResult<Boolean>
 
-    fun getAuthState(coroutineScope: CoroutineScope): Flow<Boolean>
+    fun getAuthState(): Boolean
 
     fun logOut()
 }

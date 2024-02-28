@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,10 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(private val authClient: FirebaseAuth): AuthRepository {
+
+    override fun getAuthState(): Boolean {
+        return authClient.currentUser != null
+    }
     override suspend fun signUp(email: String, password: String): TaskResult<Boolean> {
         if (authClient.currentUser != null) return TaskResult.Error(ErrorType.AlreadySignedUp)
 
@@ -64,15 +69,7 @@ class AuthRepositoryImpl @Inject constructor(private val authClient: FirebaseAut
         }
     }
 
-    override fun getAuthState(coroutineScope: CoroutineScope) = callbackFlow {
-        val authStateListener = FirebaseAuth.AuthStateListener { auth ->
-            trySend(auth.currentUser != null)
-        }
-        authClient.addAuthStateListener(authStateListener)
-        awaitClose {
-            authClient.removeAuthStateListener(authStateListener)
-        }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), authClient.currentUser == null)
+
 
     override fun logOut() {
         authClient.signOut()
