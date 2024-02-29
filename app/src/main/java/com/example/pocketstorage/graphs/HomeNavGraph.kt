@@ -1,17 +1,14 @@
 package com.example.pocketstorage.graphs
 
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.pocketstorage.presentation.ui.screens.auth.AuthorizationScreen
 import com.example.pocketstorage.presentation.ui.screens.building.Building
 import com.example.pocketstorage.presentation.ui.screens.category.Category
 import com.example.pocketstorage.presentation.ui.screens.building.CreateBuilding
 import com.example.pocketstorage.presentation.ui.screens.inventory.CreateProduct
-import com.example.pocketstorage.presentation.ui.screens.inventory.Inventory
 import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryScreen
 import com.example.pocketstorage.presentation.ui.screens.inventory.ProductPage
 
@@ -31,7 +28,10 @@ fun HomeNavGraph(navController: NavHostController) {
                 {
                     navController.navigate(InventoryScreenState.CreateProduct.route)
                 },
-                navController
+                {
+                    navController.navigate(Graph.AUTHENTICATION)
+                }
+
             )
         }
         composable(route = BottomBarScreen.Category.route) {
@@ -44,6 +44,7 @@ fun HomeNavGraph(navController: NavHostController) {
         }
         inventoryNavGraph(navController = navController)
         buildingNavGraph(navController = navController)
+        authNavGraph(navController = navController)
     }
 }
 
@@ -60,24 +61,6 @@ fun NavGraphBuilder.inventoryNavGraph(navController: NavHostController) {
         ProductPage {
             navController.navigateUp()
         }
-    }
-    composable(route = AuthScreen.Login.route) {
-        AuthorizationScreen(
-            onClick = {
-                navController.navigate(Graph.HOME)
-            },
-            onSignUpClick = {
-                navController.navigate(AuthScreen.SignUp.route)
-            },
-            onSignInClickDone = {
-                navController.navigate(Graph.HOME)
-            },
-            onForgotClick = {
-                navController.navigate(AuthScreen.Forgot.route)
-            },
-            hiltViewModel(),
-            navController
-        )
     }
 }
 

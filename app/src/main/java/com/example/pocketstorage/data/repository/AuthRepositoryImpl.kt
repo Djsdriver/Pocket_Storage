@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -28,7 +29,8 @@ class AuthRepositoryImpl @Inject constructor(private val authClient: FirebaseAut
         return authClient.currentUser != null
     }
     override suspend fun signUp(email: String, password: String): TaskResult<Boolean> {
-        if (authClient.currentUser != null) return TaskResult.Error(ErrorType.AlreadySignedUp)
+        if (authClient.currentUser != null)  return TaskResult.Error(ErrorType.AlreadySignedUp)
+
 
         Log.d("fire", "${authClient.currentUser}")
 
@@ -37,9 +39,14 @@ class AuthRepositoryImpl @Inject constructor(private val authClient: FirebaseAut
                 authClient.createUserWithEmailAndPassword(email, password).await()
                 TaskResult.Success(true)
             }
-        } catch (e: Exception) {
-            TaskResult.Error(getAuthError(e.message))
         }
+        catch (e: FirebaseAuthUserCollisionException) {
+            TaskResult.Error(ErrorType.AlreadySignedUp)
+        }
+        catch (e: Exception) {
+            TaskResult.Error(ErrorType.Unknown)
+        }
+
     }
 
     override suspend fun signIn(email: String, password: String): TaskResult<Boolean> {
@@ -65,7 +72,7 @@ class AuthRepositoryImpl @Inject constructor(private val authClient: FirebaseAut
                 TaskResult.Success(true)
             }
         } catch (e: Exception) {
-            TaskResult.Error(getAuthError(e.message))
+            TaskResult.Error(ErrorType.Unknown)
         }
     }
 
@@ -75,9 +82,4 @@ class AuthRepositoryImpl @Inject constructor(private val authClient: FirebaseAut
         authClient.signOut()
     }
 
-    private fun getAuthError(message: String?): ErrorType {
-        return message?.let {
-            ErrorType.AuthFailed(message)
-        } ?: ErrorType.Unknown
-    }
 }

@@ -8,13 +8,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.rememberNavController
-import com.example.pocketstorage.graphs.Graph
 import com.example.pocketstorage.graphs.RootNavigationGraph
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.AuthorizationViewModel
-import com.example.pocketstorage.presentation.ui.screens.inventory.Inventory
+import com.example.pocketstorage.presentation.ui.screens.inventory.HomeScreen
 import com.example.pocketstorage.ui.theme.PocketStorageTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -33,7 +30,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
 
                     if (viewModel.getAuth()) {
-                        Inventory()
+                        HomeScreen()
                     } else {
                         RootNavigationGraph(navController = navController)
                     }

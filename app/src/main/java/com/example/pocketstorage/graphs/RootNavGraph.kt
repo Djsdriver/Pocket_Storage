@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.pocketstorage.presentation.ui.screens.inventory.Inventory
+import com.example.pocketstorage.presentation.ui.screens.inventory.HomeScreen
 
 
 
@@ -17,7 +17,7 @@ fun RootNavigationGraph(navController: NavHostController) {
     ) {
         authNavGraph(navController = navController)
         composable(route = Graph.HOME) {
-            Inventory()
+            HomeScreen()
         }
     }
 }

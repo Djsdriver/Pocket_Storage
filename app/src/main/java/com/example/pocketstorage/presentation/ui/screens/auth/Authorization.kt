@@ -97,7 +97,7 @@ fun TextMainApp(nameApp: String) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun TextFieldAuthorizationApp(
     textHint: String,
@@ -119,7 +119,6 @@ fun TextFieldAuthorizationApp(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextFieldAuthorizationApp(
     textHint: String,
