@@ -265,28 +265,37 @@ fun AddPictureCard(onClick: () -> Unit) {
         mutableStateOf<Bitmap?>(null)
     }
 
-    val launcherGallery = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
-        imageUri = uri
-    }
+    val launcherGallery =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+            imageUri = uri
+        }
 
-    val launcherCamera = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { photoBitmap ->
-        bitmap.value = photoBitmap
-        imageUri = null
+    val launcherCamera =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { photoBitmap ->
+            bitmap.value = photoBitmap
+            imageUri = null
 
-        pathToLoadingPicture = photoBitmap.toString()
-        color.value = Color.Transparent
-    }
+            pathToLoadingPicture = photoBitmap.toString()
+            if (photoBitmap != null) {
+                color.value = Color.Transparent
+            } else {
+                color.value = color.value
+            }
+
+        }
 
     imageUri?.let {
         if (Build.VERSION.SDK_INT < 28) {
             bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
         } else {
             val source = ImageDecoder.createSource(context.contentResolver, it)
-            bitmap.value= ImageDecoder.decodeBitmap(source)
+            bitmap.value = ImageDecoder.decodeBitmap(source)
         }
 
         pathToLoadingPicture = it.toString()
         color.value = Color.Transparent
+
+
     }
 
     OutlinedCard(
