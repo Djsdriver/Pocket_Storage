@@ -1,6 +1,8 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,7 +25,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -30,28 +35,28 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -59,19 +64,17 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.pocketstorage.R
+import com.example.pocketstorage.components.DialogWithImage
 import com.example.pocketstorage.graphs.BottomBarScreen
 import com.example.pocketstorage.graphs.HomeNavGraph
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryModel
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 
-/*@Composable
-fun Inventory() {
-
-}*/
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun Inventory(navController: NavHostController = rememberNavController()) {
+fun HomeScreen(navController: NavHostController = rememberNavController()) {
     Scaffold(
         bottomBar = {
             BottomBar(navController = navController)
@@ -83,20 +86,61 @@ fun Inventory(navController: NavHostController = rememberNavController()) {
 
 @Composable
 @Preview(showBackground = true)
-fun InventoryScreenPreview(){
-    InventoryScreen(onClick = {}, onClickAdd = {})
+fun InventoryScreenPreview() {
+    InventoryScreen(onClick = {}, onClickAdd = {}, onClickLogOut = {})
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-//@Preview(showBackground = true)
 @Composable
-fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit) {
-    val viewModel = viewModel<InventoryViewModel>()
+fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit, onClickLogOut: () -> Unit) {
+    val viewModel = hiltViewModel<InventoryViewModel>()
     val inventory by viewModel.filteredInventory.collectAsState()
     val isSearch by viewModel.isSearching.collectAsState()
+    val gmail = FirebaseAuth.getInstance().currentUser?.email
+    val activity = (LocalContext.current as? Activity)
+
+    val shouldShowDialog = remember { mutableStateOf(false) }
+    BackHandler {
+        shouldShowDialog.value = true
+    }
+
+    if (shouldShowDialog.value) {
+        DialogWithImage(
+            onDismissRequest = { shouldShowDialog.value = false },
+            onConfirmation = { activity?.finish() },
+            painter = painterResource(id = R.drawable.cat_dialog),
+            imageDescription = "cat"
+        )
+    }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
+        Row(
+            modifier = Modifier.padding(top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(Modifier.weight(1f)) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = "Acc"
+                )
+            }
+            Text(text = "Почта: $gmail")
+            Spacer(modifier = Modifier.padding(8.dp))
+            Icon(
+                imageVector = Icons.Default.ExitToApp,
+                contentDescription = "exist",
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clickable {
+                        viewModel
+                            .logOut()
+                            .run {
+                                onClickLogOut()
+                            }
+                    }
+            )
+        }
 
         Row(
             modifier = Modifier
@@ -104,7 +148,6 @@ fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit) {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
 
             Box(Modifier.weight(1f)) {
                 TextFieldSearchInventoryNameOrId(
@@ -123,9 +166,9 @@ fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit) {
                             contentDescription = "SearchById"
                         )
                     },
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = colorResource(id = R.color.SpanishGrey),
-                        unfocusedBorderColor = colorResource(id = R.color.SpanishGrey)
+                        unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                     ),
                     viewModel
                 )
@@ -206,13 +249,13 @@ fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit) {
         )
 
         //recycler
-        if (isSearch){
+        if (isSearch) {
             Box(modifier = Modifier.fillMaxSize()) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-        } else{
+        } else {
             LazyColumn(
                 modifier = Modifier
                     .padding(start = 24.dp, end = 24.dp)
@@ -243,7 +286,7 @@ fun TextFieldSearchInventoryNameOrId(
     OutlinedTextField(
         modifier = modifier,
         value = searchText,
-        onValueChange = { newText->
+        onValueChange = { newText ->
             viewModel.onSearchTextChange(newText)
         },
         label = label,
@@ -371,3 +414,8 @@ fun RowScope.AddItem(
         selectedContentColor = Color.White
     )
 }
+
+
+
+
+

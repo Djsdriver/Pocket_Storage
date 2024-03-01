@@ -27,7 +27,11 @@ fun HomeNavGraph(navController: NavHostController) {
                 },
                 {
                     navController.navigate(InventoryScreenState.CreateProduct.route)
+                },
+                {
+                    navController.navigate(Graph.AUTHENTICATION)
                 }
+
             )
         }
         composable(route = BottomBarScreen.Category.route) {
@@ -40,6 +44,7 @@ fun HomeNavGraph(navController: NavHostController) {
         }
         inventoryNavGraph(navController = navController)
         buildingNavGraph(navController = navController)
+        authNavGraph(navController = navController)
     }
 }
 

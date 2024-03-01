@@ -3,6 +3,7 @@ package com.example.pocketstorage.presentation.ui.screens.auth.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pocketstorage.R
 import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.domain.usecase.SignUpUseCase
 import com.example.pocketstorage.presentation.ui.screens.auth.AuthFlowScreenState
@@ -62,6 +63,7 @@ class RegistrationViewModel @Inject constructor(
             )
         }
         val authResult = signUp(email, password)
+
         when (authResult) {
             is TaskResult.Success -> {
                 _uiState.update {
@@ -75,14 +77,22 @@ class RegistrationViewModel @Inject constructor(
             }
 
             is TaskResult.Error -> {
+                when (authResult.errorType) {
+                    ErrorType.AlreadySignedUp -> {
+                        SnackbarManager.showMessage(R.string.email_already_use)
+                    }
 
-                if (_screenState.value.error == ErrorType.AlreadySignedUp) {
-                    SnackbarManager.showMessage(AppText.email_already_use)
-                } else {
-                    SnackbarManager.showMessage(AppText.email_error)
-                }
-                _screenState.update {
-                    it.copy(error = ErrorType.AlreadySignedUp)
+                    ErrorType.EmailNotFound -> {
+                        SnackbarManager.showMessage(R.string.email_not_found)
+                    }
+
+                    ErrorType.FirebaseNetworkException -> {
+                        SnackbarManager.showMessage(R.string.network_error)
+                    }
+
+                    else -> {
+                        SnackbarManager.showMessage(R.string.email_error)
+                    }
                 }
             }
         }

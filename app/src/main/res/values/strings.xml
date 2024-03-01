@@ -24,4 +24,7 @@
     <string name="password_format_error">Ваш пароль должен состоять как минимум из шести символов, включать в себя цифры и заглавные буквы.</string>
     <string name="password_match_error">Пароли не совпадают.</string>
     <string name="email_already_use">Данная почта уже используется другим пользователем</string>
+    <string name="email_not_found">Неверная почта или пароль</string>
+    <string name="network_error">Нет соединение с интернетом</string>
+    <string name="wrongpassword">Пароль неверный</string>
 </resources>

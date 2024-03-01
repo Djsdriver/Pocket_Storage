@@ -24,9 +24,14 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
                 onSignUpClick = {
                     navController.navigate(AuthScreen.SignUp.route)
                 },
+                onSignInClickDone = {
+                    navController.navigate(Graph.HOME)
+                },
                 onForgotClick = {
                     navController.navigate(AuthScreen.Forgot.route)
-                }
+                },
+                hiltViewModel(),
+                navController
             )
         }
 
