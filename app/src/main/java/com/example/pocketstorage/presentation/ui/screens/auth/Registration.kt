@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.pocketstorage.R
+import com.example.pocketstorage.domain.model.UserDatabaseRealtime
 import com.example.pocketstorage.graphs.Graph
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.AuthorizationViewModel
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.RegistrationViewModel
@@ -43,6 +44,8 @@ import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import com.example.pocketstorage.utils.isValidPassword
 import com.example.pocketstorage.utils.passwordMatches
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -71,6 +74,8 @@ fun RegistrationScreen(
     val context = LocalContext.current
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
     val scope = rememberCoroutineScope()
+    val userDatabaseRealtime: UserDatabaseRealtime
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally

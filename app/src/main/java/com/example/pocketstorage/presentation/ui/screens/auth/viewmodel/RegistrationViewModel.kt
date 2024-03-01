@@ -4,8 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
+import com.example.pocketstorage.domain.model.UserDatabaseRealtime
 import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.domain.usecase.SignUpUseCase
+import com.example.pocketstorage.domain.usecase.databaseRealtime.CreateUserAndLinkDatabaseUseCase
 import com.example.pocketstorage.presentation.ui.screens.auth.AuthFlowScreenState
 import com.example.pocketstorage.presentation.ui.screens.auth.ErrorType
 import com.example.pocketstorage.presentation.ui.screens.auth.SignUpUiState
@@ -24,7 +26,8 @@ import com.example.pocketstorage.R.string as AppText
 
 @HiltViewModel
 class RegistrationViewModel @Inject constructor(
-    private val signUp: SignUpUseCase
+    private val signUp: SignUpUseCase,
+    private val createUserAndLinkDatabaseUseCase: CreateUserAndLinkDatabaseUseCase,
 ) : ViewModel() {
 
 
@@ -74,6 +77,7 @@ class RegistrationViewModel @Inject constructor(
                         success = true
                     )
                 }
+                createUserAndLinkDatabase()
             }
 
             is TaskResult.Error -> {
@@ -123,6 +127,12 @@ class RegistrationViewModel @Inject constructor(
         if (_screenState.value.error != ErrorType.AlreadySignedUp) {
             SnackbarManager.showMessage(AppText.email_already_use)
             return
+        }
+    }
+
+    private fun createUserAndLinkDatabase() {
+        viewModelScope.launch {
+            createUserAndLinkDatabaseUseCase.execute()
         }
     }
 
