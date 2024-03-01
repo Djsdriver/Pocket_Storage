@@ -1,8 +1,18 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,8 +57,12 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -233,33 +247,103 @@ fun AddPictureCard(onClick: () -> Unit) {
         pathEffect = PathEffect.dashPathEffect(floatArrayOf(30f, 30f), 0f)
     )
 
-    val color = Color(0xff2d7cf3)
+    val color = remember {
+        mutableStateOf(Color(0xff2d7cf3))
+    }
+
+    var pathToLoadingPicture by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var imageUri by remember {
+        mutableStateOf<Uri?>(null)
+    }
+
+    val context = LocalContext.current
+
+    val bitmap = remember {
+        mutableStateOf<Bitmap?>(null)
+    }
+
+    val launcherGallery =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+            imageUri = uri
+        }
+
+    val launcherCamera =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { photoBitmap ->
+            bitmap.value = photoBitmap
+            imageUri = null
+
+            pathToLoadingPicture = photoBitmap.toString()
+            if (photoBitmap != null) {
+                color.value = Color.Transparent
+            } else {
+                color.value = color.value
+            }
+
+        }
+
+    imageUri?.let {
+        if (Build.VERSION.SDK_INT < 28) {
+            bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+        } else {
+            val source = ImageDecoder.createSource(context.contentResolver, it)
+            bitmap.value = ImageDecoder.decodeBitmap(source)
+        }
+
+        pathToLoadingPicture = it.toString()
+        color.value = Color.Transparent
+
+
+    }
 
     OutlinedCard(
-
-        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
+            .pointerInput(UInt) {
+                detectTapGestures(
+                    onTap = {
+                        launcherGallery.launch("image/*")
+                    },
+                    onLongPress = {
+                        launcherCamera.launch()
+                    }
+                )
+            }
             .aspectRatio(1f)
             .width(cardWidth)
             .drawBehind {
                 drawRoundRect(
-                    color = color,
+                    color = color.value,
                     style = stroke,
                     cornerRadius = CornerRadius(8.dp.toPx())
                 )
             },
         border = BorderStroke(1.dp, Color.Transparent)
     ) {
+
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.add_photo_alternate),
-                contentDescription = "Add Photo",
-                modifier = Modifier.align(Alignment.Center),
-                tint = Color(R.color.SpanishGrey)
-            )
+            if (bitmap.value != null) {
+                Image(
+                    bitmap = bitmap.value!!.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    painter = painterResource(id = R.drawable.add_photo_alternate),
+                    contentDescription = "Add Photo",
+                    modifier = Modifier.align(Alignment.Center),
+                    tint = Color(R.color.SpanishGrey)
+                )
+            }
+            pathToLoadingPicture?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
