@@ -13,8 +13,9 @@ import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.repository.DatabaseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
-class DatabaseRepositoryImpl(private val appDatabase: AppDatabase) : DatabaseRepository {
+class DatabaseRepositoryImpl @Inject constructor(private val appDatabase: AppDatabase) : DatabaseRepository {
     override suspend fun insertInventory(inventory: Inventory) {
         appDatabase.inventoryDao().insertInventory(inventory.toInventoryEntity())
     }

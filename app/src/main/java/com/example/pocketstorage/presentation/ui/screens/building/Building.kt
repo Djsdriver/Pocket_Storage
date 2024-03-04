@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
 import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.BuildingModel2
@@ -55,7 +56,7 @@ fun PreviewBuildingScreen() {
 
 @Composable
 fun BuildingScreen(onClick: () -> Unit) {
-    val viewModel = viewModel<BuildingViewModel>()
+    val viewModel = hiltViewModel<BuildingViewModel>()
     val buildings by viewModel.filteredPersons.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
     Column(
