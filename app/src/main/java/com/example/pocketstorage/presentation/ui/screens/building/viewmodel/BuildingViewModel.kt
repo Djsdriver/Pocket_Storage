@@ -27,21 +27,19 @@ class BuildingViewModel @Inject constructor(
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading = _isLoading.asStateFlow()
-
     private val _locations = MutableStateFlow(emptyList<Location>())
+    val locations = _locations.asStateFlow()
+
 
     fun refreshLocations() {
         viewModelScope.launch {
-            getLocationsUseCase.invoke().collect { locations ->
-                _isLoading.value = true
+            getLocationsUseCase().collect { locations ->
                 _locations.value = locations
             }
         }
     }
 
-    val filteredLocations = searchText
+    val filteredLocations = _searchText
         .debounce(1000L)
         .onEach { _isSearching.value = true }
         .map { text ->
@@ -63,3 +61,5 @@ class BuildingViewModel @Inject constructor(
         _searchText.value = text
     }
 }
+
+

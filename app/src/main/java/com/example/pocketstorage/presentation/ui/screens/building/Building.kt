@@ -1,4 +1,4 @@
- package com.example.pocketstorage.presentation.ui.screens.building
+package com.example.pocketstorage.presentation.ui.screens.building
 
 
 import androidx.compose.foundation.background
@@ -38,7 +38,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.BuildingViewModel
@@ -55,94 +54,96 @@ fun PreviewBuildingScreen() {
     BuildingScreen(onClick = {})
 }
 
- @Composable
- fun BuildingScreen(onClick: () -> Unit) {
-     val viewModel = hiltViewModel<BuildingViewModel>()
-     val buildings by viewModel.filteredLocations.collectAsState()
-     val isSearching by viewModel.isSearching.collectAsState()
-     val isLoading by viewModel.isLoading.collectAsState()
+@Composable
+fun BuildingScreen(onClick: () -> Unit) {
+    val viewModel = hiltViewModel<BuildingViewModel>()
+    val locationFilter by viewModel.filteredLocations.collectAsState()
+    val buildings by viewModel.locations.collectAsState()
+    val isSearching by viewModel.isSearching.collectAsState()
+    val searchText by viewModel.searchText.collectAsState()
+
+    val buildingsFilter = if (searchText.isEmpty()){
+        buildings
+    } else {
+        locationFilter
+    }
 
 
-     LaunchedEffect(true) {
-         viewModel.refreshLocations()
-     }
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(top = 56.dp, start = 24.dp, bottom = 24.dp, end = 24.dp)
+                .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(Modifier.weight(1f)) {
+                TextFieldSearchBuildingName(
+                    modifier = Modifier.fillMaxWidth(),
+                    label = {
+                        Text(
+                            text = "building",
+                            color = colorResource(id = R.color.SpanishGrey)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "SearchById"
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colorResource(id = R.color.RetroBlue),
+                        unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
+                    ),
+                    viewModel = viewModel
+                )
+            }
+        }
 
-     Column(
-         modifier = Modifier.fillMaxSize()
-     ) {
-         Row(
-             modifier = Modifier
-                 .padding(top = 56.dp, start = 24.dp, bottom = 24.dp, end = 24.dp)
-                 .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
-         ) {
-             Box(Modifier.weight(1f)) {
-                 TextFieldSearchBuildingName(
-                     modifier = Modifier.fillMaxWidth(),
-                     label = {
-                         Text(
-                             text = "building",
-                             color = colorResource(id = R.color.SpanishGrey)
-                         )
-                     },
-                     leadingIcon = {
-                         Icon(
-                             imageVector = Icons.Default.Search,
-                             contentDescription = "SearchById"
-                         )
-                     },
-                     colors = OutlinedTextFieldDefaults.colors(
-                         focusedBorderColor = colorResource(id = R.color.RetroBlue),
-                         unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
-                     ),
-                     viewModel = viewModel
-                 )
-             }
-         }
+        Row(
+            modifier = Modifier
+                .wrapContentWidth()
+                .padding(start = 24.dp, bottom = 16.dp),
+        ) {
+            ButtonBuildingScreen(
+                modifier = Modifier.wrapContentWidth(),
+                rowContent = {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add building",
+                        modifier = Modifier.padding(end = 15.dp)
+                    )
+                    Text(text = "Add building", fontSize = 16.sp)
+                },
+                onClick = {
+                    onClick()
+                }
+            )
+        }
 
-         Row(
-             modifier = Modifier
-                 .wrapContentWidth()
-                 .padding(start = 24.dp, bottom = 16.dp),
-         ) {
-             ButtonBuildingScreen(
-                 modifier = Modifier.wrapContentWidth(),
-                 rowContent = {
-                     Icon(
-                         imageVector = Icons.Default.Add,
-                         contentDescription = "Add building",
-                         modifier = Modifier.padding(end = 15.dp)
-                     )
-                     Text(text = "Add building", fontSize = 16.sp)
-                 },
-                 onClick = {
-                     onClick()
-                 }
-             )
-         }
+        if (isSearching) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+        }  else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(start = 24.dp, end = 24.dp)
+                    .background(Color.White)
+            ) {
+                items(buildingsFilter) { locations ->
+                    ListRowBuilding(model = locations)
+                    //viewModel.refreshLocations()
+                }
+            }
+        }
+        LaunchedEffect(Unit) {
+            viewModel.refreshLocations()
+        }
 
-         if (isSearching && isLoading) {
-             Box(modifier = Modifier.fillMaxSize()) {
-                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-             }
-         } else if (buildings.isEmpty()) {
-             Box(modifier = Modifier.fillMaxSize()) {
-                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-             }
-         } else {
-
-             LazyColumn(
-                 modifier = Modifier
-                     .padding(start = 24.dp, end = 24.dp)
-                     .background(Color.White)
-             ) {
-                 items(buildings) { locations ->
-                     ListRowBuilding(model = locations)
-                 }
-             }
-         }
-
-     }
- }
+    }
+}
 
 
 @Composable

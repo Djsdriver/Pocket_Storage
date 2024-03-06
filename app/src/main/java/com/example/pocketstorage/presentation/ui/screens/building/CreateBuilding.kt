@@ -1,6 +1,7 @@
 package com.example.pocketstorage.presentation.ui.screens.building
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
 import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.CreateBuildingViewModel
+import kotlinx.coroutines.delay
 
 
 /*@Preview(showBackground = true)
@@ -52,7 +54,7 @@ fun CreateBuilding(onEvent: (CreateBuildingEvent) -> Unit,onClick: () -> Unit) {
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
 //@Preview(showBackground = true)
 fun ScaffoldWithTopBarCreatingBuilding(onEvent: (CreateBuildingEvent) -> Unit,onClick: () -> Unit) {
@@ -133,8 +135,9 @@ fun ScaffoldWithTopBarCreatingBuilding(onEvent: (CreateBuildingEvent) -> Unit,on
                     )
 
                     ButtonSaveBuilding {
-                        onClick()
                         onEvent(CreateBuildingEvent.CreateBuilding)
+                        onClick()
+                        Log.d("saveScreenstate", "${state.isSaved}")
                     }
                 }
             }

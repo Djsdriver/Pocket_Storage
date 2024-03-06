@@ -6,7 +6,8 @@ data class Location(
     val id: Long = UNDEFINED_ID,
     val name: String = "",
     val index: String= "",
-    val address: String= ""
+    val address: String= "",
+    val isSaved: Boolean = false,
 
 
 ){
