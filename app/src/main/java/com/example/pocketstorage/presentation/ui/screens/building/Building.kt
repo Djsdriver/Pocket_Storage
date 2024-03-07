@@ -57,17 +57,11 @@ fun PreviewBuildingScreen() {
 @Composable
 fun BuildingScreen(onClick: () -> Unit) {
     val viewModel = hiltViewModel<BuildingViewModel>()
-    val locationFilter by viewModel.filteredLocations.collectAsState()
-    val buildings by viewModel.locations.collectAsState()
-    val isSearching by viewModel.isSearching.collectAsState()
-    val searchText by viewModel.searchText.collectAsState()
-
-    val buildingsFilter = if (searchText.isEmpty()){
-        buildings
-    } else {
-        locationFilter
+    val uiState by viewModel.uiState.collectAsState()
+    val state by viewModel.state.collectAsState()
+    LaunchedEffect(true) {
+        viewModel.refreshLocations()
     }
-
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -96,7 +90,9 @@ fun BuildingScreen(onClick: () -> Unit) {
                         focusedBorderColor = colorResource(id = R.color.RetroBlue),
                         unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                     ),
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    value = state.searchText,
+                    onValueChange = viewModel::onSearchTextChange
                 )
             }
         }
@@ -121,27 +117,32 @@ fun BuildingScreen(onClick: () -> Unit) {
                 }
             )
         }
-
-        if (isSearching) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        when (val currentState = uiState) {
+            is BuildingUiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
             }
-        }  else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(start = 24.dp, end = 24.dp)
-                    .background(Color.White)
-            ) {
-                items(buildingsFilter) { locations ->
-                    ListRowBuilding(model = locations)
-                    //viewModel.refreshLocations()
+
+            is BuildingUiState.Success -> {
+                if (currentState.locations
+                        .isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(start = 24.dp, end = 24.dp)
+                            .background(Color.White)
+                    ) {
+                        items(currentState.locations) { locations ->
+                            ListRowBuilding(model = locations)
+                        }
+                    }
                 }
             }
         }
-        LaunchedEffect(Unit) {
-            viewModel.refreshLocations()
-        }
-
     }
 }
 
@@ -152,13 +153,16 @@ fun TextFieldSearchBuildingName(
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
     colors: TextFieldColors,
-    viewModel: BuildingViewModel
+    viewModel: BuildingViewModel,
+    value: String,
+    onValueChange: (String) -> Unit
+
 ) {
-    val searchText by viewModel.searchText.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     OutlinedTextField(
         modifier = modifier,
-        value = searchText,
-        onValueChange = viewModel::onSearchTextChange, // тоже можно использовать такую конструкцию onValueChange = { newText-> viewModel.onSearchTextChange(newText) }
+        value = value,
+        onValueChange = onValueChange, // тоже можно использовать такую конструкцию onValueChange = { newText-> viewModel.onSearchTextChange(newText) }
         label = label,
         leadingIcon = leadingIcon,
         colors = colors
@@ -218,6 +222,5 @@ fun ListRowBuilding(model: Location) {
             color = Color.White
         )
     }
+
 }
-
-
