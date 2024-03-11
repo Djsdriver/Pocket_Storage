@@ -90,7 +90,6 @@ fun BuildingScreen(onClick: () -> Unit) {
                         focusedBorderColor = colorResource(id = R.color.RetroBlue),
                         unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                     ),
-                    viewModel = viewModel,
                     value = state.searchText,
                     onValueChange = viewModel::onSearchTextChange
                 )
@@ -117,28 +116,33 @@ fun BuildingScreen(onClick: () -> Unit) {
                 }
             )
         }
-        when (val currentState = uiState) {
-            is BuildingUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-            }
+        renderScreen(uiState)
+    }
+}
 
-            is BuildingUiState.Success -> {
-                if (currentState.locations
-                        .isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(start = 24.dp, end = 24.dp)
-                            .background(Color.White)
-                    ) {
-                        items(currentState.locations) { locations ->
-                            ListRowBuilding(model = locations)
-                        }
+@Composable
+private fun renderScreen(uiState: BuildingUiState) {
+    when (val currentState = uiState) {
+        is BuildingUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+        }
+
+        is BuildingUiState.Success -> {
+            if (currentState.isEmpty()
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text(text = "No locations",modifier = Modifier.align(Alignment.Center))
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(start = 24.dp, end = 24.dp)
+                        .background(Color.White)
+                ) {
+                    items(currentState.locations) { locations ->
+                        ListRowBuilding(model = locations)
                     }
                 }
             }
@@ -153,12 +157,10 @@ fun TextFieldSearchBuildingName(
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
     colors: TextFieldColors,
-    viewModel: BuildingViewModel,
     value: String,
     onValueChange: (String) -> Unit
 
 ) {
-    val uiState by viewModel.uiState.collectAsState()
     OutlinedTextField(
         modifier = modifier,
         value = value,
