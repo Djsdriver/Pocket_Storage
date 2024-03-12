@@ -26,9 +26,6 @@ class CreateBuildingViewModel @Inject constructor(
     private val _state = MutableStateFlow(Location())
     val state = _state.asStateFlow()
 
-    private val _shouldRefreshLocations = MutableStateFlow(false)
-    val shouldRefreshLocations: StateFlow<Boolean> = _shouldRefreshLocations
-
     fun event(createBuildingEvent: CreateBuildingEvent){
         when(createBuildingEvent){
             is CreateBuildingEvent.CreateBuilding-> {

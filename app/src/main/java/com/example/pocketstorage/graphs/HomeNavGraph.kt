@@ -69,7 +69,7 @@ fun NavGraphBuilder.inventoryNavGraph(navController: NavHostController) {
 fun NavGraphBuilder.buildingNavGraph(navController: NavHostController) {
     composable(route = BuildingScreenState.CreateBuilding.route) {
         val viewModelCreateBuilding = hiltViewModel<CreateBuildingViewModel>()
-        CreateBuilding(viewModelCreateBuilding::event) {
+        CreateBuilding(viewModelCreateBuilding,viewModelCreateBuilding::event) {
             navController.navigateUp()
         }
     }

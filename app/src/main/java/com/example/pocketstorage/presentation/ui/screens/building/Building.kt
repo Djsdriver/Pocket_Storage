@@ -44,19 +44,18 @@ import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.Buil
 
 
 @Composable
-fun Building(onClick: () -> Unit) {
-    BuildingScreen(onClick)
+fun Building(viewModel: BuildingViewModel = hiltViewModel(),onClick: () -> Unit) {
+    BuildingScreen(viewModel,onClick)
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun PreviewBuildingScreen() {
-    BuildingScreen(onClick = {})
+fun PreviewBuildingScreen(viewModel: BuildingViewModel) {
+    BuildingScreen(viewModel,onClick = {})
 }
 
 @Composable
-fun BuildingScreen(onClick: () -> Unit) {
-    val viewModel = hiltViewModel<BuildingViewModel>()
+fun BuildingScreen(viewModel: BuildingViewModel,onClick: () -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     val state by viewModel.state.collectAsState()
     LaunchedEffect(true) {

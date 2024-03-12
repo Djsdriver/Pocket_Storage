@@ -6,6 +6,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -46,6 +47,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,31 +73,43 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.example.pocketstorage.R
+import com.example.pocketstorage.domain.model.Location
+import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.AddProductViewModel
 
 @Composable
 fun CreateProduct(
     onBackArrowClick: () -> Unit,
     onAddPictureClick: () -> Unit,
     onGenerateQRClick: () -> Unit,
-    onSaveClick: () -> Unit
+    onSaveClick: () -> Unit,
+    viewModel: AddProductViewModel = hiltViewModel()
 ) {
     AddProductScreen(
         onBackArrowClick = onBackArrowClick,
         onAddPictureClick = onAddPictureClick,
         onGenerateQRClick = onGenerateQRClick,
-        onSaveClick = onSaveClick
+        onSaveClick = onSaveClick,
+        viewModel
     )
 }
 
 @Preview(showBackground = true)
 @Composable
-fun AddProductScreenPreview() {
+fun AddProductScreenPreview(
+    viewModel: AddProductViewModel = hiltViewModel()
+) {
     AddProductScreen(
         onBackArrowClick = {},
         onAddPictureClick = {},
         onGenerateQRClick = {},
-        onSaveClick = {}
+        onSaveClick = {},
+        viewModel
     )
 }
 
@@ -103,7 +118,8 @@ fun AddProductScreen(
     onBackArrowClick: () -> Unit,
     onAddPictureClick: () -> Unit,
     onGenerateQRClick: () -> Unit,
-    onSaveClick: () -> Unit
+    onSaveClick: () -> Unit,
+    viewModel: AddProductViewModel
 ) {
     ScaffoldBase(
         onBackArrowClick = onBackArrowClick,
@@ -157,11 +173,18 @@ fun BaseContent(
     onAddPictureClick: () -> Unit,
     onGenerateQRClick: () -> Unit,
     onSaveClick: () -> Unit,
-    topPadding: Dp = 8.dp
+    topPadding: Dp = 8.dp,
+    viewModel: AddProductViewModel = hiltViewModel()
 ) {
 
     var imageIsVisible by remember {
         mutableStateOf(false)
+    }
+
+    val state = viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit){
+        viewModel.getBuildings()
     }
 
     Column(
@@ -192,24 +215,20 @@ fun BaseContent(
                 .fillMaxWidth()
                 .height(112.dp)
         )
+        val context = LocalContext.current
         BaseDropdownMenu(
-            listOfElements = listOf(
-                "without category",
-                "computers",
-                "printers",
-                "telephones"
-            ),
+            listOfElements = state.value.locations,
             modifier = Modifier.padding(top = topPadding)
-        )
+        ) { selectedLocationName ->
+            Toast.makeText(context, "Selected Location ID: ${selectedLocationName}", Toast.LENGTH_SHORT).show()
+        }
+        //заменить на категории
         BaseDropdownMenu(
-            listOfElements = listOf(
-                "without building",
-                "building 1",
-                "building 2",
-                "building 3"
-            ),
+            listOfElements = state.value.locations, //заменить на категории
             modifier = Modifier.padding(top = topPadding)
-        )
+        ) { selectedLocationName ->
+            Toast.makeText(context, "Selected Location ID: ${selectedLocationName}", Toast.LENGTH_SHORT).show()
+        }
         if (imageIsVisible) {
             BaseImage()
         }
@@ -235,7 +254,7 @@ fun BaseContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun AddPictureCard(onClick: () -> Unit) {
 
@@ -371,17 +390,22 @@ fun BaseTextField(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun BaseDropdownMenu(listOfElements: List<String>, modifier: Modifier) {
+fun  BaseDropdownMenu(
+    listOfElements: List<Location>,
+    modifier: Modifier,
+    onItemSelected: (Long) -> Unit
+) {
 
     var expanded by remember { mutableStateOf(false) }
-    var selectedElement by remember { mutableStateOf(listOfElements[0]) }
+    var selectedElement by remember { mutableStateOf(listOfElements.getOrNull(0)) }
+    Log.d("element", "${selectedElement}")
+
+    var value = "${selectedElement?.address} "
 
     // menu box
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = {
-            expanded = !expanded
-        },
+        onExpandedChange = { expanded = !expanded },
         modifier = modifier
     ) {
         // textfield
@@ -389,39 +413,37 @@ fun BaseDropdownMenu(listOfElements: List<String>, modifier: Modifier) {
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth(),
-            value = selectedElement,
-            onValueChange = {},
-            label = {},
+            value = selectedElement?.address ?: "without building",
+            onValueChange = {value = it},
+            label = { Text(text = "without building")},
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = colorResource(id = R.color.AdamantineBlue),
                 unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
-            ),
+            )
         )
 
         // menu
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-            },
+            onDismissRequest = { expanded = false }
         ) {
             // menu items
             listOfElements.forEach { selectionOption ->
                 DropdownMenuItem(
-                    text = { Text(selectionOption) },
+                    text = { Text("${selectionOption.name}\n${selectionOption.address}") },
                     onClick = {
                         selectedElement = selectionOption
                         expanded = false
+                        onItemSelected(selectionOption.id)
                     },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )
             }
         }
     }
 }
-
 @Composable
 fun BaseImage() {
     Image(

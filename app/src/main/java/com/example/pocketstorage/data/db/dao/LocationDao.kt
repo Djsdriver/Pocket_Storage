@@ -11,7 +11,7 @@ import com.example.pocketstorage.data.db.model.LocationEntity
 @Dao
 interface LocationDao {
 
-    @Upsert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLocation(location: LocationEntity)
 
     @Delete

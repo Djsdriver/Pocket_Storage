@@ -48,8 +48,8 @@ fun PreviewB(){
     }
 }*/
 @Composable
-fun CreateBuilding(onEvent: (CreateBuildingEvent) -> Unit,onClick: () -> Unit) {
-    ScaffoldWithTopBarCreatingBuilding(onEvent,onClick)
+fun CreateBuilding(viewModel: CreateBuildingViewModel,onEvent: (CreateBuildingEvent) -> Unit,onClick: () -> Unit) {
+    ScaffoldWithTopBarCreatingBuilding(viewModel,onEvent,onClick)
 }
 
 
@@ -57,8 +57,7 @@ fun CreateBuilding(onEvent: (CreateBuildingEvent) -> Unit,onClick: () -> Unit) {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
 //@Preview(showBackground = true)
-fun ScaffoldWithTopBarCreatingBuilding(onEvent: (CreateBuildingEvent) -> Unit,onClick: () -> Unit) {
-    val viewModel = hiltViewModel<CreateBuildingViewModel>()
+fun ScaffoldWithTopBarCreatingBuilding(viewModel: CreateBuildingViewModel,onEvent: (CreateBuildingEvent) -> Unit,onClick: () -> Unit) {
     val state by viewModel.state.collectAsState()
     Scaffold(
         topBar = {
@@ -160,7 +159,6 @@ fun ButtonSaveBuilding(onClick: () -> Unit) {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextFieldCreateBuilding(
     modifier: Modifier,
