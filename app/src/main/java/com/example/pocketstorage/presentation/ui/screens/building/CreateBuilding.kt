@@ -1,6 +1,7 @@
 package com.example.pocketstorage.presentation.ui.screens.building
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,20 +33,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
+import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.CreateBuildingViewModel
+import kotlinx.coroutines.delay
 
 
+/*@Preview(showBackground = true)
 @Composable
-fun CreateBuilding(onClick: () -> Unit) {
-    ScaffoldWithTopBarCreatingBuilding(onClick)
+fun PreviewB(){
+    CreateBuilding {
+
+    }
+}*/
+@Composable
+fun CreateBuilding(viewModel: CreateBuildingViewModel,onEvent: (CreateBuildingEvent) -> Unit,onClick: () -> Unit) {
+    ScaffoldWithTopBarCreatingBuilding(viewModel,onEvent,onClick)
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
 //@Preview(showBackground = true)
-fun ScaffoldWithTopBarCreatingBuilding(onClick: () -> Unit) {
+fun ScaffoldWithTopBarCreatingBuilding(viewModel: CreateBuildingViewModel,onEvent: (CreateBuildingEvent) -> Unit,onClick: () -> Unit) {
+    val state by viewModel.state.collectAsState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -81,7 +95,9 @@ fun ScaffoldWithTopBarCreatingBuilding(onClick: () -> Unit) {
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = colorResource(id = R.color.RetroBlue),
                             unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
-                        )
+                        ),
+                        value = state.name,
+                        onValueChange = {onEvent(CreateBuildingEvent.SetNameBuilding(it))}
                     )
                     TextFieldCreateBuilding(
                         modifier = Modifier
@@ -96,7 +112,9 @@ fun ScaffoldWithTopBarCreatingBuilding(onClick: () -> Unit) {
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = colorResource(id = R.color.RetroBlue),
                             unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
-                        )
+                        ),
+                        value = state.address,
+                        onValueChange = {onEvent(CreateBuildingEvent.SetAddress(it))}
                     )
                     TextFieldCreateBuilding(
                         modifier = Modifier
@@ -110,11 +128,15 @@ fun ScaffoldWithTopBarCreatingBuilding(onClick: () -> Unit) {
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = colorResource(id = R.color.RetroBlue),
                             unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
-                        )
+                        ),
+                        value = state.index,
+                        onValueChange = {onEvent(CreateBuildingEvent.SetIndex(it))}
                     )
 
                     ButtonSaveBuilding {
+                        onEvent(CreateBuildingEvent.CreateBuilding)
                         onClick()
+                        Log.d("saveScreenstate", "${state.isSaved}")
                     }
                 }
             }
@@ -137,18 +159,19 @@ fun ButtonSaveBuilding(onClick: () -> Unit) {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextFieldCreateBuilding(
     modifier: Modifier,
     label: @Composable () -> Unit,
-    colors: TextFieldColors
+    colors: TextFieldColors,
+    value: String,
+    onValueChange: (String) -> Unit
 ) {
-    var state by rememberSaveable { mutableStateOf("") }
+
     OutlinedTextField(
         modifier = modifier,
-        value = state,
-        onValueChange = { state = it },
+        value = value,
+        onValueChange =  { onValueChange(it) },
         label = label,
         colors = colors
     )

@@ -1,6 +1,7 @@
 package com.example.pocketstorage.graphs
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -8,6 +9,7 @@ import androidx.navigation.compose.composable
 import com.example.pocketstorage.presentation.ui.screens.building.Building
 import com.example.pocketstorage.presentation.ui.screens.category.Category
 import com.example.pocketstorage.presentation.ui.screens.building.CreateBuilding
+import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.CreateBuildingViewModel
 import com.example.pocketstorage.presentation.ui.screens.inventory.CreateProduct
 import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryScreen
 import com.example.pocketstorage.presentation.ui.screens.inventory.ProductPage
@@ -66,11 +68,11 @@ fun NavGraphBuilder.inventoryNavGraph(navController: NavHostController) {
 
 fun NavGraphBuilder.buildingNavGraph(navController: NavHostController) {
     composable(route = BuildingScreenState.CreateBuilding.route) {
-        CreateBuilding {
+        val viewModelCreateBuilding = hiltViewModel<CreateBuildingViewModel>()
+        CreateBuilding(viewModelCreateBuilding,viewModelCreateBuilding::event) {
             navController.navigateUp()
         }
     }
-
 }
 
 sealed class InventoryScreenState(val route: String) {

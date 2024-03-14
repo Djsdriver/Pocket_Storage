@@ -1,4 +1,4 @@
- package com.example.pocketstorage.presentation.ui.screens.building
+package com.example.pocketstorage.presentation.ui.screens.building
 
 
 import androidx.compose.foundation.background
@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,57 +37,62 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pocketstorage.R
-import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.BuildingModel2
+import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.BuildingViewModel
 
 
 @Composable
-fun Building(onClick: () -> Unit) {
-    BuildingScreen(onClick)
+fun Building(viewModel: BuildingViewModel = hiltViewModel(),onClick: () -> Unit) {
+    BuildingScreen(viewModel,onClick)
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun PreviewBuildingScreen() {
-    BuildingScreen(onClick = {})
+fun PreviewBuildingScreen(viewModel: BuildingViewModel) {
+    BuildingScreen(viewModel,onClick = {})
 }
 
 @Composable
-fun BuildingScreen(onClick: () -> Unit) {
-    val viewModel = viewModel<BuildingViewModel>()
-    val buildings by viewModel.filteredPersons.collectAsState()
-    val isSearching by viewModel.isSearching.collectAsState()
+fun BuildingScreen(viewModel: BuildingViewModel,onClick: () -> Unit) {
+    val uiState by viewModel.uiState.collectAsState()
+    val state by viewModel.state.collectAsState()
+    LaunchedEffect(true) {
+        viewModel.refreshLocations()
+    }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-
         Row(
             modifier = Modifier
                 .padding(top = 56.dp, start = 24.dp, bottom = 24.dp, end = 24.dp)
                 .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
         ) {
-
-
             Box(Modifier.weight(1f)) {
-
-                TextFieldSearchBuildingName(modifier = Modifier.fillMaxWidth(), label = {
-                    Text(
-                        text = "building", color = colorResource(id = R.color.SpanishGrey)
-                    )
-                }, leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search, contentDescription = "SearchById"
-                    )
-                }, colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = colorResource(id = R.color.RetroBlue),
-                    unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
-                ), viewModel
-
+                TextFieldSearchBuildingName(
+                    modifier = Modifier.fillMaxWidth(),
+                    label = {
+                        Text(
+                            text = "building",
+                            color = colorResource(id = R.color.SpanishGrey)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "SearchById"
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colorResource(id = R.color.RetroBlue),
+                        unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
+                    ),
+                    value = state.searchText,
+                    onValueChange = viewModel::onSearchTextChange
                 )
             }
-
         }
 
         Row(
@@ -94,56 +100,53 @@ fun BuildingScreen(onClick: () -> Unit) {
                 .wrapContentWidth()
                 .padding(start = 24.dp, bottom = 16.dp),
         ) {
+            ButtonBuildingScreen(
+                modifier = Modifier.wrapContentWidth(),
+                rowContent = {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add building",
+                        modifier = Modifier.padding(end = 15.dp)
+                    )
+                    Text(text = "Add building", fontSize = 16.sp)
+                },
+                onClick = {
+                    onClick()
+                }
+            )
+        }
+        renderScreen(uiState)
+    }
+}
 
-
-            ButtonBuildingScreen(modifier = Modifier.wrapContentWidth(), rowContent = {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add building",
-                    modifier = Modifier.padding(end = 15.dp)
-                )
-                Text(text = "Add building", fontSize = 16.sp)
-            }, onClick = {
-                onClick()
-            })
-
+@Composable
+private fun renderScreen(uiState: BuildingUiState) {
+    when (val currentState = uiState) {
+        is BuildingUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
         }
 
-        //recycler
-        val list = mutableListOf<BuildingModel>()
-        list.add(BuildingModel("ГБОУ Школа №1500", "MSK-1", "Skornyazhnyy Pereulok, 3, Moscow"))
-        list.add(BuildingModel("Школа № 1284", "MSK-2", "Ulanskiy Pereulok, 8, Moscow"))
-        list.add(BuildingModel("Школа №57", "MSK-1", "Malyy Znamenskiy Ln, 7/10 стр. 5, Moscow"))
-        list.add(BuildingModel("ГБОУ Школа №1500", "MSK-1", "Skornyazhnyy Pereulok, 3, Moscow"))
-        list.add(BuildingModel("Школа № 1284", "MSK-2", "Ulanskiy Pereulok, 8, Moscow"))
-        list.add(BuildingModel("Школа №57", "MSK-1", "Malyy Znamenskiy Ln, 7/10 стр. 5, Moscow"))
-        list.add(BuildingModel("ГБОУ Школа №1500", "MSK-1", "Skornyazhnyy Pereulok, 3, Moscow"))
-        list.add(BuildingModel("Школа № 1284", "MSK-2", "Ulanskiy Pereulok, 8, Moscow"))
-        list.add(BuildingModel("Школа №57", "MSK-1", "Malyy Znamenskiy Ln, 7/10 стр. 5, Moscow"))
-        list.add(BuildingModel("ГБОУ Школа №1500", "MSK-1", "Skornyazhnyy Pereulok, 3, Moscow"))
-        list.add(BuildingModel("Школа № 1284", "MSK-2", "Ulanskiy Pereulok, 8, Moscow"))
-        list.add(BuildingModel("Школа №57", "MSK-1", "Malyy Znamenskiy Ln, 7/10 стр. 5, Moscow"))
-
-        if (isSearching) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(start = 24.dp, end = 24.dp)
-                    .background(Color.White)
+        is BuildingUiState.Success -> {
+            if (currentState.isEmpty()
             ) {
-                items(buildings) { person ->
-                    ListRowBuilding(model = person)
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text(text = "No locations",modifier = Modifier.align(Alignment.Center))
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(start = 24.dp, end = 24.dp)
+                        .background(Color.White)
+                ) {
+                    items(currentState.locations) { locations ->
+                        ListRowBuilding(model = locations)
+                    }
                 }
             }
         }
-        
     }
-
 }
 
 
@@ -153,13 +156,14 @@ fun TextFieldSearchBuildingName(
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
     colors: TextFieldColors,
-    viewModel: BuildingViewModel
+    value: String,
+    onValueChange: (String) -> Unit
+
 ) {
-    val searchText by viewModel.searchText.collectAsState()
     OutlinedTextField(
         modifier = modifier,
-        value = searchText,
-        onValueChange = viewModel::onSearchTextChange, // тоже можно использовать такую конструкцию onValueChange = { newText-> viewModel.onSearchTextChange(newText) }
+        value = value,
+        onValueChange = onValueChange, // тоже можно использовать такую конструкцию onValueChange = { newText-> viewModel.onSearchTextChange(newText) }
         label = label,
         leadingIcon = leadingIcon,
         colors = colors
@@ -188,7 +192,7 @@ fun ButtonBuildingScreen(
 }
 
 @Composable
-fun ListRowBuilding(model: BuildingModel2) {
+fun ListRowBuilding(model: Location) {
     Column(
         modifier = Modifier
             .padding(2.dp)
@@ -199,14 +203,14 @@ fun ListRowBuilding(model: BuildingModel2) {
     ) {
         Text(
             modifier = Modifier.padding(start = 12.dp, top = 8.dp),
-            text = model.nameSchool,
+            text = model.name,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White
         )
         Text(
             modifier = Modifier.padding(start = 12.dp),
-            text = model.shortCode,
+            text = model.index,
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.White
@@ -219,7 +223,5 @@ fun ListRowBuilding(model: BuildingModel2) {
             color = Color.White
         )
     }
+
 }
-
-data class BuildingModel(val nameSchool: String, val shortCode: String, val address: String)
-
