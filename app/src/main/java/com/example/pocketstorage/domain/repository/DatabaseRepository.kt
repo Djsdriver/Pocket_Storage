@@ -13,19 +13,19 @@ interface DatabaseRepository {
 
     suspend fun updateInventory(inventory: Inventory)
 
-    suspend fun getInventoryById(inventoryId: Long): Inventory
+    suspend fun getInventoryById(inventoryId: String): Inventory
 
     fun getInventories(): Flow<List<Inventory>>
 
-    fun getInventoriesByCategoryId(categoryId: Long): Flow<List<Inventory>>
+    fun getInventoriesByCategoryId(categoryId: String): Flow<List<Inventory>>
 
-    fun getInventoriesByLocationId(locationId: Long): Flow<List<Inventory>>
+    fun getInventoriesByLocationId(locationId: String): Flow<List<Inventory>>
 
     suspend fun insertCategory(category: Category)
 
     suspend fun deleteCategory(category: Category)
 
-    suspend fun getCategoryById(categoryId: Long): Category
+    suspend fun getCategoryById(categoryId: String): Category
 
     fun getCategories(): Flow<List<Category>>
 
@@ -35,5 +35,5 @@ interface DatabaseRepository {
 
     fun getLocations(): Flow<List<Location>>
 
-    suspend fun getLocationById(locationId: Long): Location
+    suspend fun getLocationById(locationId: String): Location
 }

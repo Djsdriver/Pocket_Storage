@@ -24,11 +24,11 @@ interface InventoryDao {
     suspend fun getInventories(): List<InventoryEntity>
 
     @Query("SELECT * FROM inventory_table WHERE id = :inventoryId")
-    suspend fun getInventoryById(inventoryId: Long): InventoryEntity
+    suspend fun getInventoryById(inventoryId: String): InventoryEntity
 
     @Query("SELECT * FROM inventory_table WHERE categoryId = :categoryId")
-    suspend fun getInventoriesByCategoryId(categoryId: Long): List<InventoryEntity>
+    suspend fun getInventoriesByCategoryId(categoryId: String): List<InventoryEntity>
 
     @Query("SELECT * FROM inventory_table WHERE locationId = :locationId")
-    suspend fun getInventoriesByLocationId(locationId: Long): List<InventoryEntity>
+    suspend fun getInventoriesByLocationId(locationId: String): List<InventoryEntity>
 }

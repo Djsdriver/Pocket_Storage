@@ -21,5 +21,5 @@ interface LocationDao {
     suspend fun getLocations(): List<LocationEntity>
 
     @Query("SELECT * FROM location_table WHERE id = :locationId")
-    suspend fun getLocationById(locationId: Long): LocationEntity
+    suspend fun getLocationById(locationId: String): LocationEntity
 }

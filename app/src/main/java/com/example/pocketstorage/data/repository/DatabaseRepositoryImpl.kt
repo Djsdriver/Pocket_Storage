@@ -28,7 +28,7 @@ class DatabaseRepositoryImpl @Inject constructor(private val appDatabase: AppDat
         appDatabase.inventoryDao().updateInventory(inventory.toInventoryEntity())
     }
 
-    override suspend fun getInventoryById(inventoryId: Long): Inventory {
+    override suspend fun getInventoryById(inventoryId: String): Inventory {
         val inventoryEntity = appDatabase.inventoryDao().getInventoryById(inventoryId)
         return inventoryEntity.toInventory()
     }
@@ -39,13 +39,13 @@ class DatabaseRepositoryImpl @Inject constructor(private val appDatabase: AppDat
         emit(inventoryList)
     }
 
-    override fun getInventoriesByCategoryId(categoryId: Long): Flow<List<Inventory>> = flow {
+    override fun getInventoriesByCategoryId(categoryId: String): Flow<List<Inventory>> = flow {
         val inventoryEntityList = appDatabase.inventoryDao().getInventoriesByCategoryId(categoryId)
         val inventoryList = inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }
         emit(inventoryList)
     }
 
-    override fun getInventoriesByLocationId(locationId: Long): Flow<List<Inventory>> = flow {
+    override fun getInventoriesByLocationId(locationId: String): Flow<List<Inventory>> = flow {
         val inventoryEntityList = appDatabase.inventoryDao().getInventoriesByLocationId(locationId)
         val inventoryList = inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }
         emit(inventoryList)
@@ -59,7 +59,7 @@ class DatabaseRepositoryImpl @Inject constructor(private val appDatabase: AppDat
         appDatabase.categoryDao().deleteCategory(category.toCategoryEntity())
     }
 
-    override suspend fun getCategoryById(categoryId: Long): Category {
+    override suspend fun getCategoryById(categoryId: String): Category {
         val categoryEntity =  appDatabase.categoryDao().getCategoryById(categoryId)
         return categoryEntity.toCategory()
     }
@@ -84,7 +84,7 @@ class DatabaseRepositoryImpl @Inject constructor(private val appDatabase: AppDat
         emit(locationList)
     }
 
-    override suspend fun getLocationById(locationId: Long): Location {
+    override suspend fun getLocationById(locationId: String): Location {
         val locationEntity = appDatabase.locationDao().getLocationById(locationId)
         return locationEntity.toLocation()
     }

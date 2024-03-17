@@ -393,7 +393,7 @@ fun BaseTextField(
 fun  BaseDropdownMenu(
     listOfElements: List<Location>,
     modifier: Modifier,
-    onItemSelected: (Long) -> Unit
+    onItemSelected: (String) -> Unit
 ) {
 
     var expanded by remember { mutableStateOf(false) }
