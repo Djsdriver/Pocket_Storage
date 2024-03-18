@@ -11,7 +11,6 @@ data class InventoryEntity(
     @PrimaryKey
     val id: String = UNDEFINED_ID,
     val name: String,
-    val barcode: Long,
     val description: String,
     val locationId: Long,
     val categoryId: Long,
@@ -22,7 +21,6 @@ fun InventoryEntity.toInventory(): Inventory {
     return Inventory(
         id = this.id,
         name = this.name,
-        barcode = this.barcode,
         description = this.description,
         locationId = this.locationId,
         categoryId = this.categoryId,
@@ -34,7 +32,6 @@ fun Inventory.toInventoryEntity(): InventoryEntity {
     return InventoryEntity(
         id = getUniqueIdentifier(),
         name = this.name,
-        barcode = this.barcode,
         description = this.description,
         locationId = this.locationId,
         categoryId = this.categoryId,

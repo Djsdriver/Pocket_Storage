@@ -4,5 +4,6 @@ import com.example.pocketstorage.core.utils.UNDEFINED_ID
 
 data class Category(
     val id: String = UNDEFINED_ID,
-    val name: String
+    val name: String,
+    val buildingId: String,
 )
