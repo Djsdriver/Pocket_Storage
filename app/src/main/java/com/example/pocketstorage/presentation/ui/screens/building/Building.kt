@@ -2,6 +2,7 @@ package com.example.pocketstorage.presentation.ui.screens.building
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,7 +35,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -44,18 +44,18 @@ import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.Buil
 
 
 @Composable
-fun Building(viewModel: BuildingViewModel = hiltViewModel(),onClick: () -> Unit) {
-    BuildingScreen(viewModel,onClick)
+fun Building(viewModel: BuildingViewModel = hiltViewModel(), onClick: () -> Unit) {
+    BuildingScreen(viewModel, onClick)
 }
 
 //@Preview(showBackground = true)
 @Composable
 fun PreviewBuildingScreen(viewModel: BuildingViewModel) {
-    BuildingScreen(viewModel,onClick = {})
+    BuildingScreen(viewModel, onClick = {})
 }
 
 @Composable
-fun BuildingScreen(viewModel: BuildingViewModel,onClick: () -> Unit) {
+fun BuildingScreen(viewModel: BuildingViewModel, onClick: () -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     val state by viewModel.state.collectAsState()
     LaunchedEffect(true) {
@@ -115,12 +115,12 @@ fun BuildingScreen(viewModel: BuildingViewModel,onClick: () -> Unit) {
                 }
             )
         }
-        renderScreen(uiState)
+        RenderScreen(viewModel,uiState)
     }
 }
 
 @Composable
-private fun renderScreen(uiState: BuildingUiState) {
+private fun RenderScreen(viewModel: BuildingViewModel,uiState: BuildingUiState) {
     when (val currentState = uiState) {
         is BuildingUiState.Loading -> {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -132,7 +132,7 @@ private fun renderScreen(uiState: BuildingUiState) {
             if (currentState.isEmpty()
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "No locations",modifier = Modifier.align(Alignment.Center))
+                    Text(text = "No locations", modifier = Modifier.align(Alignment.Center))
                 }
             } else {
                 LazyColumn(
@@ -141,7 +141,9 @@ private fun renderScreen(uiState: BuildingUiState) {
                         .background(Color.White)
                 ) {
                     items(currentState.locations) { locations ->
-                        ListRowBuilding(model = locations)
+                        ListRowBuilding(model = locations){buildingId->
+                            viewModel.saveBuildingId(buildingId)
+                        }
                     }
                 }
             }
@@ -192,14 +194,19 @@ fun ButtonBuildingScreen(
 }
 
 @Composable
-fun ListRowBuilding(model: Location) {
+fun ListRowBuilding(model: Location, onItemsSelected: (String) -> Unit) {
+
+
     Column(
         modifier = Modifier
             .padding(2.dp)
             .clip(RoundedCornerShape(8.dp))
             .wrapContentHeight()
             .fillMaxWidth()
-            .background(colorResource(id = R.color.AdamantineBlue)),
+            .background(colorResource(id = R.color.AdamantineBlue))
+            .clickable {
+                onItemsSelected(model.id)
+            },
     ) {
         Text(
             modifier = Modifier.padding(start = 12.dp, top = 8.dp),

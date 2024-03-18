@@ -2,14 +2,17 @@ package com.example.pocketstorage.presentation.ui.screens.building.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pocketstorage.di.prefs.DomainModule_ProvideSaveLocationIdToDataStorageUseCaseFactory
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
+import com.example.pocketstorage.domain.usecase.prefs.SaveLocationIdToDataStorageUseCase
 import com.example.pocketstorage.presentation.ui.screens.building.BuildingState
 import com.example.pocketstorage.presentation.ui.screens.building.BuildingUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
@@ -22,7 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BuildingViewModel @Inject constructor(
-    private val getLocationsUseCase: GetLocationsUseCase
+    private val getLocationsUseCase: GetLocationsUseCase,
+    private val saveLocationIdToDataStorageUseCase: SaveLocationIdToDataStorageUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BuildingState())
@@ -33,6 +37,7 @@ class BuildingViewModel @Inject constructor(
         MutableStateFlow(BuildingUiState.Loading(""))
 
     val uiState = _uiState.asStateFlow()
+
 
     init {
         viewModelScope.launch {
@@ -82,5 +87,10 @@ class BuildingViewModel @Inject constructor(
             }
         }
     }
-}
 
+    fun saveBuildingId(buildingId: String){
+        viewModelScope.launch {
+            saveLocationIdToDataStorageUseCase(buildingId = buildingId)
+        }
+    }
+}
