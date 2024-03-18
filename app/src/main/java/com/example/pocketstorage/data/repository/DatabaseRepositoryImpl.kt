@@ -13,6 +13,7 @@ import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.repository.DatabaseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class DatabaseRepositoryImpl @Inject constructor(private val appDatabase: AppDatabase) : DatabaseRepository {
@@ -63,6 +64,13 @@ class DatabaseRepositoryImpl @Inject constructor(private val appDatabase: AppDat
         val categoryEntity =  appDatabase.categoryDao().getCategoryById(categoryId)
         return categoryEntity.toCategory()
     }
+
+    override fun getCategoriesByBuildingId(buildingId: String): Flow<List<Category>> = flow {
+        val categoriesByBuildingId = appDatabase.categoryDao().getCategoriesByBuildingId(buildingId = buildingId)
+        val categoriesList = categoriesByBuildingId.map { listCategoriesByBuildingId->listCategoriesByBuildingId.toCategory() }
+        emit(categoriesList)
+    }
+
 
     override fun getCategories(): Flow<List<Category>> = flow {
         val categoryEntityList = appDatabase.categoryDao().getCategories()

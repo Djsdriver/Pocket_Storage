@@ -10,19 +10,22 @@ import com.example.pocketstorage.domain.model.Category
 data class CategoryEntity(
     @PrimaryKey
     val id: String = UNDEFINED_ID,
-    val name: String
+    val name: String,
+    val buildingId: String,
 )
 
 fun CategoryEntity.toCategory(): Category {
     return Category(
         id = this.id,
-        name = this.name
+        name = this.name,
+        buildingId = this.buildingId
     )
 }
 
 fun Category.toCategoryEntity(): CategoryEntity {
     return CategoryEntity(
         id = getUniqueIdentifier(),
-        name = this.name
+        name = this.name,
+        buildingId = this.buildingId
     )
 }

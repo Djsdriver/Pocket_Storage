@@ -27,6 +27,8 @@ interface DatabaseRepository {
 
     suspend fun getCategoryById(categoryId: String): Category
 
+    fun getCategoriesByBuildingId(buildingId : String): Flow<List<Category>>
+
     fun getCategories(): Flow<List<Category>>
 
     suspend fun insertLocation(location: Location)
