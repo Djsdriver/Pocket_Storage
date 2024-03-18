@@ -3,12 +3,13 @@ package com.example.pocketstorage.data.db.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.pocketstorage.core.utils.UNDEFINED_ID
+import com.example.pocketstorage.core.utils.getUniqueIdentifier
 import com.example.pocketstorage.domain.model.Inventory
 
 @Entity(tableName = "inventory_table")
 data class InventoryEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = UNDEFINED_ID,
+    @PrimaryKey
+    val id: String = UNDEFINED_ID,
     val name: String,
     val barcode: Long,
     val description: String,
@@ -31,7 +32,7 @@ fun InventoryEntity.toInventory(): Inventory {
 
 fun Inventory.toInventoryEntity(): InventoryEntity {
     return InventoryEntity(
-        id = this.id,
+        id = getUniqueIdentifier(),
         name = this.name,
         barcode = this.barcode,
         description = this.description,
