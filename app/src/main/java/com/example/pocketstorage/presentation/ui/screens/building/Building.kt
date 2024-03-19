@@ -129,6 +129,10 @@ private fun RenderScreen(viewModel: BuildingViewModel,uiState: BuildingUiState) 
         }
 
         is BuildingUiState.Success -> {
+            LaunchedEffect(Unit){
+                viewModel.getLocationIdFromDataStore()
+            }
+
             if (currentState.isEmpty()
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -195,7 +199,15 @@ fun ButtonBuildingScreen(
 
 @Composable
 fun ListRowBuilding(model: Location, onItemsSelected: (String) -> Unit) {
+    val viewModel = hiltViewModel<BuildingViewModel>()
 
+    val selectedBuilding by viewModel.state.collectAsState()
+
+    val backgroundColor = if (model.id == selectedBuilding.isSelected) {
+        colorResource(id = R.color.SpanishGrey)
+    } else {
+        colorResource(id = R.color.AdamantineBlue)
+    }
 
     Column(
         modifier = Modifier
@@ -203,7 +215,7 @@ fun ListRowBuilding(model: Location, onItemsSelected: (String) -> Unit) {
             .clip(RoundedCornerShape(8.dp))
             .wrapContentHeight()
             .fillMaxWidth()
-            .background(colorResource(id = R.color.AdamantineBlue))
+            .background(backgroundColor)
             .clickable {
                 onItemsSelected(model.id)
             },

@@ -1,10 +1,17 @@
 package com.example.pocketstorage.presentation.ui.screens.building.viewmodel
 
+import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pocketstorage.di.prefs.DomainModule_ProvideGetLocationIdFromDataStorageUseCaseFactory
 import com.example.pocketstorage.di.prefs.DomainModule_ProvideSaveLocationIdToDataStorageUseCaseFactory
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
+import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import com.example.pocketstorage.domain.usecase.prefs.SaveLocationIdToDataStorageUseCase
 import com.example.pocketstorage.presentation.ui.screens.building.BuildingState
 import com.example.pocketstorage.presentation.ui.screens.building.BuildingUiState
@@ -26,12 +33,12 @@ import javax.inject.Inject
 @HiltViewModel
 class BuildingViewModel @Inject constructor(
     private val getLocationsUseCase: GetLocationsUseCase,
-    private val saveLocationIdToDataStorageUseCase: SaveLocationIdToDataStorageUseCase
+    private val saveLocationIdToDataStorageUseCase: SaveLocationIdToDataStorageUseCase,
+    private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BuildingState())
     val state = _state.asStateFlow()
-
 
     private val _uiState: MutableStateFlow<BuildingUiState> =
         MutableStateFlow(BuildingUiState.Loading(""))
@@ -90,7 +97,28 @@ class BuildingViewModel @Inject constructor(
 
     fun saveBuildingId(buildingId: String){
         viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isSelected = buildingId
+                )
+            }
             saveLocationIdToDataStorageUseCase(buildingId = buildingId)
         }
     }
+
+    fun getLocationIdFromDataStore(){
+         viewModelScope.launch {
+            getLocationIdFromDataStorageUseCase.invoke().collect{ string->
+                if (string != null) {
+                    _state.update {
+                        it.copy(
+                            isSelected = string
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+
 }

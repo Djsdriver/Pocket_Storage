@@ -407,8 +407,12 @@ fun RowScope.AddItem(
         unselectedContentColor = colorResource(id = R.color.SpanishGrey),
         onClick = {
             navController.navigate(screen.route) {
-                popUpTo(navController.graph.findStartDestination().id)
+                popUpTo(navController.graph.findStartDestination().id){
+                   // saveState = true
+                }
                 launchSingleTop = true
+                // Restore state when reselecting a previously selected item
+                //restoreState = true
             }
         },
         selectedContentColor = Color.White
