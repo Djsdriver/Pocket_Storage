@@ -1,6 +1,8 @@
 package com.example.pocketstorage.presentation.ui.screens.building
 
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -8,8 +10,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,8 +36,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -144,8 +150,8 @@ private fun RenderScreen(viewModel: BuildingViewModel,uiState: BuildingUiState) 
                         .padding(start = 24.dp, end = 24.dp)
                         .background(Color.White)
                 ) {
-                    items(currentState.locations) { locations ->
-                        ListRowBuilding(model = locations){buildingId->
+                    items(currentState.locations) { location ->
+                        ListRowBuilding(model = location){buildingId->
                             viewModel.saveBuildingId(buildingId)
                         }
                     }
@@ -201,46 +207,59 @@ fun ButtonBuildingScreen(
 fun ListRowBuilding(model: Location, onItemsSelected: (String) -> Unit) {
     val viewModel = hiltViewModel<BuildingViewModel>()
 
-    val selectedBuilding by viewModel.state.collectAsState()
+    val buildingState by viewModel.state.collectAsState()
+    val animatedColorState = animateColorAsState(
+        targetValue = if (model.id == buildingState.selectedIdBuilding) colorResource(id = R.color.SpanishGrey) else colorResource(id = R.color.AdamantineBlue),
+        label = ""
+    )
+    val animatedHeightState = animateDpAsState(
+        targetValue = if (model.id == buildingState.selectedIdBuilding) 90.dp else 80.dp,
+        label = ""
+    )
+    val animatedWidthState = animateDpAsState(
+        targetValue = if (model.id == buildingState.selectedIdBuilding) 300.dp else 310.dp,
+        label = ""
+    )
 
-    val backgroundColor = if (model.id == selectedBuilding.isSelected) {
-        colorResource(id = R.color.SpanishGrey)
-    } else {
-        colorResource(id = R.color.AdamantineBlue)
-    }
 
     Column(
         modifier = Modifier
             .padding(2.dp)
+            .size(width = animatedWidthState.value, height = animatedHeightState.value)
             .clip(RoundedCornerShape(8.dp))
-            .wrapContentHeight()
-            .fillMaxWidth()
-            .background(backgroundColor)
+            .background(animatedColorState.value)
             .clickable {
                 onItemsSelected(model.id)
-            },
+            }
+            .offset(x = 0.dp, y = 0.dp)
+            .graphicsLayer {
+                transformOrigin = TransformOrigin.Center
+            }
+            .padding(horizontal = 8.dp), // Добавлено горизонтальное отступание для центрирования
     ) {
         Text(
-            modifier = Modifier.padding(start = 12.dp, top = 8.dp),
+            modifier = Modifier.padding(top = 8.dp),
             text = model.name,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White
         )
         Text(
-            modifier = Modifier.padding(start = 12.dp),
+            modifier = Modifier.padding(),
+            textAlign = TextAlign.Center,
             text = model.index,
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.White
         )
         Text(
-            modifier = Modifier.padding(start = 12.dp, bottom = 8.dp),
+            modifier = Modifier.padding(bottom = 8.dp),
+            textAlign = TextAlign.Center,
             text = model.address,
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.White
         )
     }
-
 }
+

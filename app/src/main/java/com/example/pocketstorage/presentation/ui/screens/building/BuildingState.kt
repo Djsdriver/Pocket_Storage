@@ -9,5 +9,5 @@ data class BuildingState(
     val locations: List<Location> = emptyList(),
     val resultLocations: List<Location> = emptyList(),
     val empty: Boolean = false,
-    val isSelected: String = ""
+    val selectedIdBuilding: String = ""
 )
