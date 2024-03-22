@@ -1,14 +1,18 @@
 package com.example.pocketstorage.presentation.ui.screens.building
 
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,9 +36,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -44,18 +50,18 @@ import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.Buil
 
 
 @Composable
-fun Building(viewModel: BuildingViewModel = hiltViewModel(),onClick: () -> Unit) {
-    BuildingScreen(viewModel,onClick)
+fun Building(viewModel: BuildingViewModel = hiltViewModel(), onClick: () -> Unit) {
+    BuildingScreen(viewModel, onClick)
 }
 
 //@Preview(showBackground = true)
 @Composable
 fun PreviewBuildingScreen(viewModel: BuildingViewModel) {
-    BuildingScreen(viewModel,onClick = {})
+    BuildingScreen(viewModel, onClick = {})
 }
 
 @Composable
-fun BuildingScreen(viewModel: BuildingViewModel,onClick: () -> Unit) {
+fun BuildingScreen(viewModel: BuildingViewModel, onClick: () -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     val state by viewModel.state.collectAsState()
     LaunchedEffect(true) {
@@ -115,12 +121,12 @@ fun BuildingScreen(viewModel: BuildingViewModel,onClick: () -> Unit) {
                 }
             )
         }
-        renderScreen(uiState)
+        RenderScreen(viewModel,uiState)
     }
 }
 
 @Composable
-private fun renderScreen(uiState: BuildingUiState) {
+private fun RenderScreen(viewModel: BuildingViewModel,uiState: BuildingUiState) {
     when (val currentState = uiState) {
         is BuildingUiState.Loading -> {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -129,10 +135,14 @@ private fun renderScreen(uiState: BuildingUiState) {
         }
 
         is BuildingUiState.Success -> {
+            LaunchedEffect(Unit){
+                viewModel.getLocationIdFromDataStore()
+            }
+
             if (currentState.isEmpty()
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "No locations",modifier = Modifier.align(Alignment.Center))
+                    Text(text = "No locations", modifier = Modifier.align(Alignment.Center))
                 }
             } else {
                 LazyColumn(
@@ -140,8 +150,10 @@ private fun renderScreen(uiState: BuildingUiState) {
                         .padding(start = 24.dp, end = 24.dp)
                         .background(Color.White)
                 ) {
-                    items(currentState.locations) { locations ->
-                        ListRowBuilding(model = locations)
+                    items(currentState.locations) { location ->
+                        ListRowBuilding(model = location){buildingId->
+                            viewModel.saveBuildingId(buildingId)
+                        }
                     }
                 }
             }
@@ -192,36 +204,62 @@ fun ButtonBuildingScreen(
 }
 
 @Composable
-fun ListRowBuilding(model: Location) {
+fun ListRowBuilding(model: Location, onItemsSelected: (String) -> Unit) {
+    val viewModel = hiltViewModel<BuildingViewModel>()
+
+    val buildingState by viewModel.state.collectAsState()
+    val animatedColorState = animateColorAsState(
+        targetValue = if (model.id == buildingState.selectedIdBuilding) colorResource(id = R.color.SpanishGrey) else colorResource(id = R.color.AdamantineBlue),
+        label = ""
+    )
+    val animatedHeightState = animateDpAsState(
+        targetValue = if (model.id == buildingState.selectedIdBuilding) 90.dp else 80.dp,
+        label = ""
+    )
+    val animatedWidthState = animateDpAsState(
+        targetValue = if (model.id == buildingState.selectedIdBuilding) 300.dp else 310.dp,
+        label = ""
+    )
+
+
     Column(
         modifier = Modifier
             .padding(2.dp)
+            .size(width = animatedWidthState.value, height = animatedHeightState.value)
             .clip(RoundedCornerShape(8.dp))
-            .wrapContentHeight()
-            .fillMaxWidth()
-            .background(colorResource(id = R.color.AdamantineBlue)),
+            .background(animatedColorState.value)
+            .clickable {
+                onItemsSelected(model.id)
+            }
+            .offset(x = 0.dp, y = 0.dp)
+            .graphicsLayer {
+                transformOrigin = TransformOrigin.Center
+            }
+            .padding(horizontal = 8.dp), // Добавлено горизонтальное отступание для центрирования
     ) {
         Text(
-            modifier = Modifier.padding(start = 12.dp, top = 8.dp),
+            modifier = Modifier.padding(top = 8.dp),
             text = model.name,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White
         )
         Text(
-            modifier = Modifier.padding(start = 12.dp),
+            modifier = Modifier.padding(),
+            textAlign = TextAlign.Center,
             text = model.index,
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.White
         )
         Text(
-            modifier = Modifier.padding(start = 12.dp, bottom = 8.dp),
+            modifier = Modifier.padding(bottom = 8.dp),
+            textAlign = TextAlign.Center,
             text = model.address,
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.White
         )
     }
-
 }
+
