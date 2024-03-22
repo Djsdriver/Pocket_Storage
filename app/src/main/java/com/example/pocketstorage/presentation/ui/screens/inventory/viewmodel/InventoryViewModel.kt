@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InventoryViewModel @Inject constructor(
-    private val logOutUseCase: LogOutUseCase
+    private val logOutUseCase: LogOutUseCase,
 ) : ViewModel() {
 
     private val _searchText = MutableStateFlow("")

@@ -117,4 +117,7 @@ dependencies {
 
     //datastore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    //zxing scanner
+    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
 }

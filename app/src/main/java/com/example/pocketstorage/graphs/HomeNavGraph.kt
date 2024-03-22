@@ -4,8 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.pocketstorage.presentation.ui.screens.building.Building
 import com.example.pocketstorage.presentation.ui.screens.category.Category
 import com.example.pocketstorage.presentation.ui.screens.building.CreateBuilding
@@ -25,13 +27,16 @@ fun HomeNavGraph(navController: NavHostController) {
         composable(route = BottomBarScreen.Inventory.route) {
             InventoryScreen(
                 {
-                    navController.navigate(InventoryScreenState.InfoProduct.route)
+                    navController.navigate("INFO_PRODUCT/{id}")
                 },
                 {
                     navController.navigate(InventoryScreenState.CreateProduct.route)
                 },
                 {
                     navController.navigate(Graph.AUTHENTICATION)
+                },
+                {
+                    navController.navigate(InventoryScreenState.InfoProduct(it).route)
                 }
 
             )
@@ -52,24 +57,35 @@ fun HomeNavGraph(navController: NavHostController) {
 
 fun NavGraphBuilder.inventoryNavGraph(navController: NavHostController) {
     composable(route = InventoryScreenState.CreateProduct.route) {
-        CreateProduct (
+        CreateProduct(
             onBackArrowClick = { navController.navigateUp() },
             onAddPictureClick = {},
             onGenerateQRClick = {},
             onSaveClick = {}
         )
     }
-    composable(route = InventoryScreenState.InfoProduct.route) {
-        ProductPage {
-            navController.navigateUp()
-        }
+    composable(
+        route = InventoryScreenState.InfoProduct("{id}").route,
+        arguments = listOf(
+            navArgument("id") {
+                type = NavType.StringType
+            }
+        )
+    ) {
+        val id = it.arguments?.getString("id") ?: ""
+        ProductPage(
+            {
+                navController.navigateUp()
+            },
+            id = id
+        )
     }
 }
 
 fun NavGraphBuilder.buildingNavGraph(navController: NavHostController) {
     composable(route = BuildingScreenState.CreateBuilding.route) {
         val viewModelCreateBuilding = hiltViewModel<CreateBuildingViewModel>()
-        CreateBuilding(viewModelCreateBuilding,viewModelCreateBuilding::event) {
+        CreateBuilding(viewModelCreateBuilding, viewModelCreateBuilding::event) {
             navController.navigateUp()
         }
     }
@@ -77,7 +93,8 @@ fun NavGraphBuilder.buildingNavGraph(navController: NavHostController) {
 
 sealed class InventoryScreenState(val route: String) {
     data object CreateProduct : InventoryScreenState(route = "CREATE_PRODUCT")
-    data object InfoProduct : InventoryScreenState(route = "INFO_PRODUCT")
+    data class InfoProduct(val id: String) : InventoryScreenState(route = "INFO_PRODUCT/$id")
+
 }
 
 sealed class BuildingScreenState(val route: String) {

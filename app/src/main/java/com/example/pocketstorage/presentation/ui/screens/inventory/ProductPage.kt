@@ -59,32 +59,32 @@ import com.example.pocketstorage.R
 import com.example.pocketstorage.ui.theme.PocketStorageTheme
 
 @Composable
-fun ProductPage(onClick: () -> Unit) {
+fun ProductPage(onClick: () -> Unit,id : String) {
     PocketStorageTheme {
-        InfoProductInfo(onClick)
+        InfoProductInfo(onClick,id)
     }
 }
 
 
 @Composable
-fun InfoProductInfo(onClick: () -> Unit) {
+fun InfoProductInfo(onClick: () -> Unit,id : String) {
     PocketStorageTheme { // Обернуть в PocketStorageTheme
-        ScaffoldWithTopBarProductPage(onClick)
+        ScaffoldWithTopBarProductPage(onClick,id)
     }
 }
 
 //@Preview(showBackground = true)
 @Composable
-fun InfoProductInfoPreview(onClick: () -> Unit) {
+fun InfoProductInfoPreview(onClick: () -> Unit,id : String) {
     PocketStorageTheme { // Обернуть в PocketStorageTheme
-        ScaffoldWithTopBarProductPage(onClick)
+        ScaffoldWithTopBarProductPage(onClick,id)
     }
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScaffoldWithTopBarProductPage(onClick: () -> Unit) {
+fun ScaffoldWithTopBarProductPage(onClick: () -> Unit,id : String) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -124,7 +124,7 @@ fun ScaffoldWithTopBarProductPage(onClick: () -> Unit) {
                     }
                 }
                 DashedBorderWithImage()
-                TabScreen()
+                TabScreen(id)
             }
         }
     )
@@ -159,9 +159,8 @@ fun DashedBorderWithImage() {
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-@Preview(showBackground = true)
 @Composable
-fun TabScreen() {
+fun TabScreen(id : String) {
     var tabIndex by remember { mutableStateOf(0) }
 
     val tabs = listOf("Details", "Location", "QR")
@@ -217,7 +216,7 @@ fun TabScreen() {
 
         HorizontalPager(state = state) {
             when (it) {
-                0 -> TabItem.DetailsScreen.screen.invoke()
+                0 -> TabItem.DetailsScreen1(id = id).screen.invoke()
                 1 -> TabItem.LocationsScreen.screen.invoke()
                 2 -> TabItem.QRScreen.screen.invoke()
             }
@@ -229,7 +228,7 @@ fun TabScreen() {
 typealias ComposableFun = @Composable () -> Unit
 
 sealed class TabItem(var screen: ComposableFun) {
-    object DetailsScreen : TabItem({ DetailsScreen() })
+    data class DetailsScreen1(val id: String) : TabItem({ DetailsScreen(id) })
     object LocationsScreen : TabItem({ LocationsScreen() })
     object QRScreen : TabItem({ QRScreen() })
 }
@@ -373,7 +372,7 @@ fun ButtonSaveProductPage(onClick: () -> Unit) {
 }
 
 @Composable
-fun DetailsScreen() {
+fun DetailsScreen(id : String) {
     Box(
         modifier = Modifier
             .fillMaxWidth(),
@@ -381,7 +380,7 @@ fun DetailsScreen() {
         Column {
             Row {
                 Text(text = "Id:", fontSize = 12.sp)
-                Text(text = "123", fontSize = 12.sp)
+                Text(text = id, fontSize = 12.sp)
             }
             Row {
                 Text(text = "Category:", fontSize = 12.sp)
