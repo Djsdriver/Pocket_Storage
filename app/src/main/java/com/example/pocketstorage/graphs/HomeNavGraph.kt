@@ -10,6 +10,8 @@ import com.example.pocketstorage.presentation.ui.screens.building.Building
 import com.example.pocketstorage.presentation.ui.screens.category.Category
 import com.example.pocketstorage.presentation.ui.screens.building.CreateBuilding
 import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.CreateBuildingViewModel
+import com.example.pocketstorage.presentation.ui.screens.category.CategoryModel
+import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryViewModel
 import com.example.pocketstorage.presentation.ui.screens.inventory.CreateProduct
 import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryScreen
 import com.example.pocketstorage.presentation.ui.screens.inventory.ProductPage
@@ -37,7 +39,8 @@ fun HomeNavGraph(navController: NavHostController) {
             )
         }
         composable(route = BottomBarScreen.Category.route) {
-            Category()
+            val viewModel = hiltViewModel<CategoryViewModel>()
+            Category(viewModel = viewModel)
         }
         composable(route = BottomBarScreen.Building.route) {
             Building {

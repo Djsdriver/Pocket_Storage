@@ -1,6 +1,7 @@
 package com.example.pocketstorage.presentation.ui.screens.category
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,37 +50,56 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
+import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryModel2
 import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun Category() {
-    CategoryScreen()
+fun Category(viewModel: CategoryViewModel) {
+    CategoryScreen(viewModel)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CategoryScreen() {
+fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
 
-    val viewModel = viewModel<CategoryViewModel>()
     val categories by viewModel.filteredCategories.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
+    
+    val currentLocationId by viewModel.currentLocationId.collectAsState()
+    val existingCategories by viewModel.existingCategoriesForCurrentLocation.collectAsState()
 
+    var errorText by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    var errorTextIsVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+    
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    
+    LaunchedEffect(Unit) {
+        viewModel.getCurrentLocationId()
+    }
+    
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -173,9 +193,21 @@ fun CategoryScreen() {
                     .height(400.dp),
                 onDismissRequest = {
                     showBottomSheet = false
+                    errorTextIsVisible = false
                 },
                 sheetState = sheetState
             ) {
+
+                LaunchedEffect(key1 = Unit) {
+                    currentLocationId?.let { currentLocationId ->
+                        viewModel.getAllCategoriesByLocationId(currentLocationId)
+                    }
+                }
+                
+                var categoryName: String? by rememberSaveable {
+                    mutableStateOf(null)
+                }
+                
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.Center,
@@ -191,31 +223,76 @@ fun CategoryScreen() {
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = colorResource(id = R.color.RetroBlue),
                             unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
-                        )
+                        ),
+                        onTextFieldValueChange = { categoryNameFromTextField ->
+                            categoryName = categoryNameFromTextField
+                        }
                     )
-                    Text(
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .padding(bottom = 38.dp),
-                        text = "*this category already exists",
-                        fontSize = 16.sp,
-                        color = colorResource(
-                            id = R.color.error
+
+                    if (errorTextIsVisible) {
+                        Text(
+                            modifier = Modifier.height(20.dp),
+                            text = errorText,
+                            fontSize = 16.sp,
+                            color = colorResource(
+                                id = R.color.error
+                            )
                         )
-                    )
+                    } else {
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+
                     ButtonForTheCategoryScreen(
-                        modifier = Modifier.wrapContentWidth(),
+                        modifier = Modifier.wrapContentWidth().padding(top = 64.dp),
                         rowContent = {
                             Column {
                                 Text(text = "Save", fontSize = 16.sp)
                             }
                         },
                         onClick = {
-                            // Click
-                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+
+                            scope.launch {
+
+                                if (!categoryName.isNullOrEmpty() && categoryName!!.isNotBlank()) {
+
+                                    if (!existingCategories.any { category -> category.name == categoryName }) {
+
+                                        if (!currentLocationId.isNullOrEmpty()) {
+
+                                            val category = Category(
+                                                name = categoryName!!,
+                                                buildingId = currentLocationId!!
+                                            )
+
+                                            viewModel.saveCategoryOnLocalStorage(category = category)
+
+                                            Toast.makeText(context, "Category $categoryName was created", Toast.LENGTH_SHORT).show()
+
+                                            sheetState.hide()
+
+                                        } else {
+                                            errorText = "*You have to determine the location"
+                                            errorTextIsVisible = true
+                                        }
+
+                                    } else {
+                                        errorText = "*This category already exists"
+                                        errorTextIsVisible = true
+                                    }
+
+                                } else {
+                                    errorText = "*Category field name is empty"
+                                    errorTextIsVisible = true
+                                }
+
+
+                            }.invokeOnCompletion {
+
                                 if (!sheetState.isVisible) {
                                     showBottomSheet = false
+                                    errorTextIsVisible = false
                                 }
+
                             }
                         }
                     )
@@ -248,15 +325,19 @@ fun TextFieldSearchCategory(
 
 @Composable
 fun TextFieldSearchCategoryWithoutIcon(
+    onTextFieldValueChange: (String) -> Unit,
     modifier: Modifier,
     label: @Composable () -> Unit,
     colors: TextFieldColors
 ) {
-    var textIdInventory by rememberSaveable { mutableStateOf("") }
+    var categoryNameFromTextField by rememberSaveable { mutableStateOf("") }
     OutlinedTextField(
         modifier = modifier,
-        value = textIdInventory,
-        onValueChange = { textIdInventory = it },
+        value = categoryNameFromTextField,
+        onValueChange = {
+            categoryNameFromTextField = it
+            onTextFieldValueChange.invoke(categoryNameFromTextField)
+        },
         label = label,
         colors = colors
     )
