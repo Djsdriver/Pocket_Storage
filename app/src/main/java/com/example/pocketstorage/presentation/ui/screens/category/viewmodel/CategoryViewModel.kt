@@ -1,9 +1,7 @@
 package com.example.pocketstorage.presentation.ui.screens.category.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.doesMatchSearchQuery
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
@@ -11,11 +9,7 @@ import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,8 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -45,15 +38,14 @@ class CategoryViewModel @Inject constructor(
     val existingCategoriesForCurrentLocation: StateFlow<List<Category>> =
         _existingCategoriesForCurrentLocation.asStateFlow()
 
-    private val _searchText = MutableStateFlow("")
-    val searchText = _searchText.asStateFlow()
+    private val _searchText = MutableSharedFlow<String>()
+    val searchText = _searchText.asSharedFlow()
 
-    private val _isSearching = MutableStateFlow(false)
+    private val _isSearching = MutableStateFlow(true)
     val isSearching = _isSearching.asStateFlow()
 
-    private val _categories = MutableStateFlow<List<Category>>(existingCategoriesForCurrentLocation.value)
-
     init {
+
         viewModelScope.launch {
 
             getCurrentLocationId()
@@ -69,29 +61,26 @@ class CategoryViewModel @Inject constructor(
 
     val filteredCategories = searchText
         .debounce(1000L)
-        .onEach { _isSearching.update { true } }
+        .onEach { _isSearching.value = true }
         .map { text ->
             if (text.isBlank()) {
                 existingCategoriesForCurrentLocation.value
             } else {
-                val categories = existingCategoriesForCurrentLocation.value.filter {
+                existingCategoriesForCurrentLocation.value.filter {
                     it.doesMatchSearchQuery(text)
                 }
-
-                Log.d("CAT", categories.toString())
-
-                categories
             }
         }
-        .onEach { _isSearching.update { false } }
-        .stateIn(
+        .onEach { _isSearching.value = false }
+        .shareIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
-            initialValue = _categories.value
         )
 
     fun onSearchTextChange(text: String) {
-        _searchText.value = text
+        viewModelScope.launch {
+            _searchText.emit(text)
+        }
     }
 
     fun saveCategoryOnLocalStorage(category: Category): CompletableDeferred<Unit> {

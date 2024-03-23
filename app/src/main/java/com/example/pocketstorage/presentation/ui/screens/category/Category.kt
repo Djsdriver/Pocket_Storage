@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -74,11 +75,11 @@ fun Category(viewModel: CategoryViewModel) {
 @Composable
 fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
 
-    val categories by viewModel.filteredCategories.collectAsState()
-    val isSearching by viewModel.isSearching.collectAsState()
-
     val currentLocationId by viewModel.currentLocationId.collectAsState()
     val existingCategories by viewModel.existingCategoriesForCurrentLocation.collectAsState()
+
+    val categories by viewModel.filteredCategories.collectAsState(emptyList())
+    val isSearching by viewModel.isSearching.collectAsState()
 
     var errorText by rememberSaveable {
         mutableStateOf("")
@@ -93,6 +94,10 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.onSearchTextChange("")
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize()
@@ -161,29 +166,41 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                 )
 
             }
-            if (categories.isNotEmpty()) {
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(start = 24.dp, end = 24.dp)
-                        .background(Color.White)
-                ) {
-                    items(categories) {
-                        ProductsOfTheCategories(it)
-                    }
-                }
-            } else {
+
+            if (isSearching) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "No categories",
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+            } else {
+                if (categories.isNotEmpty()) {
+                    LazyColumn(
                         modifier = Modifier
-                            .padding(bottom = 32.dp)
-                            .align(Alignment.Center)
-                    )
+                            .padding(start = 24.dp, end = 24.dp)
+                            .background(Color.White)
+                    ) {
+                        items(categories) {
+                            ProductsOfTheCategories(it)
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No categories",
+                            modifier = Modifier
+                                .padding(bottom = 32.dp)
+                                .align(Alignment.Center)
+                        )
+                    }
                 }
             }
+
+
         }
 
         if (showBottomSheet) {
@@ -197,12 +214,6 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                 },
                 sheetState = sheetState
             ) {
-
-                LaunchedEffect(key1 = Unit) {
-                    currentLocationId?.let { currentLocationId ->
-                        viewModel.getAllCategoriesByLocationId(currentLocationId)
-                    }
-                }
 
                 var categoryName: String? by rememberSaveable {
                     mutableStateOf(null)
@@ -275,13 +286,15 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                                             }
 
 
+                                            viewModel.onSearchTextChange("")
+
+                                            sheetState.hide()
+
                                             Toast.makeText(
                                                 context,
                                                 "Category $categoryName was created",
                                                 Toast.LENGTH_SHORT
                                             ).show()
-
-                                            sheetState.hide()
 
                                         } else {
                                             errorText = "*You have to determine the location"
@@ -324,7 +337,7 @@ fun TextFieldSearchCategory(
     colors: TextFieldColors,
     viewModel: CategoryViewModel
 ) {
-    val searchText by viewModel.searchText.collectAsState()
+    val searchText by viewModel.searchText.collectAsState("")
 
     OutlinedTextField(
         modifier = modifier,
@@ -378,7 +391,7 @@ fun ButtonForTheCategoryScreen(
 }
 
 
-data class CategoryModel(val name: String, val image: Int, val countProduct: String)
+
 data class ItemsCategoryModel(val nameProduct: String)
 
 @Composable
@@ -416,7 +429,7 @@ fun ExpandableListItem(
                     color = Color.White
                 )
                 Text(
-                    text = category.buildingId,
+                    text = "5 elements",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
