@@ -1,6 +1,7 @@
 package com.example.pocketstorage.presentation.ui.screens.category
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,7 +27,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -57,11 +57,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
-import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryModel2
 import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryViewModel
 import kotlinx.coroutines.launch
 
@@ -78,7 +76,7 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
 
     val categories by viewModel.filteredCategories.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
-    
+
     val currentLocationId by viewModel.currentLocationId.collectAsState()
     val existingCategories by viewModel.existingCategoriesForCurrentLocation.collectAsState()
 
@@ -89,20 +87,17 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
     var errorTextIsVisible by rememberSaveable {
         mutableStateOf(false)
     }
-    
+
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
-    
-    LaunchedEffect(Unit) {
-        viewModel.getCurrentLocationId()
-    }
-    
+
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) {
+
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -166,14 +161,7 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                 )
 
             }
-
-            if (isSearching) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-            } else {
+            if (categories.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier
                         .padding(start = 24.dp, end = 24.dp)
@@ -182,6 +170,18 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                     items(categories) {
                         ProductsOfTheCategories(it)
                     }
+                }
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No categories",
+                        modifier = Modifier
+                            .padding(bottom = 32.dp)
+                            .align(Alignment.Center)
+                    )
                 }
             }
         }
@@ -203,11 +203,11 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                         viewModel.getAllCategoriesByLocationId(currentLocationId)
                     }
                 }
-                
+
                 var categoryName: String? by rememberSaveable {
                     mutableStateOf(null)
                 }
-                
+
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.Center,
@@ -243,7 +243,9 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                     }
 
                     ButtonForTheCategoryScreen(
-                        modifier = Modifier.wrapContentWidth().padding(top = 64.dp),
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .padding(top = 64.dp),
                         rowContent = {
                             Column {
                                 Text(text = "Save", fontSize = 16.sp)
@@ -264,9 +266,20 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                                                 buildingId = currentLocationId!!
                                             )
 
-                                            viewModel.saveCategoryOnLocalStorage(category = category)
+                                            val deferred = viewModel.saveCategoryOnLocalStorage(category)
+                                            try {
+                                                deferred.await()
+                                                viewModel.getAllCategoriesByLocationId(currentLocationId!!)
+                                            } catch (e: Exception) {
+                                                Log.e("ERROR", e.stackTraceToString())
+                                            }
 
-                                            Toast.makeText(context, "Category $categoryName was created", Toast.LENGTH_SHORT).show()
+
+                                            Toast.makeText(
+                                                context,
+                                                "Category $categoryName was created",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
 
                                             sheetState.hide()
 
@@ -370,7 +383,7 @@ data class ItemsCategoryModel(val nameProduct: String)
 
 @Composable
 fun ExpandableListItem(
-    model: CategoryModel2,
+    category: Category,
     items: List<ItemsCategoryModel>,
     onItemClick: (String) -> Unit
 ) {
@@ -388,7 +401,7 @@ fun ExpandableListItem(
                 .background(colorResource(id = R.color.AdamantineBlue))
         ) {
             Icon(
-                painter = painterResource(id = model.image),
+                painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "image",
                 tint = Color.White
             )
@@ -397,13 +410,13 @@ fun ExpandableListItem(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = model.name,
+                    text = category.name,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
                 )
                 Text(
-                    text = model.countProduct,
+                    text = category.buildingId,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
@@ -445,12 +458,12 @@ fun ExpandableListItem(
 }
 
 @Composable
-fun ProductsOfTheCategories(categoryModel: CategoryModel2) {
+fun ProductsOfTheCategories(category: Category) {
     val selectedItems = remember { mutableStateListOf<String>() }
 
     Column {
         ExpandableListItem(
-            model = categoryModel,
+            category = category,
             items = listOf(
                 ItemsCategoryModel("Philiphs 241V8L"),
                 ItemsCategoryModel("Philiphs 241V8L"),

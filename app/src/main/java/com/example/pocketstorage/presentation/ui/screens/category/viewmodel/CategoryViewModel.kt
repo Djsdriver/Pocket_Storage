@@ -1,18 +1,26 @@
 package com.example.pocketstorage.presentation.ui.screens.category.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
+import com.example.pocketstorage.domain.model.doesMatchSearchQuery
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
@@ -43,37 +51,63 @@ class CategoryViewModel @Inject constructor(
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
-    private val _categories = MutableStateFlow(allCategories)
+    private val _categories = MutableStateFlow<List<Category>>(existingCategoriesForCurrentLocation.value)
+
+    init {
+        viewModelScope.launch {
+
+            getCurrentLocationId()
+
+            currentLocationId.collect { currentLocationId ->
+                if (currentLocationId != null) {
+                    getAllCategoriesByLocationId(currentLocationId)
+                }
+            }
+
+        }
+    }
 
     val filteredCategories = searchText
         .debounce(1000L)
         .onEach { _isSearching.update { true } }
         .map { text ->
             if (text.isBlank()) {
-                allCategories
+                existingCategoriesForCurrentLocation.value
             } else {
-                delay(2000L)
-                allCategories.filter { it.doesMatchSearchQuery(text) }
+                val categories = existingCategoriesForCurrentLocation.value.filter {
+                    it.doesMatchSearchQuery(text)
+                }
+
+                Log.d("CAT", categories.toString())
+
+                categories
             }
         }
         .onEach { _isSearching.update { false } }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
-            _categories.value
+            initialValue = _categories.value
         )
 
     fun onSearchTextChange(text: String) {
         _searchText.value = text
     }
 
-    fun saveCategoryOnLocalStorage(category: Category) {
+    fun saveCategoryOnLocalStorage(category: Category): CompletableDeferred<Unit> {
+        val completableDeferred = CompletableDeferred<Unit>()
         viewModelScope.launch {
-            insertCategoryUseCase(category)
+            try {
+                insertCategoryUseCase(category)
+                completableDeferred.complete(Unit)
+            } catch (e: Exception) {
+                completableDeferred.completeExceptionally(e)
+            }
         }
+        return completableDeferred
     }
 
-    fun getCurrentLocationId() {
+    private fun getCurrentLocationId() {
         viewModelScope.launch {
             getLocationIdFromDataStorageUseCase.invoke().collect { currentLocationId ->
                 if (currentLocationId != null) {
@@ -92,29 +126,3 @@ class CategoryViewModel @Inject constructor(
     }
 }
 
-data class CategoryModel2(
-    val name: String,
-    val image: Int,
-    val countProduct: String
-) {
-    fun doesMatchSearchQuery(query: String): Boolean {
-        val matchingCombinations = listOf(
-            name
-        )
-
-        return matchingCombinations.any {
-            it.contains(query, ignoreCase = true)
-        }
-    }
-}
-
-val allCategories = listOf(
-    CategoryModel2(name = "Printers", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "Monitors", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "Scanners", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "Cameras", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "Keyboards", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "Headphones", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "GamePads", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "SoundMonitors", R.drawable.ic_launcher_foreground, "Product: 4"),
-)
