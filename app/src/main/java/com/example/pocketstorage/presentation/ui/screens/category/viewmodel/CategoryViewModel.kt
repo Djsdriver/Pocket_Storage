@@ -3,10 +3,12 @@ package com.example.pocketstorage.presentation.ui.screens.category.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.domain.model.Category
+import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.model.doesMatchSearchQuery
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
+import com.example.pocketstorage.presentation.ui.screens.building.BuildingUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -20,9 +22,25 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class CategoriesStateForCurrentLocation(
+    val currentLocationId: String = "",
+    val existingCategoriesForCurrentLocation: List<Category> = emptyList(),
+    val searchText: String = "",
+
+)
+
+sealed class CategoriesUiState{
+    data object Loading : CategoriesUiState()
+    data class Success(
+        val categories: List<Category> = emptyList(),
+    ) : CategoriesUiState() {
+        fun isEmpty() = categories.isEmpty()
+    }
+}
 @HiltViewModel
 class CategoryViewModel @Inject constructor(
     private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase,
@@ -30,56 +48,50 @@ class CategoryViewModel @Inject constructor(
     private val getCategoriesByBuildingIdUseCase: GetCategoriesByBuildingIdUseCase
 ) : ViewModel() {
 
-    private val _currentLocationId: MutableStateFlow<String?> = MutableStateFlow(null)
-    val currentLocationId: StateFlow<String?> = _currentLocationId.asStateFlow()
+    private val _categoriesState = MutableStateFlow(CategoriesStateForCurrentLocation())
+    val categoriesState: StateFlow<CategoriesStateForCurrentLocation?> = _categoriesState.asStateFlow()
 
-    private val _existingCategoriesForCurrentLocation: MutableStateFlow<List<Category>> =
-        MutableStateFlow(emptyList())
-    val existingCategoriesForCurrentLocation: StateFlow<List<Category>> =
-        _existingCategoriesForCurrentLocation.asStateFlow()
+    private val _uiState: MutableStateFlow<CategoriesUiState> =
+        MutableStateFlow(CategoriesUiState.Loading)
 
-    private val _searchText = MutableSharedFlow<String>()
-    val searchText = _searchText.asSharedFlow()
+    val uiState = _uiState.asStateFlow()
 
-    private val _isSearching = MutableStateFlow(true)
-    val isSearching = _isSearching.asStateFlow()
 
     init {
-
         viewModelScope.launch {
-
             getCurrentLocationId()
 
-            currentLocationId.collect { currentLocationId ->
-                if (currentLocationId != null) {
-                    getAllCategoriesByLocationId(currentLocationId)
+            categoriesState.collect { state ->
+                if (state != null) {
+                    getAllCategoriesByLocationId(state.currentLocationId)
                 }
-            }
+                if (state != null) {
+                    _uiState.update {
+                        if (state.searchText.isNotBlank()) {
+                            CategoriesUiState.Success(
+                                categories = state.existingCategoriesForCurrentLocation.filter {
+                                    it.doesMatchSearchQuery(
+                                        state.searchText
+                                    )
+                                }
+                            )
+                        } else {
+                            CategoriesUiState.Success(
+                                categories = state.existingCategoriesForCurrentLocation
+                            )
+                        }
+                    }
+                }
 
+            }
         }
     }
 
-    val filteredCategories = searchText
-        .debounce(1000L)
-        .onEach { _isSearching.value = true }
-        .map { text ->
-            if (text.isBlank()) {
-                existingCategoriesForCurrentLocation.value
-            } else {
-                existingCategoriesForCurrentLocation.value.filter {
-                    it.doesMatchSearchQuery(text)
-                }
-            }
-        }
-        .onEach { _isSearching.value = false }
-        .shareIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-        )
-
     fun onSearchTextChange(text: String) {
         viewModelScope.launch {
-            _searchText.emit(text)
+            _categoriesState.update {
+                it.copy(searchText = text)
+            }
         }
     }
 
@@ -100,7 +112,11 @@ class CategoryViewModel @Inject constructor(
         viewModelScope.launch {
             getLocationIdFromDataStorageUseCase.invoke().collect { currentLocationId ->
                 if (currentLocationId != null) {
-                    _currentLocationId.value = currentLocationId
+                    _categoriesState.update {
+                        it.copy(
+                            currentLocationId = currentLocationId
+                        )
+                    }
                 }
             }
         }
@@ -108,8 +124,12 @@ class CategoryViewModel @Inject constructor(
 
     fun getAllCategoriesByLocationId(locationId: String) {
         viewModelScope.launch(context = Dispatchers.IO) {
-            getCategoriesByBuildingIdUseCase.invoke(locationId).collect {
-                _existingCategoriesForCurrentLocation.value = it
+            getCategoriesByBuildingIdUseCase.invoke(locationId).collect { categories->
+               _categoriesState.update {
+                   it.copy(
+                       existingCategoriesForCurrentLocation = categories
+                   )
+               }
             }
         }
     }

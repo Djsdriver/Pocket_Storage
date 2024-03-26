@@ -61,6 +61,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
+import com.example.pocketstorage.presentation.ui.screens.building.BuildingUiState
+import com.example.pocketstorage.presentation.ui.screens.building.ListRowBuilding
+import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.BuildingViewModel
+import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoriesUiState
 import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryViewModel
 import kotlinx.coroutines.launch
 
@@ -75,11 +79,16 @@ fun Category(viewModel: CategoryViewModel) {
 @Composable
 fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
 
-    val currentLocationId by viewModel.currentLocationId.collectAsState()
-    val existingCategories by viewModel.existingCategoriesForCurrentLocation.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    val categories by viewModel.filteredCategories.collectAsState(emptyList())
-    val isSearching by viewModel.isSearching.collectAsState()
+    /*val currentLocationId by viewModel.currentLocationId.collectAsState()
+    val existingCategories by viewModel.existingCategoriesForCurrentLocation.collectAsState()*/
+
+    val categoriesState by viewModel.categoriesState.collectAsState()
+
+    //val categories by viewModel.filteredCategories.collectAsState(emptyList())
+    //val isSearching by viewModel.isSearching.collectAsState()
+
 
     var errorText by rememberSaveable {
         mutableStateOf("")
@@ -136,7 +145,9 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                             focusedBorderColor = colorResource(id = R.color.RetroBlue),
                             unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         ),
-                        viewModel
+                        viewModel,
+                        categoriesState!!.searchText,
+                        viewModel::onSearchTextChange
                     )
                 }
 
@@ -167,7 +178,7 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
 
             }
 
-            if (isSearching) {
+            /*if (isSearching) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -175,13 +186,13 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
             } else {
-                if (categories.isNotEmpty()) {
+                if (categoriesState?.existingCategoriesForCurrentLocation?.isNotEmpty() == true) {
                     LazyColumn(
                         modifier = Modifier
                             .padding(start = 24.dp, end = 24.dp)
                             .background(Color.White)
                     ) {
-                        items(categories) {
+                        items(categoriesState!!.existingCategoriesForCurrentLocation) {
                             ProductsOfTheCategories(it)
                         }
                     }
@@ -198,7 +209,8 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                         )
                     }
                 }
-            }
+            }*/
+            RenderScreen(viewModel = viewModel, uiState = uiState)
 
 
         }
@@ -264,64 +276,88 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                         },
                         onClick = {
 
-                            scope.launch {
+                            if (!categoryName.isNullOrEmpty() && categoryName!!.isNotBlank()) {
 
-                                if (!categoryName.isNullOrEmpty() && categoryName!!.isNotBlank()) {
+                                if (!categoriesState?.existingCategoriesForCurrentLocation?.any { category -> category.name == categoryName }!!) {
 
-                                    if (!existingCategories.any { category -> category.name == categoryName }) {
+                                    if (!categoriesState?.currentLocationId.isNullOrEmpty()) {
 
-                                        if (!currentLocationId.isNullOrEmpty()) {
+                                        val category = Category(
+                                            name = categoryName!!,
+                                            buildingId = categoriesState!!.currentLocationId
+                                        )
 
-                                            val category = Category(
-                                                name = categoryName!!,
-                                                buildingId = currentLocationId!!
-                                            )
-
-                                            val deferred = viewModel.saveCategoryOnLocalStorage(category)
-                                            try {
-                                                deferred.await()
-                                                viewModel.getAllCategoriesByLocationId(currentLocationId!!)
-                                            } catch (e: Exception) {
-                                                Log.e("ERROR", e.stackTraceToString())
-                                            }
+                                        viewModel.saveCategoryOnLocalStorage(category)
+                                        //viewModel.getAllCategoriesByLocationId(categoriesState!!.currentLocationId)
+                                        viewModel.onSearchTextChange("")
 
 
-                                            viewModel.onSearchTextChange("")
-
-                                            sheetState.hide()
-
-                                            Toast.makeText(
-                                                context,
-                                                "Category $categoryName was created",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-
-                                        } else {
-                                            errorText = "*You have to determine the location"
-                                            errorTextIsVisible = true
-                                        }
+                                        Toast.makeText(
+                                            context,
+                                            "Category $categoryName was created",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        showBottomSheet = false
+                                        errorTextIsVisible = false
 
                                     } else {
-                                        errorText = "*This category already exists"
+                                        errorText = "*You have to determine the location"
                                         errorTextIsVisible = true
                                     }
 
                                 } else {
-                                    errorText = "*Category field name is empty"
+                                    errorText = "*This category already exists"
                                     errorTextIsVisible = true
                                 }
 
-
-                            }.invokeOnCompletion {
-
-                                if (!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                    errorTextIsVisible = false
-                                }
-
+                            } else {
+                                errorText = "*Category field name is empty"
+                                errorTextIsVisible = true
                             }
+
+                            if (!sheetState.isVisible) {
+                                showBottomSheet = false
+                                errorTextIsVisible = false
+                            }
+
                         }
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RenderScreen(viewModel: CategoryViewModel, uiState: CategoriesUiState) {
+
+    val categoriesState by viewModel.categoriesState.collectAsState()
+    when (val currentState = uiState) {
+        is CategoriesUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+        }
+
+        is CategoriesUiState.Success -> {
+            LaunchedEffect(categoriesState!!.currentLocationId) {
+                viewModel.getAllCategoriesByLocationId(categoriesState!!.currentLocationId)
+            }
+
+            if (currentState.isEmpty()
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text(text = "No locations", modifier = Modifier.align(Alignment.Center))
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(start = 24.dp, end = 24.dp)
+                        .background(Color.White)
+                ) {
+                    items(currentState.categories) { categories ->
+                        ProductsOfTheCategories(categories)
+                    }
                 }
             }
         }
@@ -335,14 +371,16 @@ fun TextFieldSearchCategory(
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
     colors: TextFieldColors,
-    viewModel: CategoryViewModel
+    viewModel: CategoryViewModel,
+    value: String,
+    onValueChange: (String) -> Unit
 ) {
-    val searchText by viewModel.searchText.collectAsState("")
+
 
     OutlinedTextField(
         modifier = modifier,
-        value = searchText,
-        onValueChange = viewModel::onSearchTextChange,
+        value = value,
+        onValueChange = onValueChange,
         label = label,
         leadingIcon = leadingIcon,
         colors = colors
@@ -389,7 +427,6 @@ fun ButtonForTheCategoryScreen(
         }
     }
 }
-
 
 
 data class ItemsCategoryModel(val nameProduct: String)
