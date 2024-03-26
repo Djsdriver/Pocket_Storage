@@ -41,10 +41,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -61,12 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
-import com.example.pocketstorage.presentation.ui.screens.building.BuildingUiState
-import com.example.pocketstorage.presentation.ui.screens.building.ListRowBuilding
-import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.BuildingViewModel
-import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoriesUiState
 import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryViewModel
-import kotlinx.coroutines.launch
 
 @Composable
 fun Category(viewModel: CategoryViewModel) {
@@ -78,17 +73,8 @@ fun Category(viewModel: CategoryViewModel) {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
-
     val uiState by viewModel.uiState.collectAsState()
-
-    /*val currentLocationId by viewModel.currentLocationId.collectAsState()
-    val existingCategories by viewModel.existingCategoriesForCurrentLocation.collectAsState()*/
-
     val categoriesState by viewModel.categoriesState.collectAsState()
-
-    //val categories by viewModel.filteredCategories.collectAsState(emptyList())
-    //val isSearching by viewModel.isSearching.collectAsState()
-
 
     var errorText by rememberSaveable {
         mutableStateOf("")
@@ -99,10 +85,15 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
     }
 
     val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
+
+    var categoryListRefresh by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(categoryListRefresh) {
+        viewModel.getAllCategoriesByLocationId(categoriesState!!.currentLocationId)
+    }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.onSearchTextChange("")
@@ -145,7 +136,6 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                             focusedBorderColor = colorResource(id = R.color.RetroBlue),
                             unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         ),
-                        viewModel,
                         categoriesState!!.searchText,
                         viewModel::onSearchTextChange
                     )
@@ -173,46 +163,12 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                     },
                     onClick = {
                         showBottomSheet = true
+                        Log.d("categoryScreen", "$this")
                     }
                 )
 
             }
-
-            /*if (isSearching) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-            } else {
-                if (categoriesState?.existingCategoriesForCurrentLocation?.isNotEmpty() == true) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(start = 24.dp, end = 24.dp)
-                            .background(Color.White)
-                    ) {
-                        items(categoriesState!!.existingCategoriesForCurrentLocation) {
-                            ProductsOfTheCategories(it)
-                        }
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No categories",
-                            modifier = Modifier
-                                .padding(bottom = 32.dp)
-                                .align(Alignment.Center)
-                        )
-                    }
-                }
-            }*/
             RenderScreen(viewModel = viewModel, uiState = uiState)
-
-
         }
 
         if (showBottomSheet) {
@@ -277,20 +233,15 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                         onClick = {
 
                             if (!categoryName.isNullOrEmpty() && categoryName!!.isNotBlank()) {
-
                                 if (!categoriesState?.existingCategoriesForCurrentLocation?.any { category -> category.name == categoryName }!!) {
-
                                     if (!categoriesState?.currentLocationId.isNullOrEmpty()) {
-
                                         val category = Category(
                                             name = categoryName!!,
                                             buildingId = categoriesState!!.currentLocationId
                                         )
 
                                         viewModel.saveCategoryOnLocalStorage(category)
-                                        //viewModel.getAllCategoriesByLocationId(categoriesState!!.currentLocationId)
-                                        viewModel.onSearchTextChange("")
-
+                                        categoryListRefresh++
 
                                         Toast.makeText(
                                             context,
@@ -330,9 +281,8 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
 
 @Composable
 private fun RenderScreen(viewModel: CategoryViewModel, uiState: CategoriesUiState) {
-
     val categoriesState by viewModel.categoriesState.collectAsState()
-    when (val currentState = uiState) {
+    when (uiState) {
         is CategoriesUiState.Loading -> {
             Box(modifier = Modifier.fillMaxSize()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -344,7 +294,7 @@ private fun RenderScreen(viewModel: CategoryViewModel, uiState: CategoriesUiStat
                 viewModel.getAllCategoriesByLocationId(categoriesState!!.currentLocationId)
             }
 
-            if (currentState.isEmpty()
+            if (uiState.isEmpty()
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     Text(text = "No locations", modifier = Modifier.align(Alignment.Center))
@@ -355,7 +305,7 @@ private fun RenderScreen(viewModel: CategoryViewModel, uiState: CategoriesUiStat
                         .padding(start = 24.dp, end = 24.dp)
                         .background(Color.White)
                 ) {
-                    items(currentState.categories) { categories ->
+                    items(uiState.categories) { categories ->
                         ProductsOfTheCategories(categories)
                     }
                 }
@@ -371,11 +321,9 @@ fun TextFieldSearchCategory(
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
     colors: TextFieldColors,
-    viewModel: CategoryViewModel,
     value: String,
     onValueChange: (String) -> Unit
 ) {
-
 
     OutlinedTextField(
         modifier = modifier,
@@ -406,7 +354,6 @@ fun TextFieldSearchCategoryWithoutIcon(
         colors = colors
     )
 }
-
 
 @Composable
 fun ButtonForTheCategoryScreen(

@@ -9,6 +9,8 @@ import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseC
 import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import com.example.pocketstorage.presentation.ui.screens.building.BuildingUiState
+import com.example.pocketstorage.presentation.ui.screens.category.CategoriesStateForCurrentLocation
+import com.example.pocketstorage.presentation.ui.screens.category.CategoriesUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -26,21 +28,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class CategoriesStateForCurrentLocation(
-    val currentLocationId: String = "",
-    val existingCategoriesForCurrentLocation: List<Category> = emptyList(),
-    val searchText: String = "",
-
-)
-
-sealed class CategoriesUiState{
-    data object Loading : CategoriesUiState()
-    data class Success(
-        val categories: List<Category> = emptyList(),
-    ) : CategoriesUiState() {
-        fun isEmpty() = categories.isEmpty()
-    }
-}
 @HiltViewModel
 class CategoryViewModel @Inject constructor(
     private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase,
@@ -95,17 +82,11 @@ class CategoryViewModel @Inject constructor(
         }
     }
 
-    fun saveCategoryOnLocalStorage(category: Category): CompletableDeferred<Unit> {
-        val completableDeferred = CompletableDeferred<Unit>()
+    fun saveCategoryOnLocalStorage(category: Category) {
         viewModelScope.launch {
-            try {
-                insertCategoryUseCase(category)
-                completableDeferred.complete(Unit)
-            } catch (e: Exception) {
-                completableDeferred.completeExceptionally(e)
-            }
+            insertCategoryUseCase(category)
         }
-        return completableDeferred
+
     }
 
     private fun getCurrentLocationId() {
