@@ -89,12 +89,6 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
 
     val context = LocalContext.current
 
-    var categoryListRefresh by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(categoryListRefresh) {
-        viewModel.getAllCategoriesByLocationId(categoriesState!!.currentLocationId)
-    }
-
     LaunchedEffect(key1 = Unit) {
         viewModel.onSearchTextChange("")
     }
@@ -240,8 +234,10 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                                             buildingId = categoriesState!!.currentLocationId
                                         )
 
-                                        viewModel.saveCategoryOnLocalStorage(category)
-                                        categoryListRefresh++
+                                        viewModel.saveCategoryOnLocalStorage(category){
+                                            viewModel.getAllCategoriesByLocationId(categoriesState.currentLocationId)
+                                        }
+
 
                                         Toast.makeText(
                                             context,

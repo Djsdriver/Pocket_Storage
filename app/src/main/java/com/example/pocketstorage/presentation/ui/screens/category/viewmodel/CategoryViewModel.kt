@@ -1,29 +1,19 @@
 package com.example.pocketstorage.presentation.ui.screens.category.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.domain.model.Category
-import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.model.doesMatchSearchQuery
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
-import com.example.pocketstorage.presentation.ui.screens.building.BuildingUiState
 import com.example.pocketstorage.presentation.ui.screens.category.CategoriesStateForCurrentLocation
 import com.example.pocketstorage.presentation.ui.screens.category.CategoriesUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -36,12 +26,11 @@ class CategoryViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _categoriesState = MutableStateFlow(CategoriesStateForCurrentLocation())
-    val categoriesState: StateFlow<CategoriesStateForCurrentLocation?> = _categoriesState.asStateFlow()
+    val categoriesState=_categoriesState.asStateFlow()
 
-    private val _uiState: MutableStateFlow<CategoriesUiState> =
-        MutableStateFlow(CategoriesUiState.Loading)
-
+    private val _uiState: MutableStateFlow<CategoriesUiState> = MutableStateFlow(CategoriesUiState.Loading)
     val uiState = _uiState.asStateFlow()
+
 
 
     init {
@@ -82,9 +71,10 @@ class CategoryViewModel @Inject constructor(
         }
     }
 
-    fun saveCategoryOnLocalStorage(category: Category) {
+    fun saveCategoryOnLocalStorage(category: Category, onSuccess: ()-> Unit) {
         viewModelScope.launch {
             insertCategoryUseCase(category)
+            onSuccess()
         }
 
     }
