@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -97,15 +98,21 @@ fun InventoryScreenPreview() {
 }
 
 @Composable
-fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit, onClickLogOut: () -> Unit, sendIdToProductPage: (String)-> Unit) {
+fun InventoryScreen(
+    onClick: () -> Unit,
+    onClickAdd: () -> Unit,
+    onClickLogOut: () -> Unit,
+    sendIdToProductPage: (String) -> Unit
+) {
     val viewModel = hiltViewModel<InventoryViewModel>()
     val inventory by viewModel.filteredInventory.collectAsState()
     val isSearch by viewModel.isSearching.collectAsState()
     val gmail = FirebaseAuth.getInstance().currentUser?.email
     val activity = (LocalContext.current as? Activity)
 
+    val startScan by viewModel.scannerState.collectAsState()
+
     val openScan = remember { mutableStateOf(false) }
-    val scanningEnabled = remember { mutableStateOf(true) }
     val context = LocalContext.current
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
 
@@ -113,6 +120,13 @@ fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit, onClickLogOut: 
     val shouldShowDialog = remember { mutableStateOf(false) }
     BackHandler {
         shouldShowDialog.value = true
+    }
+
+    LaunchedEffect(startScan.data) {
+        if (startScan.data.isNotEmpty()) {
+            sendIdToProductPage.invoke(startScan.data)
+            viewModel.clearScannerState()
+        }
     }
 
     if (shouldShowDialog.value) {
@@ -284,17 +298,13 @@ fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit, onClickLogOut: 
 
     }
     if (openScan.value) {
-        ScannerQr {
-            if (it.contents.isEmpty()) {
-                SnackbarManager.showMessage(R.string.nothing_found)
-                openScan.value = !openScan.value
-            }
-            else{
-                sendIdToProductPage(it.contents)
-                openScan.value = !openScan.value
-            }
-        }
+        viewModel.startScan()
+        openScan.value = !openScan.value
+        Log.d("scannerLogUi", "${startScan.data}")
     }
+
+
+
 
     SnackBarToast(snackbarMessage = snackbarMessage, context = context)
 
@@ -434,8 +444,8 @@ fun RowScope.AddItem(
         unselectedContentColor = colorResource(id = R.color.SpanishGrey),
         onClick = {
             navController.navigate(screen.route) {
-                popUpTo(navController.graph.findStartDestination().id){
-                   // saveState = true
+                popUpTo(navController.graph.findStartDestination().id) {
+                    // saveState = true
                 }
                 launchSingleTop = true
                 // Restore state when reselecting a previously selected item

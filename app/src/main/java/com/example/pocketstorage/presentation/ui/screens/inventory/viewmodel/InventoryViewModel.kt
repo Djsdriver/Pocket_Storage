@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.usecase.LogOutUseCase
+import com.example.pocketstorage.domain.usecase.product.GetDataFromQRCodeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,11 +15,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class InventoryViewModel @Inject constructor(
     private val logOutUseCase: LogOutUseCase,
+    private val getDataFromQRCodeUseCase: GetDataFromQRCodeUseCase,
 ) : ViewModel() {
 
     private val _searchText = MutableStateFlow("")
@@ -26,6 +29,10 @@ class InventoryViewModel @Inject constructor(
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
+
+    private val _scannerState = MutableStateFlow(ScannerUiState())
+    val scannerState = _scannerState.asStateFlow()
+
 
     private val _building = MutableStateFlow(allInventory)
 
@@ -53,6 +60,23 @@ class InventoryViewModel @Inject constructor(
 
     fun logOut(){
        logOutUseCase.invoke()
+    }
+
+    fun startScan(){
+        viewModelScope.launch {
+            getDataFromQRCodeUseCase.invoke().collect{ data->
+                if (!data.isNullOrBlank()){
+                    _scannerState.update {
+                        it.copy(
+                            data = data
+                        )
+                    }
+                }
+            }
+        }
+    }
+    fun clearScannerState() {
+        _scannerState.value = ScannerUiState()
     }
 
 }
