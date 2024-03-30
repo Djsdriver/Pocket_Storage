@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
@@ -72,7 +73,7 @@ fun Category(viewModel: CategoryViewModel) {
 @Preview(showBackground = true)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
+fun CategoryScreen(viewModel: CategoryViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val categoriesState by viewModel.categoriesState.collectAsState()
 
@@ -130,7 +131,7 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                             focusedBorderColor = colorResource(id = R.color.RetroBlue),
                             unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         ),
-                        categoriesState!!.searchText,
+                        categoriesState.searchText,
                         viewModel::onSearchTextChange
                     )
                 }
@@ -227,11 +228,11 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                         onClick = {
 
                             if (!categoryName.isNullOrEmpty() && categoryName!!.isNotBlank()) {
-                                if (!categoriesState?.existingCategoriesForCurrentLocation?.any { category -> category.name == categoryName }!!) {
-                                    if (!categoriesState?.currentLocationId.isNullOrEmpty()) {
+                                if (!categoriesState.existingCategoriesForCurrentLocation.any { category -> category.name == categoryName }!!) {
+                                    if (!categoriesState.currentLocationId.isNullOrEmpty()) {
                                         val category = Category(
                                             name = categoryName!!,
-                                            buildingId = categoriesState!!.currentLocationId
+                                            buildingId = categoriesState.currentLocationId
                                         )
 
                                         viewModel.saveCategoryOnLocalStorage(category){
@@ -286,8 +287,8 @@ private fun RenderScreen(viewModel: CategoryViewModel, uiState: CategoriesUiStat
         }
 
         is CategoriesUiState.Success -> {
-            LaunchedEffect(categoriesState!!.currentLocationId) {
-                viewModel.getAllCategoriesByLocationId(categoriesState!!.currentLocationId)
+            LaunchedEffect(categoriesState.currentLocationId) {
+                viewModel.getAllCategoriesByLocationId(categoriesState.currentLocationId)
             }
 
             if (uiState.isEmpty()

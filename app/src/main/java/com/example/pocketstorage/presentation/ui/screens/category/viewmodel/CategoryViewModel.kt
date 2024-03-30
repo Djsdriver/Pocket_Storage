@@ -31,8 +31,6 @@ class CategoryViewModel @Inject constructor(
     private val _uiState: MutableStateFlow<CategoriesUiState> = MutableStateFlow(CategoriesUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-
-
     init {
         viewModelScope.launch {
             getCurrentLocationId()
