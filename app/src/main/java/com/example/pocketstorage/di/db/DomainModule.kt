@@ -4,6 +4,7 @@ import com.example.pocketstorage.domain.repository.DatabaseRepository
 import com.example.pocketstorage.domain.usecase.db.DeleteCategoryUseCase
 import com.example.pocketstorage.domain.usecase.db.DeleteInventoryUseCase
 import com.example.pocketstorage.domain.usecase.db.DeleteLocationUseCase
+import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesByCategoryIdUseCase
@@ -113,5 +114,11 @@ class DomainModule {
     fun provideUpdateInventoryUseCase(databaseRepository: DatabaseRepository)
     : UpdateInventoryUseCase {
         return UpdateInventoryUseCase(databaseRepository)
+    }
+
+    @Provides
+    fun provideGetCategoriesByBuildingIdUseCase(databaseRepository: DatabaseRepository)
+    : GetCategoriesByBuildingIdUseCase {
+        return GetCategoriesByBuildingIdUseCase(databaseRepository)
     }
 }
