@@ -2,20 +2,17 @@ package com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertInventoryUseCase
-import com.example.pocketstorage.presentation.ui.screens.building.BuildingState
-import com.example.pocketstorage.presentation.ui.screens.building.BuildingUiState
-import com.example.pocketstorage.presentation.ui.screens.building.CreateBuildingEvent
-import com.example.pocketstorage.presentation.ui.screens.category.CategoriesStateForCurrentLocation
 import com.example.pocketstorage.presentation.ui.screens.inventory.CreateProductEvent
+import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,26 +24,21 @@ class AddProductViewModel @Inject constructor(
     private val insertInventoryUseCase: InsertInventoryUseCase
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(BuildingState())
+    private val _state = MutableStateFlow(InventoryUiState())
     val state = _state.asStateFlow()
-
-    private val _categoriesState = MutableStateFlow(CategoriesStateForCurrentLocation())
-    val categoriesState = _categoriesState.asStateFlow()
-
-    private val _stateMvi = MutableStateFlow(Inventory())
-    val stateMvi = _stateMvi.asStateFlow()
 
 
     fun event(createProductEvent: CreateProductEvent) {
         when (createProductEvent) {
             is CreateProductEvent.CreateBuilding -> {
-                val name = stateMvi.value.name
-                val description = stateMvi.value.description
-                val locationId = stateMvi.value.locationId
-                val categoryId = stateMvi.value.categoryId
-                val pathToImage = stateMvi.value.pathToImage
+                val name = state.value.name
+                val description = state.value.description
+                val locationId = state.value.locationId
+                val categoryId = state.value.categoryId
+                val pathToImage = state.value.pathToImage
 
-                if (name.isBlank() || description.isBlank()) {
+                if (name.isBlank() || description.isBlank() || locationId.isNullOrBlank()
+                    || categoryId.isNullOrBlank() || pathToImage.isNullOrBlank()) {
                     return
                 }
 
@@ -59,7 +51,7 @@ class AddProductViewModel @Inject constructor(
                 )
                 viewModelScope.launch {
                     insertInventoryUseCase.invoke(product)
-                    _stateMvi.update {
+                    _state.update {
                         it.copy(
                             name = "",
                             description = "",
@@ -70,12 +62,10 @@ class AddProductViewModel @Inject constructor(
                     }
                 }
 
-
-
             }
 
             is CreateProductEvent.SetNameProduct -> {
-                _stateMvi.update {
+                _state.update {
                     it.copy(
                         name = createProductEvent.nameProduct
                     )
@@ -84,7 +74,7 @@ class AddProductViewModel @Inject constructor(
             }
 
             is CreateProductEvent.SetDescription -> {
-                _stateMvi.update {
+                _state.update {
                     it.copy(
                         description = createProductEvent.description
                     )
@@ -92,7 +82,7 @@ class AddProductViewModel @Inject constructor(
             }
 
             is CreateProductEvent.SetCategoryId -> {
-                _stateMvi.update {
+                _state.update {
                     it.copy(
                         categoryId = createProductEvent.categoryId
                     )
@@ -100,7 +90,7 @@ class AddProductViewModel @Inject constructor(
             }
 
             is CreateProductEvent.SetLocationId -> {
-                _stateMvi.update {
+                _state.update {
                     it.copy(
                         locationId = createProductEvent.locationId
                     )
@@ -108,42 +98,45 @@ class AddProductViewModel @Inject constructor(
             }
 
             is CreateProductEvent.SetPathToImage -> {
-                _stateMvi.update {
+                _state.update {
                     it.copy(
                         pathToImage = createProductEvent.pathToImage
                     )
                 }
             }
 
+            is CreateProductEvent.ShowListBuilding ->{
+                viewModelScope.launch {
+                    getLocationsUseCase()
+                        .collect { locations ->
+                            _state.update {
+                                it.copy(locations = locations)
+                            }
+                        }
+                }
+            }
+
+            is CreateProductEvent.ShowListCategory ->{
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(
+                            selectedIdBuilding = createProductEvent.locationId
+                        )
+                    }
+                    val buildingId = _state.value.selectedIdBuilding
+                    getCategoriesByBuildingIdUseCase.invoke(buildingId)
+                        .collect { category ->
+                            _state.update {
+                                it.copy(
+                                    categories = category
+                                )
+                            }
+                        }
+                }
+            }
+
             else -> {}
         }
     }
-
-
-    fun getBuildings() {
-        viewModelScope.launch {
-            getLocationsUseCase()
-                .collect { locations ->
-                    _state.update {
-                        it.copy(locations = locations)
-                    }
-                }
-        }
-    }
-
-
-    fun getCategoriesByBuilding(buildingId: String) {
-        viewModelScope.launch {
-            getCategoriesByBuildingIdUseCase.invoke(buildingId)
-                .collect { category ->
-                    _categoriesState.update {
-                        it.copy(
-                            existingCategoriesForCurrentLocation = category
-                        )
-                    }
-                }
-        }
-    }
-
 
 }

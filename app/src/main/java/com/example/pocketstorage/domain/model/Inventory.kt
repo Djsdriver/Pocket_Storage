@@ -8,5 +8,5 @@ data class Inventory(
     val description: String = " ",
     val locationId: String = "",
     val categoryId: String = "",
-    val pathToImage: String? = null
+    val pathToImage: String? = ""
 )

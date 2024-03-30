@@ -70,18 +70,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
-import coil.request.ImageRequest
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Location
-import com.example.pocketstorage.presentation.ui.screens.building.CreateBuildingEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.AddProductViewModel
 
 @Composable
@@ -185,7 +179,7 @@ fun BaseContent(
     viewModel: AddProductViewModel = hiltViewModel(),
     onEvent: (CreateProductEvent) -> Unit
 ) {
-    val stateMvi by viewModel.stateMvi.collectAsState()
+    val stateMvi by viewModel.state.collectAsState()
 
     var imageIsVisible by remember {
         mutableStateOf(false)
@@ -193,16 +187,6 @@ fun BaseContent(
 
     var buildingIdString by remember {
         mutableStateOf("")
-    }
-
-    val state = viewModel.state.collectAsState()
-    val categoriesState = viewModel.categoriesState.collectAsState()
-
-    LaunchedEffect(Unit){
-        viewModel.getBuildings()
-    }
-    LaunchedEffect(buildingIdString){
-        viewModel.getCategoriesByBuilding(buildingIdString)
     }
 
     Log.d("buildingIdStringLunch", "$buildingIdString")
@@ -241,18 +225,27 @@ fun BaseContent(
             onValueChange = {onEvent(CreateProductEvent.SetDescription(it))}
         )
         val context = LocalContext.current
+        LaunchedEffect(Unit){
+            onEvent(CreateProductEvent.ShowListBuilding)
+        }
+
+        LaunchedEffect(stateMvi.locations){
+            onEvent(CreateProductEvent.ShowListCategory(stateMvi.locationId))
+        }
+
         BaseDropdownMenu(
-            listOfElements = state.value.locations,
+            listOfElements = stateMvi.locations,
             modifier = Modifier.padding(top = topPadding)
         ) { selectedLocationName ->
             onEvent(CreateProductEvent.SetLocationId(selectedLocationName))
+            onEvent(CreateProductEvent.ShowListCategory(selectedLocationName))
             buildingIdString = selectedLocationName
             Log.d("buildingIdString", "$buildingIdString")
             Toast.makeText(context, "Selected Location ID: ${selectedLocationName}", Toast.LENGTH_SHORT).show()
         }
         //заменить на категории
         BaseDropdownMenuCategory(
-            listOfElements = categoriesState.value.existingCategoriesForCurrentLocation, //заменить на категории
+            listOfElements = stateMvi.categories, //заменить на категории
             modifier = Modifier.padding(top = topPadding)
         ) { selectedIdCategory ->
             onEvent(CreateProductEvent.SetCategoryId(selectedIdCategory))
@@ -303,13 +296,10 @@ fun AddPictureCard(onClick: () -> Unit,onEvent: (CreateProductEvent) -> Unit ) {
     var pathToLoadingPicture by remember {
         mutableStateOf<String?>(null)
     }
-    Log.d("iiiipathToLoadingPicture", "$pathToLoadingPicture")
 
     var imageUri by remember {
         mutableStateOf<Uri?>(null)
     }
-
-    Log.d("iiiiimageUri", "$imageUri")
 
     val context = LocalContext.current
 
@@ -317,11 +307,13 @@ fun AddPictureCard(onClick: () -> Unit,onEvent: (CreateProductEvent) -> Unit ) {
         mutableStateOf<Bitmap?>(null)
     }
 
-    Log.d("iiiibitmap", "$bitmap")
+
 
     val launcherGallery =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+            Log.d("uri", "$uri")
             imageUri = uri
+            onEvent(CreateProductEvent.SetPathToImage(uri.toString()))
         }
 
     val launcherCamera =
@@ -347,7 +339,6 @@ fun AddPictureCard(onClick: () -> Unit,onEvent: (CreateProductEvent) -> Unit ) {
         }
 
         pathToLoadingPicture = it.toString()
-        onEvent(CreateProductEvent.SetPathToImage(pathToLoadingPicture!!))
         color.value = Color.Transparent
 
 
@@ -398,7 +389,7 @@ fun AddPictureCard(onClick: () -> Unit,onEvent: (CreateProductEvent) -> Unit ) {
                 )
             }
             pathToLoadingPicture?.let {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                //Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -412,7 +403,6 @@ fun BaseTextField(
     value: String,
     onValueChange: (String) -> Unit
 ) {
-    var text by remember { mutableStateOf(TextFieldValue("")) }
     OutlinedTextField(
         modifier = modifier,
         value = value,

@@ -35,6 +35,6 @@ fun Inventory.toInventoryEntity(): InventoryEntity {
         description = this.description,
         locationId = this.locationId,
         categoryId = this.categoryId,
-        pathToImage = this.pathToImage
+        pathToImage = this.pathToImage!!
     )
 }
