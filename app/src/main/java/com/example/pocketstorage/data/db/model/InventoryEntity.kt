@@ -12,8 +12,8 @@ data class InventoryEntity(
     val id: String = UNDEFINED_ID,
     val name: String,
     val description: String,
-    val locationId: Long,
-    val categoryId: Long,
+    val locationId: String,
+    val categoryId: String,
     val pathToImage: String
 )
 

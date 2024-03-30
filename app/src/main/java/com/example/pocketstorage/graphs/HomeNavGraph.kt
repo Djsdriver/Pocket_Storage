@@ -14,6 +14,7 @@ import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.Cate
 import com.example.pocketstorage.presentation.ui.screens.inventory.CreateProduct
 import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryScreen
 import com.example.pocketstorage.presentation.ui.screens.inventory.ProductPage
+import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.AddProductViewModel
 
 
 @Composable
@@ -54,11 +55,13 @@ fun HomeNavGraph(navController: NavHostController) {
 
 fun NavGraphBuilder.inventoryNavGraph(navController: NavHostController) {
     composable(route = InventoryScreenState.CreateProduct.route) {
+        val viewModel = hiltViewModel<AddProductViewModel>()
         CreateProduct (
             onBackArrowClick = { navController.navigateUp() },
             onAddPictureClick = {},
             onGenerateQRClick = {},
-            onSaveClick = {}
+            onSaveClick = {},
+            onEvent = viewModel::event
         )
     }
     composable(route = InventoryScreenState.InfoProduct.route) {

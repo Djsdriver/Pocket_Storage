@@ -85,6 +85,7 @@ class CreateBuildingViewModel @Inject constructor(
                 }
             }
 
+
             else -> {}
         }
     }
