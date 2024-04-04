@@ -9,6 +9,7 @@ sealed interface CreateProductEvent {
     data class SetPathToImage(val pathToImage: String): CreateProductEvent
     data object ShowListBuilding :CreateProductEvent
     data class ShowListCategory (val locationId: String) :CreateProductEvent
+    data object ShowBuilding :CreateProductEvent
     //Добавить еще действий, если нужно
 
 }

@@ -2,6 +2,7 @@ package com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.domain.model.Location
@@ -10,6 +11,7 @@ import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertInventoryUseCase
 import com.example.pocketstorage.presentation.ui.screens.inventory.CreateProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryUiState
+import com.example.pocketstorage.utils.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +41,7 @@ class AddProductViewModel @Inject constructor(
 
                 if (name.isBlank() || description.isBlank() || locationId.isNullOrBlank()
                     || categoryId.isNullOrBlank() || pathToImage.isNullOrBlank()) {
+                    SnackbarManager.showMessage(R.string.notallfields)
                     return
                 }
 
@@ -55,9 +58,7 @@ class AddProductViewModel @Inject constructor(
                         it.copy(
                             name = "",
                             description = "",
-                            locationId = "",
-                            categoryId = "",
-                            pathToImage = ""
+                            pathToImage = null
                         )
                     }
                 }
@@ -133,6 +134,10 @@ class AddProductViewModel @Inject constructor(
                             }
                         }
                 }
+            }
+
+            is CreateProductEvent.ShowBuilding -> {
+
             }
 
             else -> {}

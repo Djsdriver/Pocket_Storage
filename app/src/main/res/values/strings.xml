@@ -27,4 +27,8 @@
     <string name="email_not_found">Неверная почта или пароль</string>
     <string name="network_error">Нет соединение с интернетом</string>
     <string name="wrongpassword">Пароль неверный</string>
+
+    //Add Product
+    <string name="notallfields">Не все поля заполнены</string>
+
 </resources>

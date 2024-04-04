@@ -1,6 +1,7 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -11,8 +12,15 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +34,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -33,6 +42,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -44,7 +54,9 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,13 +67,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -72,11 +87,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.AddProductViewModel
+import com.example.pocketstorage.utils.SnackbarManager
+import com.example.pocketstorage.utils.SnackbarMessage
+import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
+import java.io.FileNotFoundException
+import java.lang.Double.min
+import kotlin.math.min
 
 @Composable
 fun CreateProduct(
@@ -157,6 +184,8 @@ fun ScaffoldBase(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(onBackArrowClick: () -> Unit) {
+    val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
+    val context = LocalContext.current
     TopAppBar(
         title = {
             Text(text = "Create Product")
@@ -165,6 +194,9 @@ fun TopBar(onBackArrowClick: () -> Unit) {
             IconButton(onClick = onBackArrowClick) {
                 Icon(Icons.Filled.ArrowBack, "backIcon")
             }
+        },
+        actions = {
+            SnackBarToast(snackbarMessage = snackbarMessage, context = context)
         }
     )
 }
@@ -179,7 +211,9 @@ fun BaseContent(
     viewModel: AddProductViewModel = hiltViewModel(),
     onEvent: (CreateProductEvent) -> Unit
 ) {
+
     val stateMvi by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
     var imageIsVisible by remember {
         mutableStateOf(false)
@@ -190,7 +224,6 @@ fun BaseContent(
     }
 
     Log.d("buildingIdStringLunch", "$buildingIdString")
-
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -204,7 +237,7 @@ fun BaseContent(
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(modifier = Modifier.height(4.dp))
-        AddPictureCard(onClick = onAddPictureClick, onEvent = viewModel::event)
+        AddPictureCard(onClick = onAddPictureClick, onEvent = viewModel::event, viewModel)
         BaseTextField(
             textHint = "name",
             colorHint = colorResource(id = R.color.black),
@@ -212,7 +245,7 @@ fun BaseContent(
                 .padding(top = topPadding)
                 .fillMaxWidth(),
             value = stateMvi.name,
-            onValueChange = {onEvent(CreateProductEvent.SetNameProduct(it))}
+            onValueChange = { onEvent(CreateProductEvent.SetNameProduct(it)) }
         )
         BaseTextField(
             textHint = "description (optional)",
@@ -222,14 +255,13 @@ fun BaseContent(
                 .fillMaxWidth()
                 .height(112.dp),
             value = stateMvi.description,
-            onValueChange = {onEvent(CreateProductEvent.SetDescription(it))}
+            onValueChange = { onEvent(CreateProductEvent.SetDescription(it)) }
         )
-        val context = LocalContext.current
-        LaunchedEffect(Unit){
+        LaunchedEffect(Unit) {
             onEvent(CreateProductEvent.ShowListBuilding)
         }
 
-        LaunchedEffect(stateMvi.locations){
+        LaunchedEffect(stateMvi.locations) {
             onEvent(CreateProductEvent.ShowListCategory(stateMvi.locationId))
         }
 
@@ -241,7 +273,11 @@ fun BaseContent(
             onEvent(CreateProductEvent.ShowListCategory(selectedLocationName))
             buildingIdString = selectedLocationName
             Log.d("buildingIdString", "$buildingIdString")
-            Toast.makeText(context, "Selected Location ID: ${selectedLocationName}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                "Selected Location ID: ${selectedLocationName}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
         //заменить на категории
         BaseDropdownMenuCategory(
@@ -249,7 +285,11 @@ fun BaseContent(
             modifier = Modifier.padding(top = topPadding)
         ) { selectedIdCategory ->
             onEvent(CreateProductEvent.SetCategoryId(selectedIdCategory))
-            Toast.makeText(context, "Selected Category ID: ${selectedIdCategory}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                "Selected Category ID: ${selectedIdCategory}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
         if (imageIsVisible) {
             BaseImage()
@@ -279,10 +319,17 @@ fun BaseContent(
 
 
 @Composable
-fun AddPictureCard(onClick: () -> Unit,onEvent: (CreateProductEvent) -> Unit ) {
+fun AddPictureCard(
+    onClick: () -> Unit,
+    onEvent: (CreateProductEvent) -> Unit,
+    viewModel: AddProductViewModel
+) {
+
+    val state by viewModel.state.collectAsState()
 
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val cardWidth = with(LocalDensity.current) { screenWidth - 16.dp }
+
 
     val stroke = Stroke(
         width = 8f,
@@ -307,6 +354,14 @@ fun AddPictureCard(onClick: () -> Unit,onEvent: (CreateProductEvent) -> Unit ) {
         mutableStateOf<Bitmap?>(null)
     }
 
+    val painter = rememberAsyncImagePainter(model = bitmap.value)
+    val painterState = painter.state
+
+    val transition by animateFloatAsState(
+        targetValue = if (painterState is AsyncImagePainter.State.Loading) 1f else 0f, label = "",
+
+    )
+
 
 
     val launcherGallery =
@@ -330,19 +385,26 @@ fun AddPictureCard(onClick: () -> Unit,onEvent: (CreateProductEvent) -> Unit ) {
 
         }
 
-    imageUri?.let {
-        if (Build.VERSION.SDK_INT < 28) {
-            bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+    LaunchedEffect(state.pathToImage) {
+        if (state.pathToImage != null) {
+            val uri = Uri.parse(state.pathToImage)
+            try {
+                if (Build.VERSION.SDK_INT < 28) {
+                    bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                } else {
+                    val source = ImageDecoder.createSource(context.contentResolver, uri)
+                    bitmap.value = ImageDecoder.decodeBitmap(source)
+                }
+                pathToLoadingPicture = state.pathToImage
+                color.value = Color.Transparent
+            } catch (e: FileNotFoundException) {
+                bitmap.value = null
+                color.value = Color(0xff2d7cf3)
+            }
         } else {
-            val source = ImageDecoder.createSource(context.contentResolver, it)
-            bitmap.value = ImageDecoder.decodeBitmap(source)
+            bitmap.value = null
+            color.value = Color(0xff2d7cf3)
         }
-
-        pathToLoadingPicture = it.toString()
-        color.value = Color.Transparent
-
-
-
     }
 
     OutlinedCard(
@@ -370,17 +432,29 @@ fun AddPictureCard(onClick: () -> Unit,onEvent: (CreateProductEvent) -> Unit ) {
         border = BorderStroke(1.dp, Color.Transparent)
     ) {
 
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             if (bitmap.value != null) {
-                Image(
-                    bitmap = bitmap.value!!.asImageBitmap(),
-                    contentDescription = null,
+                /*AsyncImage(
                     modifier = Modifier.fillMaxSize(),
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(bitmap.value)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
                     contentScale = ContentScale.Crop
+                )*/
+                Image(
+                    painter = painter,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(min(1f, transition / .2f))
+                        .scale(.8f + (.2f * transition))
+                        .graphicsLayer { rotationX = (1f - transition) * 5f },
+                    contentDescription = "custom transition based on painter state",
+                    contentScale = ContentScale.Crop,
                 )
             } else {
+                // This will show the placeholder image if bitmap is null
                 Icon(
                     painter = painterResource(id = R.drawable.add_photo_alternate),
                     contentDescription = "Add Photo",
@@ -393,6 +467,31 @@ fun AddPictureCard(onClick: () -> Unit,onEvent: (CreateProductEvent) -> Unit ) {
             }
         }
     }
+}
+
+@Composable
+fun LoadingAnimation() {
+    val animation = rememberInfiniteTransition()
+    val progress by animation.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Restart,
+        ), label = ""
+    )
+
+    Box(
+        modifier = Modifier
+            .size(60.dp)
+            .scale(progress)
+            .alpha(1f - progress)
+            .border(
+                5.dp,
+                color = Color.Black,
+                shape = CircleShape
+            )
+    )
 }
 
 @Composable
@@ -419,7 +518,7 @@ fun BaseTextField(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun  BaseDropdownMenu(
+fun BaseDropdownMenu(
     listOfElements: List<Location>,
     modifier: Modifier,
     onItemSelected: (String) -> Unit
@@ -430,6 +529,10 @@ fun  BaseDropdownMenu(
     Log.d("element", "${selectedElement}")
 
     var value = "${selectedElement?.address} "
+
+    val viewModel = hiltViewModel<AddProductViewModel>()
+
+    val state by viewModel.state.collectAsState()
 
     // menu box
     ExposedDropdownMenuBox(
@@ -443,8 +546,8 @@ fun  BaseDropdownMenu(
                 .menuAnchor()
                 .fillMaxWidth(),
             value = selectedElement?.address ?: "without building",
-            onValueChange = {value = it},
-            label = { Text(text = "without building")},
+            onValueChange = { value = it },
+            label = { Text(text = "without building") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -500,8 +603,8 @@ fun BaseDropdownMenuCategory(
                 .menuAnchor()
                 .fillMaxWidth(),
             value = selectedElement?.name ?: "without building",
-            onValueChange = {value = it},
-            label = { Text(text = "without building")},
+            onValueChange = { value = it },
+            label = { Text(text = "without building") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -558,5 +661,22 @@ fun BaseButton(
             .size(height = 48.dp, width = 218.dp)
     ) {
         Text(text = text, color = Color.White)
+    }
+}
+
+@Composable
+private fun SnackBarToast(
+    snackbarMessage: SnackbarMessage?, context: Context
+) {
+    snackbarMessage?.let { message ->
+        Log.d("snack", "${message}")
+        Snackbar(modifier = Modifier.padding(8.dp), actionOnNewLine = true, dismissAction = {
+            TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
+                Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
+            }
+        }) {
+            Text(message.toMessage(context.resources), fontSize = 12.sp)
+        }
+
     }
 }
