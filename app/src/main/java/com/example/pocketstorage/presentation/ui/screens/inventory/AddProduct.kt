@@ -359,9 +359,7 @@ fun AddPictureCard(
 
     val transition by animateFloatAsState(
         targetValue = if (painterState is AsyncImagePainter.State.Loading) 1f else 0f, label = "",
-
     )
-
 
 
     val launcherGallery =
@@ -434,24 +432,18 @@ fun AddPictureCard(
 
         Box(modifier = Modifier.fillMaxSize()) {
             if (bitmap.value != null) {
-                /*AsyncImage(
-                    modifier = Modifier.fillMaxSize(),
+                AsyncImage(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(min(1f, transition / .2f))
+                        .scale(.8f + (.2f * transition))
+                        .graphicsLayer { rotationX = (1f - transition) * 5f },
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(bitmap.value)
                         .crossfade(true)
                         .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop
-                )*/
-                Image(
-                    painter = painter,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(min(1f, transition / .2f))
-                        .scale(.8f + (.2f * transition))
-                        .graphicsLayer { rotationX = (1f - transition) * 5f },
-                    contentDescription = "custom transition based on painter state",
-                    contentScale = ContentScale.Crop,
                 )
             } else {
                 // This will show the placeholder image if bitmap is null
@@ -467,31 +459,6 @@ fun AddPictureCard(
             }
         }
     }
-}
-
-@Composable
-fun LoadingAnimation() {
-    val animation = rememberInfiniteTransition()
-    val progress by animation.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000),
-            repeatMode = RepeatMode.Restart,
-        ), label = ""
-    )
-
-    Box(
-        modifier = Modifier
-            .size(60.dp)
-            .scale(progress)
-            .alpha(1f - progress)
-            .border(
-                5.dp,
-                color = Color.Black,
-                shape = CircleShape
-            )
-    )
 }
 
 @Composable
@@ -523,16 +490,11 @@ fun BaseDropdownMenu(
     modifier: Modifier,
     onItemSelected: (String) -> Unit
 ) {
-
     var expanded by remember { mutableStateOf(false) }
     var selectedElement by remember { mutableStateOf(listOfElements.getOrNull(0)) }
     Log.d("element", "${selectedElement}")
 
     var value = "${selectedElement?.address} "
-
-    val viewModel = hiltViewModel<AddProductViewModel>()
-
-    val state by viewModel.state.collectAsState()
 
     // menu box
     ExposedDropdownMenuBox(
