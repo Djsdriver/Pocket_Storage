@@ -12,8 +12,8 @@ data class InventoryEntity(
     val id: String = UNDEFINED_ID,
     val name: String,
     val description: String,
-    val locationId: Long,
-    val categoryId: Long,
+    val locationId: String,
+    val categoryId: String,
     val pathToImage: String
 )
 
@@ -35,6 +35,6 @@ fun Inventory.toInventoryEntity(): InventoryEntity {
         description = this.description,
         locationId = this.locationId,
         categoryId = this.categoryId,
-        pathToImage = this.pathToImage
+        pathToImage = this.pathToImage!!
     )
 }
