@@ -117,4 +117,10 @@ dependencies {
 
     //datastore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    //zxing scanner
+    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    //ml kit scanner scanner
+    implementation ("com.google.android.gms:play-services-code-scanner:16.1.0")
 }

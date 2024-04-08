@@ -2,6 +2,8 @@ package com.example.pocketstorage.presentation.ui.screens.inventory
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -32,14 +34,16 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +73,9 @@ import com.example.pocketstorage.graphs.BottomBarScreen
 import com.example.pocketstorage.graphs.HomeNavGraph
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryModel
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryViewModel
+import com.example.pocketstorage.utils.SnackbarManager
+import com.example.pocketstorage.utils.SnackbarMessage
+import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -87,20 +94,39 @@ fun HomeScreen(navController: NavHostController = rememberNavController()) {
 @Composable
 @Preview(showBackground = true)
 fun InventoryScreenPreview() {
-    InventoryScreen(onClick = {}, onClickAdd = {}, onClickLogOut = {})
+    InventoryScreen(onClick = {}, onClickAdd = {}, onClickLogOut = {}, sendIdToProductPage = {})
 }
 
 @Composable
-fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit, onClickLogOut: () -> Unit) {
+fun InventoryScreen(
+    onClick: () -> Unit,
+    onClickAdd: () -> Unit,
+    onClickLogOut: () -> Unit,
+    sendIdToProductPage: (String) -> Unit
+) {
     val viewModel = hiltViewModel<InventoryViewModel>()
     val inventory by viewModel.filteredInventory.collectAsState()
     val isSearch by viewModel.isSearching.collectAsState()
     val gmail = FirebaseAuth.getInstance().currentUser?.email
     val activity = (LocalContext.current as? Activity)
 
+    val startScan by viewModel.scannerState.collectAsState()
+
+    val openScan = remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
+
+
     val shouldShowDialog = remember { mutableStateOf(false) }
     BackHandler {
         shouldShowDialog.value = true
+    }
+
+    LaunchedEffect(startScan.data) {
+        if (startScan.data.isNotEmpty()) {
+            sendIdToProductPage.invoke(startScan.data)
+            viewModel.clearScannerState()
+        }
     }
 
     if (shouldShowDialog.value) {
@@ -173,10 +199,12 @@ fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit, onClickLogOut: 
                     viewModel
                 )
             }
+
             ImageQRScanner {
-                //Click
+                openScan.value = !openScan.value
             }
         }
+
 
         Row(
             modifier = Modifier
@@ -269,11 +297,20 @@ fun InventoryScreen(onClick: () -> Unit, onClickAdd: () -> Unit, onClickLogOut: 
 
 
     }
+    if (openScan.value) {
+        viewModel.startScan()
+        openScan.value = !openScan.value
+        Log.d("scannerLogUi", "${startScan.data}")
+    }
+
+
+
+
+    SnackBarToast(snackbarMessage = snackbarMessage, context = context)
 
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextFieldSearchInventoryNameOrId(
     modifier: Modifier,
@@ -407,8 +444,8 @@ fun RowScope.AddItem(
         unselectedContentColor = colorResource(id = R.color.SpanishGrey),
         onClick = {
             navController.navigate(screen.route) {
-                popUpTo(navController.graph.findStartDestination().id){
-                   // saveState = true
+                popUpTo(navController.graph.findStartDestination().id) {
+                    // saveState = true
                 }
                 launchSingleTop = true
                 // Restore state when reselecting a previously selected item
@@ -417,6 +454,23 @@ fun RowScope.AddItem(
         },
         selectedContentColor = Color.White
     )
+}
+
+@Composable
+private fun SnackBarToast(
+    snackbarMessage: SnackbarMessage?, context: Context
+) {
+    snackbarMessage?.let { message ->
+        Log.d("snack", "${message}")
+        Snackbar(modifier = Modifier.padding(8.dp), actionOnNewLine = true, dismissAction = {
+            TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
+                Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
+            }
+        }) {
+            Text(message.toMessage(context.resources), fontSize = 12.sp)
+        }
+
+    }
 }
 
 

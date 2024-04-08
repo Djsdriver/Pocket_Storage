@@ -31,4 +31,8 @@
     //Add Product
     <string name="notallfields">Не все поля заполнены</string>
 
+
+    // Product
+    <string name="nothing_found">Ничего не найдено</string>
+
 </resources>
