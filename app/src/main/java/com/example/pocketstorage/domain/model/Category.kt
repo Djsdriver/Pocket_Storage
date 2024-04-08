@@ -7,3 +7,13 @@ data class Category(
     val name: String,
     val buildingId: String,
 )
+
+fun Category.doesMatchSearchQuery(query: String): Boolean {
+    val matchingCombinations = listOf(
+        name
+    )
+
+    return matchingCombinations.any {
+        it.contains(query, ignoreCase = true)
+    }
+}

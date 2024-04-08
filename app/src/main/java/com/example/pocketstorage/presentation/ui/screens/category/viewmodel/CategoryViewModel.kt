@@ -1,74 +1,106 @@
 package com.example.pocketstorage.presentation.ui.screens.category.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pocketstorage.R
-import kotlinx.coroutines.delay
+import com.example.pocketstorage.domain.model.Category
+import com.example.pocketstorage.domain.model.doesMatchSearchQuery
+import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
+import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
+import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
+import com.example.pocketstorage.presentation.ui.screens.category.CategoriesStateForCurrentLocation
+import com.example.pocketstorage.presentation.ui.screens.category.CategoriesUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CategoryViewModel : ViewModel() {
+@HiltViewModel
+class CategoryViewModel @Inject constructor(
+    private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase,
+    private val insertCategoryUseCase: InsertCategoryUseCase,
+    private val getCategoriesByBuildingIdUseCase: GetCategoriesByBuildingIdUseCase
+) : ViewModel() {
 
-    private val _searchText = MutableStateFlow("")
-    val searchText = _searchText.asStateFlow()
+    private val _categoriesState = MutableStateFlow(CategoriesStateForCurrentLocation())
+    val categoriesState=_categoriesState.asStateFlow()
 
-    private val _isSearching = MutableStateFlow(false)
-    val isSearching = _isSearching.asStateFlow()
+    private val _uiState: MutableStateFlow<CategoriesUiState> = MutableStateFlow(CategoriesUiState.Loading)
+    val uiState = _uiState.asStateFlow()
 
-    private val _categories = MutableStateFlow(allCategories)
+    init {
+        viewModelScope.launch {
+            getCurrentLocationId()
 
-    val filteredCategories = searchText
-        .debounce(1000L)
-        .onEach { _isSearching.update { true } }
-        .map { text ->
-            if (text.isBlank()) {
-                allCategories
-            } else {
-                delay(2000L)
-                allCategories.filter { it.doesMatchSearchQuery(text) }
+            categoriesState.collect { state ->
+                if (state != null) {
+                    getAllCategoriesByLocationId(state.currentLocationId)
+                }
+                if (state != null) {
+                    _uiState.update {
+                        if (state.searchText.isNotBlank()) {
+                            CategoriesUiState.Success(
+                                categories = state.existingCategoriesForCurrentLocation.filter {
+                                    it.doesMatchSearchQuery(
+                                        state.searchText
+                                    )
+                                }
+                            )
+                        } else {
+                            CategoriesUiState.Success(
+                                categories = state.existingCategoriesForCurrentLocation
+                            )
+                        }
+                    }
+                }
+
             }
         }
-        .onEach { _isSearching.update { false } }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            _categories.value
-        )
+    }
 
     fun onSearchTextChange(text: String) {
-        _searchText.value = text
+        viewModelScope.launch {
+            _categoriesState.update {
+                it.copy(searchText = text)
+            }
+        }
     }
-}
 
-data class CategoryModel2(
-    val name: String,
-    val image: Int,
-    val countProduct: String
-) {
-    fun doesMatchSearchQuery(query: String): Boolean {
-        val matchingCombinations = listOf(
-            name
-        )
+    fun saveCategoryOnLocalStorage(category: Category, onSuccess: ()-> Unit) {
+        viewModelScope.launch {
+            insertCategoryUseCase(category)
+            onSuccess()
+        }
 
-        return matchingCombinations.any {
-            it.contains(query, ignoreCase = true)
+    }
+
+    private fun getCurrentLocationId() {
+        viewModelScope.launch {
+            getLocationIdFromDataStorageUseCase.invoke().collect { currentLocationId ->
+                if (currentLocationId != null) {
+                    _categoriesState.update {
+                        it.copy(
+                            currentLocationId = currentLocationId
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun getAllCategoriesByLocationId(locationId: String) {
+        viewModelScope.launch(context = Dispatchers.IO) {
+            getCategoriesByBuildingIdUseCase.invoke(locationId).collect { categories->
+               _categoriesState.update {
+                   it.copy(
+                       existingCategoriesForCurrentLocation = categories
+                   )
+               }
+            }
         }
     }
 }
 
-val allCategories = listOf(
-    CategoryModel2(name = "Printers", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "Monitors", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "Scanners", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "Cameras", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "Keyboards", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "Headphones", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "GamePads", R.drawable.ic_launcher_foreground, "Product: 4"),
-    CategoryModel2(name = "SoundMonitors", R.drawable.ic_launcher_foreground, "Product: 4"),
-)
