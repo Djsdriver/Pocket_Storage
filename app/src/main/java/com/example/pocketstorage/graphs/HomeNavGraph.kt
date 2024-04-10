@@ -61,10 +61,9 @@ fun HomeNavGraph(navController: NavHostController) {
 fun NavGraphBuilder.inventoryNavGraph(navController: NavHostController) {
     composable(route = InventoryScreenState.CreateProduct.route) {
         val viewModel = hiltViewModel<AddProductViewModel>()
-        CreateProduct (
+        CreateProduct(
             onBackArrowClick = { navController.navigateUp() },
             onAddPictureClick = {},
-            onGenerateQRClick = {},
             onSaveClick = {},
             onEvent = viewModel::event
         )
