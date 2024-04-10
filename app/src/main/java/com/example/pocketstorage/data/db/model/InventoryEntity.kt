@@ -14,7 +14,7 @@ data class InventoryEntity(
     val description: String,
     val locationId: String,
     val categoryId: String,
-    val pathToImage: String
+    val pathToImage: String,
 )
 
 fun InventoryEntity.toInventory(): Inventory {

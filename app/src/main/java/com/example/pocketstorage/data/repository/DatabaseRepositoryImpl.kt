@@ -1,5 +1,10 @@
 package com.example.pocketstorage.data.repository
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Environment
 import com.example.pocketstorage.data.db.AppDatabase
 import com.example.pocketstorage.data.db.model.toCategory
 import com.example.pocketstorage.data.db.model.toCategoryEntity
@@ -14,9 +19,15 @@ import com.example.pocketstorage.domain.repository.DatabaseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
-class DatabaseRepositoryImpl @Inject constructor(private val appDatabase: AppDatabase) : DatabaseRepository {
+
+class DatabaseRepositoryImpl @Inject constructor(
+    private val appDatabase: AppDatabase,
+    private val context: Context
+) : DatabaseRepository {
     override suspend fun insertInventory(inventory: Inventory) {
         appDatabase.inventoryDao().insertInventory(inventory.toInventoryEntity())
     }
@@ -95,5 +106,25 @@ class DatabaseRepositoryImpl @Inject constructor(private val appDatabase: AppDat
     override suspend fun getLocationById(locationId: String): Location {
         val locationEntity = appDatabase.locationDao().getLocationById(locationId)
         return locationEntity.toLocation()
+    }
+
+    override suspend fun saveImageToPrivateStorage(uri: Uri, nameOfImage: String): String {
+        val filePath =
+            File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "my_album")
+        if (!filePath.exists()) {
+            filePath.mkdirs()
+        }
+        val file = File(filePath, nameOfImage)
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val outputStream = FileOutputStream(file)
+        BitmapFactory
+            .decodeStream(inputStream)
+            .compress(Bitmap.CompressFormat.JPEG, 30, outputStream)
+
+        return file.absolutePath
+    }
+
+    override suspend fun deleteImageFromStorage(imagePath: String?) {
+        TODO("Not yet implemented")
     }
 }

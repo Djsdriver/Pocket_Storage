@@ -86,6 +86,7 @@ import coil.request.ImageRequest
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Location
+import com.example.pocketstorage.presentation.ui.screens.inventory.event.CreateProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.AddProductViewModel
 import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.utils.SnackbarMessage
@@ -332,6 +333,8 @@ fun AddPictureCard(
             Log.d("uri", "$uri")
             imageUri = uri
             onEvent(CreateProductEvent.SetPathToImage(uri.toString()))
+            //onEvent(CreateProductEvent.SavePathToImage(imageUri!!))
+
         }
 
     val launcherCamera =
@@ -420,7 +423,7 @@ fun AddPictureCard(
                 )
             }
             pathToLoadingPicture?.let {
-                //Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+               // Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             }
         }
     }

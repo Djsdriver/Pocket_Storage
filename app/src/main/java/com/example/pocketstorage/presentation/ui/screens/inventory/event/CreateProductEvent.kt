@@ -1,4 +1,6 @@
-package com.example.pocketstorage.presentation.ui.screens.inventory
+package com.example.pocketstorage.presentation.ui.screens.inventory.event
+
+import android.net.Uri
 
 sealed interface CreateProductEvent {
     data object CreateBuilding : CreateProductEvent
@@ -7,6 +9,7 @@ sealed interface CreateProductEvent {
     data class SetLocationId(val locationId: String) : CreateProductEvent
     data class SetCategoryId(val categoryId: String) : CreateProductEvent
     data class SetPathToImage(val pathToImage: String) : CreateProductEvent
+    data class SavePathToImage(val pathToImage: Uri) : CreateProductEvent
     data object ShowListBuilding : CreateProductEvent
     data class ShowListCategory(val locationId: String) : CreateProductEvent
 

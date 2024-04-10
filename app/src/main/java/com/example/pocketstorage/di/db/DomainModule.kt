@@ -16,6 +16,7 @@ import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertInventoryUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertLocationUseCase
+import com.example.pocketstorage.domain.usecase.db.SaveImageToPrivateStorageUseCase
 import com.example.pocketstorage.domain.usecase.db.UpdateInventoryUseCase
 import dagger.Module
 import dagger.Provides
@@ -120,5 +121,11 @@ class DomainModule {
     fun provideGetCategoriesByBuildingIdUseCase(databaseRepository: DatabaseRepository)
     : GetCategoriesByBuildingIdUseCase {
         return GetCategoriesByBuildingIdUseCase(databaseRepository)
+    }
+
+    @Provides
+    fun provideSaveImageLocalStorageUseCase(databaseRepository: DatabaseRepository)
+            : SaveImageToPrivateStorageUseCase {
+        return SaveImageToPrivateStorageUseCase(databaseRepository)
     }
 }

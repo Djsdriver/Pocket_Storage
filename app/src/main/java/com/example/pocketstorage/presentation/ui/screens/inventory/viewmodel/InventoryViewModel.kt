@@ -1,19 +1,18 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.usecase.LogOutUseCase
+import com.example.pocketstorage.domain.usecase.db.GetInventoriesByLocationIdUseCase
+import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import com.example.pocketstorage.domain.usecase.product.GetDataFromQRCodeUseCase
+import com.example.pocketstorage.presentation.ui.screens.building.BuildingUiState
+import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductEvent
+import com.example.pocketstorage.presentation.ui.screens.inventory.stateui.ProductUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,50 +21,27 @@ import javax.inject.Inject
 class InventoryViewModel @Inject constructor(
     private val logOutUseCase: LogOutUseCase,
     private val getDataFromQRCodeUseCase: GetDataFromQRCodeUseCase,
-) : ViewModel() {
+    private val getInventoriesByLocationIdUseCase: GetInventoriesByLocationIdUseCase,
+    private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase,
 
-    private val _searchText = MutableStateFlow("")
-    val searchText = _searchText.asStateFlow()
+    ) : ViewModel() {
 
-    private val _isSearching = MutableStateFlow(false)
-    val isSearching = _isSearching.asStateFlow()
 
     private val _scannerState = MutableStateFlow(ScannerUiState())
     val scannerState = _scannerState.asStateFlow()
 
+    private val _state = MutableStateFlow(ProductUIState())
+    val state = _state.asStateFlow()
 
-    private val _building = MutableStateFlow(allInventory)
 
-    val filteredInventory = searchText
-        .debounce(1000L)
-        .onEach { _isSearching.update { true } }
-        .map { text ->
-            if (text.isBlank()) {
-                allInventory
-            } else {
-                delay(2000L)
-                allInventory.filter { it.doesMatchSearchQuery(text) }
-            }
-        }
-        .onEach { _isSearching.update { false } }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            _building.value
-        )
-
-    fun onSearchTextChange(text: String) {
-        _searchText.value = text
+    fun logOut() {
+        logOutUseCase.invoke()
     }
 
-    fun logOut(){
-       logOutUseCase.invoke()
-    }
-
-    fun startScan(){
+    fun startScan() {
         viewModelScope.launch {
-            getDataFromQRCodeUseCase.invoke().collect{ data->
-                if (!data.isNullOrBlank()){
+            getDataFromQRCodeUseCase.invoke().collect { data ->
+                if (!data.isNullOrBlank()) {
                     _scannerState.update {
                         it.copy(
                             data = data
@@ -75,43 +51,79 @@ class InventoryViewModel @Inject constructor(
             }
         }
     }
+
     fun clearScannerState() {
         _scannerState.value = ScannerUiState()
     }
 
-}
 
-data class InventoryModel(val name: String, val image: Int) {
-    fun doesMatchSearchQuery(query: String): Boolean {
-        val matchingCombinations = listOf(
-            name,
-        )
+    fun event(productEvent: ProductEvent) {
+        when (productEvent) {
+            is ProductEvent.ShowProductSelectedBuilding -> {
 
-        return matchingCombinations.any {
-            it.contains(query, ignoreCase = true)
+                viewModelScope.launch {
+                    getLocationIdFromDataStore()
+                    state.collect { productUiState ->
+                        if (productUiState.selectedIdBuilding.isNotEmpty()){
+                            getInventoriesByLocationIdUseCase.invoke(state.value.selectedIdBuilding)
+                                .collect { listProduct ->
+                                    _state.update { state ->
+                                        state.copy(
+                                            products = listProduct.filter {
+                                                it.doesMatchSearchQuery(
+                                                    productUiState.searchText
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+                        }
+
+                    }
+                }
+            }
+
+            is ProductEvent.SetSearchText -> {
+                _state.update {
+                    it.copy(
+                        searchText = productEvent.text
+                    )
+                }
+            }
+
+            is ProductEvent.StartScan -> {
+
+            }
+
+            is ProductEvent.CleanerScannerState -> {
+
+            }
+
+            is ProductEvent.LogOutProfile -> {
+
+            }
+
+            else -> {}
         }
     }
 
+    fun getLocationIdFromDataStore() {
+        viewModelScope.launch {
+            getLocationIdFromDataStorageUseCase.invoke().collect { string ->
+                if (string != null) {
+                    _state.update {
+                        it.copy(
+                            selectedIdBuilding = string
+                        )
+                    }
 
+                }
+            }
+        }
+
+    }
 }
 
-private val allInventory = listOf(
-    InventoryModel("HP LaserJet Pro 4003dw", R.drawable.ic_launcher_foreground),
-    InventoryModel("Logitech M110", R.drawable.ic_launcher_foreground),
-    InventoryModel("Samsung UR55", R.drawable.ic_launcher_foreground),
-    InventoryModel("HP LaserJet Pro 4003dw", R.drawable.ic_launcher_foreground),
-    InventoryModel("Logitech M110", R.drawable.ic_launcher_foreground),
-    InventoryModel("Logitech F", R.drawable.ic_launcher_foreground),
-    InventoryModel("Logitech G110", R.drawable.ic_launcher_foreground),
-    InventoryModel("Samsung UR55", R.drawable.ic_launcher_foreground),
-    InventoryModel("HP LaserJet Pro 4003dw", R.drawable.ic_launcher_foreground),
-    InventoryModel("Logitech M110", R.drawable.ic_launcher_foreground),
-    InventoryModel("Samsung UR55", R.drawable.ic_launcher_foreground),
-    InventoryModel("Samsung UR60", R.drawable.ic_launcher_foreground),
-    InventoryModel("Samsung UR90", R.drawable.ic_launcher_foreground),
-    InventoryModel("Samsung UR55", R.drawable.ic_launcher_foreground),
-    InventoryModel("Samsung UR55", R.drawable.ic_launcher_foreground),
-)
 
 
 

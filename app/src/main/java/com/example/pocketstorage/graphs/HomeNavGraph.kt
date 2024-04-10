@@ -17,6 +17,7 @@ import com.example.pocketstorage.presentation.ui.screens.inventory.CreateProduct
 import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryScreen
 import com.example.pocketstorage.presentation.ui.screens.inventory.ProductPage
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.AddProductViewModel
+import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryViewModel
 
 
 @Composable
@@ -27,6 +28,7 @@ fun HomeNavGraph(navController: NavHostController) {
         startDestination = BottomBarScreen.Inventory.route
     ) {
         composable(route = BottomBarScreen.Inventory.route) {
+            val viewModel = hiltViewModel<InventoryViewModel>()
             InventoryScreen(
                 {
                     navController.navigate("INFO_PRODUCT/{id}")
@@ -39,7 +41,9 @@ fun HomeNavGraph(navController: NavHostController) {
                 },
                 {
                     navController.navigate(InventoryScreenState.InfoProduct(it).route)
-                }
+                },
+                viewModel::event
+
 
             )
         }
