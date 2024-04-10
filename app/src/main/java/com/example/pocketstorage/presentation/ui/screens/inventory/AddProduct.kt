@@ -12,15 +12,9 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,7 +28,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -42,7 +35,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -74,7 +66,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -84,7 +75,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -92,7 +82,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
@@ -102,14 +91,12 @@ import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import java.io.FileNotFoundException
-import java.lang.Double.min
 import kotlin.math.min
 
 @Composable
 fun CreateProduct(
     onBackArrowClick: () -> Unit,
     onAddPictureClick: () -> Unit,
-    onGenerateQRClick: () -> Unit,
     onSaveClick: () -> Unit,
     viewModel: AddProductViewModel = hiltViewModel(),
     onEvent: (CreateProductEvent) -> Unit
@@ -117,7 +104,6 @@ fun CreateProduct(
     AddProductScreen(
         onBackArrowClick = onBackArrowClick,
         onAddPictureClick = onAddPictureClick,
-        onGenerateQRClick = onGenerateQRClick,
         onSaveClick = onSaveClick,
         viewModel,
         onEvent = onEvent
@@ -142,7 +128,6 @@ fun AddProductScreenPreview(
 fun AddProductScreen(
     onBackArrowClick: () -> Unit,
     onAddPictureClick: () -> Unit,
-    onGenerateQRClick: () -> Unit,
     onSaveClick: () -> Unit,
     viewModel: AddProductViewModel,
     onEvent: (CreateProductEvent) -> Unit
@@ -150,7 +135,6 @@ fun AddProductScreen(
     ScaffoldBase(
         onBackArrowClick = onBackArrowClick,
         onAddPictureClick = onAddPictureClick,
-        onGenerateQRClick = onGenerateQRClick,
         onSaveClick = onSaveClick,
         onEvent = onEvent
     )
@@ -161,7 +145,6 @@ fun AddProductScreen(
 fun ScaffoldBase(
     onBackArrowClick: () -> Unit,
     onAddPictureClick: () -> Unit,
-    onGenerateQRClick: () -> Unit,
     onSaveClick: () -> Unit,
     onEvent: (CreateProductEvent) -> Unit
 ) {
@@ -173,7 +156,6 @@ fun ScaffoldBase(
             BaseContent(
                 paddingValues = paddingValues,
                 onAddPictureClick = onAddPictureClick,
-                onGenerateQRClick = onGenerateQRClick,
                 onSaveClick = onSaveClick,
                 onEvent = onEvent
             )
@@ -205,25 +187,19 @@ fun TopBar(onBackArrowClick: () -> Unit) {
 fun BaseContent(
     paddingValues: PaddingValues,
     onAddPictureClick: () -> Unit,
-    onGenerateQRClick: () -> Unit,
     onSaveClick: () -> Unit,
     topPadding: Dp = 8.dp,
     viewModel: AddProductViewModel = hiltViewModel(),
     onEvent: (CreateProductEvent) -> Unit
 ) {
 
-    val stateMvi by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
     val context = LocalContext.current
-
-    var imageIsVisible by remember {
-        mutableStateOf(false)
-    }
 
     var buildingIdString by remember {
         mutableStateOf("")
     }
 
-    Log.d("buildingIdStringLunch", "$buildingIdString")
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -244,7 +220,7 @@ fun BaseContent(
             modifier = Modifier
                 .padding(top = topPadding)
                 .fillMaxWidth(),
-            value = stateMvi.name,
+            value = state.name,
             onValueChange = { onEvent(CreateProductEvent.SetNameProduct(it)) }
         )
         BaseTextField(
@@ -254,19 +230,19 @@ fun BaseContent(
                 .padding(top = topPadding)
                 .fillMaxWidth()
                 .height(112.dp),
-            value = stateMvi.description,
+            value = state.description,
             onValueChange = { onEvent(CreateProductEvent.SetDescription(it)) }
         )
         LaunchedEffect(Unit) {
             onEvent(CreateProductEvent.ShowListBuilding)
         }
 
-        LaunchedEffect(stateMvi.locations) {
-            onEvent(CreateProductEvent.ShowListCategory(stateMvi.locationId))
+        LaunchedEffect(state.locations) {
+            onEvent(CreateProductEvent.ShowListCategory(state.locationId))
         }
 
         BaseDropdownMenu(
-            listOfElements = stateMvi.locations,
+            listOfElements = state.locations,
             modifier = Modifier.padding(top = topPadding)
         ) { selectedLocationName ->
             onEvent(CreateProductEvent.SetLocationId(selectedLocationName))
@@ -281,7 +257,7 @@ fun BaseContent(
         }
         //заменить на категории
         BaseDropdownMenuCategory(
-            listOfElements = stateMvi.categories, //заменить на категории
+            listOfElements = state.categories, //заменить на категории
             modifier = Modifier.padding(top = topPadding)
         ) { selectedIdCategory ->
             onEvent(CreateProductEvent.SetCategoryId(selectedIdCategory))
@@ -291,19 +267,7 @@ fun BaseContent(
                 Toast.LENGTH_SHORT
             ).show()
         }
-        if (imageIsVisible) {
-            BaseImage()
-        }
-        BaseButton(
-            onClick = {
-                imageIsVisible = !imageIsVisible
-                onGenerateQRClick()
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = colorResource(R.color.SmoothPurple)
-            ),
-            text = "Generate QR"
-        )
+
         BaseButton(
             onClick = {
                 onEvent(CreateProductEvent.CreateBuilding)
@@ -312,7 +276,8 @@ fun BaseContent(
             colors = ButtonDefaults.buttonColors(
                 containerColor = colorResource(R.color.RetroBlue)
             ),
-            text = "Save"
+            text = "Save",
+            enabled = true
         )
     }
 }
@@ -613,6 +578,7 @@ fun BaseButton(
     onClick: () -> Unit,
     colors: ButtonColors,
     text: String,
+    enabled: Boolean
 ) {
     Button(
         onClick = { onClick() },
@@ -620,7 +586,8 @@ fun BaseButton(
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
             .padding(top = 8.dp)
-            .size(height = 48.dp, width = 218.dp)
+            .size(height = 48.dp, width = 218.dp),
+        enabled = enabled
     ) {
         Text(text = text, color = Color.White)
     }

@@ -1,14 +1,17 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
+import com.example.pocketstorage.core.utils.getUniqueIdentifier
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertInventoryUseCase
+import com.example.pocketstorage.domain.usecase.product.GenerationQrCodeProductUseCase
 import com.example.pocketstorage.presentation.ui.screens.inventory.CreateProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryUiState
 import com.example.pocketstorage.utils.SnackbarManager
@@ -23,7 +26,7 @@ import javax.inject.Inject
 class AddProductViewModel @Inject constructor(
     private val getLocationsUseCase: GetLocationsUseCase,
     private val getCategoriesByBuildingIdUseCase: GetCategoriesByBuildingIdUseCase,
-    private val insertInventoryUseCase: InsertInventoryUseCase
+    private val insertInventoryUseCase: InsertInventoryUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(InventoryUiState())
@@ -40,7 +43,8 @@ class AddProductViewModel @Inject constructor(
                 val pathToImage = state.value.pathToImage
 
                 if (name.isBlank() || description.isBlank() || locationId.isNullOrBlank()
-                    || categoryId.isNullOrBlank() || pathToImage.isNullOrBlank()) {
+                    || categoryId.isNullOrBlank() || pathToImage.isNullOrBlank()
+                ) {
                     SnackbarManager.showMessage(R.string.notallfields)
                     return
                 }
@@ -58,10 +62,11 @@ class AddProductViewModel @Inject constructor(
                         it.copy(
                             name = "",
                             description = "",
-                            pathToImage = null
+                            pathToImage = null,
                         )
                     }
                 }
+
 
             }
 
@@ -106,7 +111,7 @@ class AddProductViewModel @Inject constructor(
                 }
             }
 
-            is CreateProductEvent.ShowListBuilding ->{
+            is CreateProductEvent.ShowListBuilding -> {
                 viewModelScope.launch {
                     getLocationsUseCase()
                         .collect { locations ->
@@ -117,7 +122,7 @@ class AddProductViewModel @Inject constructor(
                 }
             }
 
-            is CreateProductEvent.ShowListCategory ->{
+            is CreateProductEvent.ShowListCategory -> {
                 viewModelScope.launch {
                     _state.update {
                         it.copy(
@@ -136,9 +141,6 @@ class AddProductViewModel @Inject constructor(
                 }
             }
 
-            is CreateProductEvent.ShowBuilding -> {
-
-            }
 
             else -> {}
         }
