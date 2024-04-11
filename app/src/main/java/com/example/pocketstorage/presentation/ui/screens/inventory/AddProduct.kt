@@ -332,9 +332,7 @@ fun AddPictureCard(
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
             Log.d("uri", "$uri")
             imageUri = uri
-            onEvent(CreateProductEvent.SetPathToImage(uri.toString()))
-            //onEvent(CreateProductEvent.SavePathToImage(imageUri!!))
-
+            onEvent(CreateProductEvent.SetPathToImage(uri!!))
         }
 
     val launcherCamera =

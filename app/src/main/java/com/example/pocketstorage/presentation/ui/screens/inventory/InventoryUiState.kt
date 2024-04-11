@@ -10,7 +10,6 @@ data class InventoryUiState(
     val locationId: String = "",
     val categoryId: String = "",
     val pathToImage: String? = null,
-    val savePathToImage: Uri? = null,
     val locations: List<Location> = emptyList(),
     val categories: List<Category> = emptyList(),
     val selectedIdBuilding: String = "",

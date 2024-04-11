@@ -1,5 +1,6 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel
 
+import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -58,10 +59,12 @@ class AddProductViewModel @Inject constructor(
                     description = description,
                     locationId = locationId,
                     categoryId = categoryId,
-                    pathToImage = pathToImage
+                    pathToImage = generationName
                 )
                 viewModelScope.launch {
+                    saveImageToPrivateStorageUseCase.invoke(pathToImage.toUri(), generationName)
                     insertInventoryUseCase.invoke(product)
+
                     _state.update {
                         it.copy(
                             name = "",
@@ -111,10 +114,9 @@ class AddProductViewModel @Inject constructor(
                 viewModelScope.launch {
                     _state.update {
                         it.copy(
-                            pathToImage = createProductEvent.pathToImage
+                            pathToImage = createProductEvent.pathToImage.toString()
                         )
                     }
-                    state.value.savePathToImage?.let { saveImageToPrivateStorageUseCase.invoke(it,generationName) }
                 }
 
 
@@ -149,17 +151,11 @@ class AddProductViewModel @Inject constructor(
                         }
                 }
             }
-            is CreateProductEvent.SavePathToImage ->{
-                viewModelScope.launch(Dispatchers.IO) {
-                    saveImageToPrivateStorageUseCase.invoke(state.value.pathToImage!!.toUri(), generationName)
-                }
-
-            }
-
 
 
             else -> {}
         }
     }
+
 
 }

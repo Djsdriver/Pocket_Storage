@@ -3,6 +3,7 @@ package com.example.pocketstorage.presentation.ui.screens.inventory
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.os.Environment
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -85,6 +86,7 @@ import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import com.google.firebase.auth.FirebaseAuth
+import java.io.File
 import kotlin.math.min
 
 
@@ -310,6 +312,7 @@ fun InventoryScreen(
             ) {
                 items(stateProduct.products) { inventories ->
                     ListRow(onClick, inventory = inventories)
+                    Log.d("image", "${inventories.pathToImage}")
                 }
             }
 
@@ -384,6 +387,10 @@ fun ButtonInventoryScreen(
 
 @Composable
 fun ListRow(onClick: () -> Unit, inventory: Inventory) {
+    val context = LocalContext.current
+    val filePath =
+        File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "my_album")
+    val imageFile = File(filePath, inventory.pathToImage!!)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -397,9 +404,10 @@ fun ListRow(onClick: () -> Unit, inventory: Inventory) {
         AsyncImage(
             modifier = Modifier
                 .size(100.dp)
-                .padding(5.dp),
+                .padding(5.dp)
+                .clip(RoundedCornerShape(8.dp)),
             model = ImageRequest.Builder(LocalContext.current)
-                .data(inventory.pathToImage)
+                .data(imageFile)
                 .crossfade(true)
                 .build(),
             contentDescription = null,

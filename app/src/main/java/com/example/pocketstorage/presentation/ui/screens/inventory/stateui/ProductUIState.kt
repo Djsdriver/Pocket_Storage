@@ -7,7 +7,7 @@ data class ProductUIState(
     val description: String = " ",
     val locationId: String = "",
     val categoryId: String = "",
-    val pathToImage: String? = null,
+    val pathToImage: String? = "",
     val products: List<Inventory> = emptyList(),
     val selectedIdBuilding: String = "",
     val data:String = "",

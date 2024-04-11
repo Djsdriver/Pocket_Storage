@@ -8,8 +8,7 @@ sealed interface CreateProductEvent {
     data class SetDescription(val description: String) : CreateProductEvent
     data class SetLocationId(val locationId: String) : CreateProductEvent
     data class SetCategoryId(val categoryId: String) : CreateProductEvent
-    data class SetPathToImage(val pathToImage: String) : CreateProductEvent
-    data class SavePathToImage(val pathToImage: Uri) : CreateProductEvent
+    data class SetPathToImage(val pathToImage: Uri) : CreateProductEvent
     data object ShowListBuilding : CreateProductEvent
     data class ShowListCategory(val locationId: String) : CreateProductEvent
 
