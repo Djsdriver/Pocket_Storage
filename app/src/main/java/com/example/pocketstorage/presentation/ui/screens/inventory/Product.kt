@@ -51,6 +51,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -86,6 +87,9 @@ import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import com.google.firebase.auth.FirebaseAuth
+import com.valentinilk.shimmer.ShimmerBounds
+import com.valentinilk.shimmer.rememberShimmer
+import com.valentinilk.shimmer.shimmer
 import java.io.File
 import kotlin.math.min
 
@@ -134,8 +138,10 @@ fun InventoryScreen(
 
 
     LaunchedEffect(stateProduct.selectedIdBuilding) {
+        onEvent(ProductEvent.StartLoading)
         viewModel.getLocationIdFromDataStore()
         if (stateProduct.selectedIdBuilding.isNotEmpty()) {
+            onEvent(ProductEvent.StopLoading)
             onEvent(ProductEvent.ShowProductSelectedBuilding)
         }
     }
@@ -311,7 +317,7 @@ fun InventoryScreen(
                     .background(Color.White)
             ) {
                 items(stateProduct.products) { inventories ->
-                    ListRow(onClick, inventory = inventories)
+                    ListRow(onClick, inventory = inventories,stateProduct.loading)
                     Log.d("image", "${inventories.pathToImage}")
                 }
             }
@@ -386,11 +392,12 @@ fun ButtonInventoryScreen(
 }
 
 @Composable
-fun ListRow(onClick: () -> Unit, inventory: Inventory) {
+fun ListRow(onClick: () -> Unit, inventory: Inventory, loading: Boolean) {
     val context = LocalContext.current
-    val filePath =
-        File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "my_album")
+    val filePath = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "my_album")
     val imageFile = File(filePath, inventory.pathToImage!!)
+    val placeholder = painterResource(id = R.drawable.add_photo_alternate)
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -399,29 +406,48 @@ fun ListRow(onClick: () -> Unit, inventory: Inventory) {
             .wrapContentHeight()
             .fillMaxWidth()
             .background(colorResource(id = R.color.AdamantineBlue))
-            .clickable { onClick() },
+            .clickable { onClick() }
+            .run {
+                if (loading) shimmer() else this
+            }
     ) {
-        AsyncImage(
-            modifier = Modifier
-                .size(100.dp)
-                .padding(5.dp)
-                .clip(RoundedCornerShape(8.dp)),
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(imageFile)
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop
-        )
+        if (imageFile.exists()) {
+            AsyncImage(
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(5.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .run {
+                        if (loading) shimmer() else this
+                    },
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imageFile)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Image(
+                painter = placeholder,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(5.dp)
+                    .clip(RoundedCornerShape(8.dp)))
+        }
+
         Text(
             text = inventory.name,
             fontSize = 24.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.White
+            color = Color.White,
+            modifier = Modifier.run {
+                if (loading) shimmer() else this
+            }
         )
     }
 }
-
 
 @Composable
 fun BottomBar(navController: NavHostController) {

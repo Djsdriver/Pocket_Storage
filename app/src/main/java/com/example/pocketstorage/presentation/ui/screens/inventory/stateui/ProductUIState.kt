@@ -11,5 +11,6 @@ data class ProductUIState(
     val products: List<Inventory> = emptyList(),
     val selectedIdBuilding: String = "",
     val data:String = "",
-    val searchText : String = ""
+    val searchText : String = "",
+    val loading: Boolean = false
 )

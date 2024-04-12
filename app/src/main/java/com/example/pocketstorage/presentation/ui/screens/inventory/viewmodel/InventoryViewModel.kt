@@ -102,6 +102,16 @@ class InventoryViewModel @Inject constructor(
             is ProductEvent.LogOutProfile -> {
 
             }
+            is ProductEvent.StartLoading -> {
+                _state.update {
+                    it.copy(loading = true)
+                }
+            }
+            is ProductEvent.StopLoading -> {
+                _state.update {
+                    it.copy(loading = false)
+                }
+            }
 
             else -> {}
         }

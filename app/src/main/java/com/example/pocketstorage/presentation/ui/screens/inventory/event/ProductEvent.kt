@@ -5,6 +5,8 @@ sealed interface ProductEvent{
     data object StartScan : ProductEvent
     data object CleanerScannerState : ProductEvent
     data object LogOutProfile : ProductEvent
+    data object StartLoading : ProductEvent
+    data object StopLoading : ProductEvent
     data class SetSearchText(val text : String) : ProductEvent
 
 }

@@ -124,5 +124,7 @@ dependencies {
     //ml kit scanner scanner
     implementation ("com.google.android.gms:play-services-code-scanner:16.1.0")
 
+    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.0")
+
 
 }
