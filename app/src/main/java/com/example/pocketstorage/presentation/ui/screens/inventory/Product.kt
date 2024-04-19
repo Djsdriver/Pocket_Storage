@@ -119,7 +119,7 @@ fun InventoryScreenPreview() {
 
 @Composable
 fun InventoryScreen(
-    onClick: () -> Unit,
+    onClick: (String) -> Unit,
     onClickAdd: () -> Unit,
     onClickLogOut: () -> Unit,
     sendIdToProductPage: (String) -> Unit,
@@ -317,7 +317,7 @@ fun InventoryScreen(
                     .background(Color.White)
             ) {
                 items(stateProduct.products) { inventories ->
-                    ListRow(onClick, inventory = inventories,stateProduct.loading)
+                    ListRow({ onClick.invoke(inventories.id) }, inventory = inventories,stateProduct.loading)
                     Log.d("image", "${inventories.pathToImage}")
                 }
             }

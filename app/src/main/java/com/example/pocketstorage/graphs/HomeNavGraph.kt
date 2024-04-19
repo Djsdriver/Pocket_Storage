@@ -30,8 +30,8 @@ fun HomeNavGraph(navController: NavHostController) {
         composable(route = BottomBarScreen.Inventory.route) {
             val viewModel = hiltViewModel<InventoryViewModel>()
             InventoryScreen(
-                {
-                    navController.navigate("INFO_PRODUCT/{id}")
+                {idProduct->
+                    navController.navigate(InventoryScreenState.InfoProduct(idProduct).route)
                 },
                 {
                     navController.navigate(InventoryScreenState.CreateProduct.route)
@@ -39,8 +39,8 @@ fun HomeNavGraph(navController: NavHostController) {
                 {
                     navController.navigate(Graph.AUTHENTICATION)
                 },
-                {
-                    navController.navigate(InventoryScreenState.InfoProduct(it).route)
+                {idProductFromQrCode->
+                    navController.navigate(InventoryScreenState.InfoProduct(idProductFromQrCode).route)
                 },
                 viewModel::event
 
