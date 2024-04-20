@@ -1,5 +1,6 @@
 package com.example.pocketstorage.di.db
 
+import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import com.example.pocketstorage.data.db.AppDatabase
@@ -9,6 +10,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.scopes.ViewModelScoped
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -16,8 +18,9 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 class DataModule {
 
-    @Provides
+
     @Singleton
+    @Provides
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(
             context,
@@ -26,9 +29,10 @@ class DataModule {
         ).build()
     }
 
-    @Provides
+
     @Singleton
-    fun provideDatabaseRepository(appDatabase: AppDatabase): DatabaseRepository {
-        return DatabaseRepositoryImpl(appDatabase)
+    @Provides
+    fun provideDatabaseRepository(appDatabase: AppDatabase,@ApplicationContext context: Context): DatabaseRepository {
+        return DatabaseRepositoryImpl(appDatabase,context)
     }
 }

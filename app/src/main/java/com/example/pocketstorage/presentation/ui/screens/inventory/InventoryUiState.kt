@@ -1,5 +1,6 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory
 
+import android.net.Uri
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Location
 

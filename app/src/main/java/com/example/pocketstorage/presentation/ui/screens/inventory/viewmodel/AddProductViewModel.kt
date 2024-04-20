@@ -1,21 +1,20 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel
 
-import android.util.Log
+import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
-import com.example.pocketstorage.core.utils.getUniqueIdentifier
-import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Inventory
-import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertInventoryUseCase
-import com.example.pocketstorage.domain.usecase.product.GenerationQrCodeProductUseCase
-import com.example.pocketstorage.presentation.ui.screens.inventory.CreateProductEvent
+import com.example.pocketstorage.domain.usecase.db.SaveImageToPrivateStorageUseCase
+import com.example.pocketstorage.presentation.ui.screens.inventory.event.CreateProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryUiState
 import com.example.pocketstorage.utils.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -27,10 +26,16 @@ class AddProductViewModel @Inject constructor(
     private val getLocationsUseCase: GetLocationsUseCase,
     private val getCategoriesByBuildingIdUseCase: GetCategoriesByBuildingIdUseCase,
     private val insertInventoryUseCase: InsertInventoryUseCase,
+    private val saveImageToPrivateStorageUseCase: SaveImageToPrivateStorageUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(InventoryUiState())
     val state = _state.asStateFlow()
+
+    val generationName = generateImageNameForStorage()
+    private fun generateImageNameForStorage(): String {
+        return "cover_${System.currentTimeMillis()}.jpg"
+    }
 
 
     fun event(createProductEvent: CreateProductEvent) {
@@ -54,10 +59,12 @@ class AddProductViewModel @Inject constructor(
                     description = description,
                     locationId = locationId,
                     categoryId = categoryId,
-                    pathToImage = pathToImage
+                    pathToImage = generationName
                 )
                 viewModelScope.launch {
+                    saveImageToPrivateStorageUseCase.invoke(pathToImage.toUri(), generationName)
                     insertInventoryUseCase.invoke(product)
+
                     _state.update {
                         it.copy(
                             name = "",
@@ -104,11 +111,15 @@ class AddProductViewModel @Inject constructor(
             }
 
             is CreateProductEvent.SetPathToImage -> {
-                _state.update {
-                    it.copy(
-                        pathToImage = createProductEvent.pathToImage
-                    )
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(
+                            pathToImage = createProductEvent.pathToImage.toString()
+                        )
+                    }
                 }
+
+
             }
 
             is CreateProductEvent.ShowListBuilding -> {
@@ -145,5 +156,6 @@ class AddProductViewModel @Inject constructor(
             else -> {}
         }
     }
+
 
 }

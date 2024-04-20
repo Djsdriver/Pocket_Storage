@@ -3,6 +3,7 @@ package com.example.pocketstorage.presentation.ui.screens.inventory
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.os.Environment
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -50,8 +51,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -67,16 +72,26 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.pocketstorage.R
 import com.example.pocketstorage.components.DialogWithImage
+import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.graphs.BottomBarScreen
 import com.example.pocketstorage.graphs.HomeNavGraph
-import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryModel
+import com.example.pocketstorage.presentation.ui.screens.inventory.event.CreateProductEvent
+import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryViewModel
 import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import com.google.firebase.auth.FirebaseAuth
+import com.valentinilk.shimmer.ShimmerBounds
+import com.valentinilk.shimmer.rememberShimmer
+import com.valentinilk.shimmer.shimmer
+import java.io.File
+import kotlin.math.min
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -91,22 +106,27 @@ fun HomeScreen(navController: NavHostController = rememberNavController()) {
     }
 }
 
-@Composable
+/*@Composable
 @Preview(showBackground = true)
 fun InventoryScreenPreview() {
-    InventoryScreen(onClick = {}, onClickAdd = {}, onClickLogOut = {}, sendIdToProductPage = {})
-}
+    InventoryScreen(
+        onClick = {},
+        onClickAdd = {},
+        onClickLogOut = {},
+        sendIdToProductPage = {},
+        onEvent = {})
+}*/
 
 @Composable
 fun InventoryScreen(
-    onClick: () -> Unit,
+    onClick: (String) -> Unit,
     onClickAdd: () -> Unit,
     onClickLogOut: () -> Unit,
-    sendIdToProductPage: (String) -> Unit
+    sendIdToProductPage: (String) -> Unit,
+    onEvent: (ProductEvent) -> Unit
 ) {
     val viewModel = hiltViewModel<InventoryViewModel>()
-    val inventory by viewModel.filteredInventory.collectAsState()
-    val isSearch by viewModel.isSearching.collectAsState()
+    val stateProduct by viewModel.state.collectAsState()
     val gmail = FirebaseAuth.getInstance().currentUser?.email
     val activity = (LocalContext.current as? Activity)
 
@@ -117,10 +137,21 @@ fun InventoryScreen(
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
 
 
+    LaunchedEffect(stateProduct.selectedIdBuilding) {
+        onEvent(ProductEvent.StartLoading)
+        viewModel.getLocationIdFromDataStore()
+        if (stateProduct.selectedIdBuilding.isNotEmpty()) {
+            onEvent(ProductEvent.StopLoading)
+            onEvent(ProductEvent.ShowProductSelectedBuilding)
+        }
+    }
+
+
     val shouldShowDialog = remember { mutableStateOf(false) }
     BackHandler {
         shouldShowDialog.value = true
     }
+
 
     LaunchedEffect(startScan.data) {
         if (startScan.data.isNotEmpty()) {
@@ -128,6 +159,10 @@ fun InventoryScreen(
             viewModel.clearScannerState()
         }
     }
+    Log.d("search_screen", "${stateProduct.searchText}")
+
+    Log.d("list_invent", "${stateProduct.products}")
+    Log.d("selecred_building_screen", "${stateProduct.selectedIdBuilding}")
 
     if (shouldShowDialog.value) {
         DialogWithImage(
@@ -196,7 +231,8 @@ fun InventoryScreen(
                         focusedBorderColor = colorResource(id = R.color.SpanishGrey),
                         unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                     ),
-                    viewModel
+                    value = stateProduct.searchText,
+                    onValueChange = {onEvent(ProductEvent.SetSearchText(it))}
                 )
             }
 
@@ -275,26 +311,16 @@ fun InventoryScreen(
                 .padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
                 .fillMaxWidth()
         )
-
-        //recycler
-        if (isSearch) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-        } else {
             LazyColumn(
                 modifier = Modifier
                     .padding(start = 24.dp, end = 24.dp)
                     .background(Color.White)
             ) {
-                items(inventory) { inventory ->
-                    ListRow(onClick, model = inventory)
+                items(stateProduct.products) { inventories ->
+                    ListRow({ onClick.invoke(inventories.id) }, inventory = inventories,stateProduct.loading)
+                    Log.d("image", "${inventories.pathToImage}")
                 }
             }
-        }
-
 
     }
     if (openScan.value) {
@@ -317,15 +343,14 @@ fun TextFieldSearchInventoryNameOrId(
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
     colors: TextFieldColors,
-    viewModel: InventoryViewModel
+    value :String,
+    onValueChange: (String) -> Unit
 ) {
-    val searchText by viewModel.searchText.collectAsState()
+
     OutlinedTextField(
         modifier = modifier,
-        value = searchText,
-        onValueChange = { newText ->
-            viewModel.onSearchTextChange(newText)
-        },
+        value = value,
+        onValueChange =  onValueChange ,
         label = label,
         leadingIcon = leadingIcon,
         colors = colors
@@ -367,7 +392,12 @@ fun ButtonInventoryScreen(
 }
 
 @Composable
-fun ListRow(onClick: () -> Unit, model: InventoryModel) {
+fun ListRow(onClick: () -> Unit, inventory: Inventory, loading: Boolean) {
+    val context = LocalContext.current
+    val filePath = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "my_album")
+    val imageFile = File(filePath, inventory.pathToImage!!)
+    val placeholder = painterResource(id = R.drawable.add_photo_alternate)
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -376,25 +406,48 @@ fun ListRow(onClick: () -> Unit, model: InventoryModel) {
             .wrapContentHeight()
             .fillMaxWidth()
             .background(colorResource(id = R.color.AdamantineBlue))
-            .clickable { onClick() },
+            .clickable { onClick() }
+            .run {
+                if (loading) shimmer() else this
+            }
     ) {
-        Image(
-            painter = painterResource(id = model.image),
-            contentDescription = "",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(100.dp)
-                .padding(5.dp)
-        )
+        if (imageFile.exists()) {
+            AsyncImage(
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(5.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .run {
+                        if (loading) shimmer() else this
+                    },
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imageFile)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Image(
+                painter = placeholder,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(5.dp)
+                    .clip(RoundedCornerShape(8.dp)))
+        }
+
         Text(
-            text = model.name,
+            text = inventory.name,
             fontSize = 24.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.White
+            color = Color.White,
+            modifier = Modifier.run {
+                if (loading) shimmer() else this
+            }
         )
     }
 }
-
 
 @Composable
 fun BottomBar(navController: NavHostController) {
@@ -445,7 +498,7 @@ fun RowScope.AddItem(
         onClick = {
             navController.navigate(screen.route) {
                 popUpTo(navController.graph.findStartDestination().id) {
-                    // saveState = true
+                     saveState = true
                 }
                 launchSingleTop = true
                 // Restore state when reselecting a previously selected item
