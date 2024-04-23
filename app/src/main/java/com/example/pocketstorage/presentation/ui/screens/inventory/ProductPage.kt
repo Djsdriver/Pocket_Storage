@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,35 +57,43 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pocketstorage.R
+import com.example.pocketstorage.presentation.ui.screens.inventory.event.CreateProductEvent
+import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductPageEvent
+import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.ProductPageViewModel
 import com.example.pocketstorage.ui.theme.PocketStorageTheme
 
 @Composable
-fun ProductPage(onClick: () -> Unit,id : String) {
+fun ProductPage(onClick: () -> Unit,id : String,viewModel: ProductPageViewModel,onEvent: (ProductPageEvent) -> Unit) {
     PocketStorageTheme {
-        InfoProductInfo(onClick,id)
+        InfoProductInfo(onClick,id,viewModel,onEvent)
     }
 }
 
 
 @Composable
-fun InfoProductInfo(onClick: () -> Unit,id : String) {
+fun InfoProductInfo(onClick: () -> Unit,id : String,viewModel: ProductPageViewModel,onEvent: (ProductPageEvent) -> Unit) {
     PocketStorageTheme { // Обернуть в PocketStorageTheme
-        ScaffoldWithTopBarProductPage(onClick,id)
+        ScaffoldWithTopBarProductPage(onClick,id,viewModel,onEvent)
     }
 }
 
 //@Preview(showBackground = true)
 @Composable
-fun InfoProductInfoPreview(onClick: () -> Unit,id : String) {
+fun InfoProductInfoPreview(onClick: () -> Unit,id : String,viewModel: ProductPageViewModel,onEvent: (ProductPageEvent) -> Unit) {
     PocketStorageTheme { // Обернуть в PocketStorageTheme
-        ScaffoldWithTopBarProductPage(onClick,id)
+        ScaffoldWithTopBarProductPage(onClick,id,viewModel,onEvent)
     }
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScaffoldWithTopBarProductPage(onClick: () -> Unit,id : String) {
+fun ScaffoldWithTopBarProductPage(onClick: () -> Unit,id : String,viewModel: ProductPageViewModel,onEvent: (ProductPageEvent) -> Unit) {
+    val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit){
+        onEvent(ProductPageEvent.ShowInfoProduct(id))
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -115,7 +124,7 @@ fun ScaffoldWithTopBarProductPage(onClick: () -> Unit,id : String) {
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Samsung UR55", fontSize = 20.sp)
+                    Text(text = state.name, fontSize = 20.sp)
                     IconButton(onClick = { /*TODO*/ }) {
                         Icon(
                             painter = painterResource(id = R.drawable.edit_square),
@@ -124,7 +133,7 @@ fun ScaffoldWithTopBarProductPage(onClick: () -> Unit,id : String) {
                     }
                 }
                 DashedBorderWithImage()
-                TabScreen(id)
+                TabScreen(id,viewModel)
             }
         }
     )
@@ -160,7 +169,7 @@ fun DashedBorderWithImage() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TabScreen(id : String) {
+fun TabScreen(id : String,viewModel: ProductPageViewModel) {
     var tabIndex by remember { mutableStateOf(0) }
 
     val tabs = listOf("Details", "Location", "QR")
@@ -216,7 +225,7 @@ fun TabScreen(id : String) {
 
         HorizontalPager(state = state) {
             when (it) {
-                0 -> TabItem.DetailsScreen1(id = id).screen.invoke()
+                0 -> TabItem.DetailsScreen1(id = id, viewModel = viewModel).screen.invoke()
                 1 -> TabItem.LocationsScreen.screen.invoke()
                 2 -> TabItem.QRScreen.screen.invoke()
             }
@@ -228,7 +237,7 @@ fun TabScreen(id : String) {
 typealias ComposableFun = @Composable () -> Unit
 
 sealed class TabItem(var screen: ComposableFun) {
-    data class DetailsScreen1(val id: String) : TabItem({ DetailsScreen(id) })
+    data class DetailsScreen1(val id: String, val viewModel: ProductPageViewModel) : TabItem({ DetailsScreen(id,viewModel) })
     object LocationsScreen : TabItem({ LocationsScreen() })
     object QRScreen : TabItem({ QRScreen() })
 }
@@ -372,7 +381,8 @@ fun ButtonSaveProductPage(onClick: () -> Unit) {
 }
 
 @Composable
-fun DetailsScreen(id : String) {
+fun DetailsScreen(id : String,viewModel: ProductPageViewModel) {
+    val state by viewModel.state.collectAsState()
     Box(
         modifier = Modifier
             .fillMaxWidth(),
@@ -384,18 +394,18 @@ fun DetailsScreen(id : String) {
             }
             Row {
                 Text(text = "Category:", fontSize = 12.sp)
-                Text(text = "Monitor", fontSize = 12.sp)
+                Text(text = state.category, fontSize = 12.sp)
             }
             Row {
                 Text(text = "Description: ", fontSize = 12.sp)
                 Text(
-                    text = "Multiline text multiline text Multiline textMultiline textMultiline text Multiline text Multiline text Multiline text",
+                    text = state.description,
                     fontSize = 12.sp
                 )
             }
             Row {
                 Text(text = "Inventory number: A111", fontSize = 12.sp)
-                Text(text = "A111", fontSize = 12.sp)
+                Text(text = state.location, fontSize = 12.sp)
             }
         }
 
