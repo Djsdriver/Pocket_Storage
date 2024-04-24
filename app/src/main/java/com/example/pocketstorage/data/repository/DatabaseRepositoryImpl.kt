@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
+import android.widget.Toast
 import com.example.pocketstorage.data.db.AppDatabase
 import com.example.pocketstorage.data.db.model.toCategory
 import com.example.pocketstorage.data.db.model.toCategoryEntity
@@ -16,9 +18,10 @@ import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.repository.DatabaseRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
@@ -122,6 +125,49 @@ class DatabaseRepositoryImpl @Inject constructor(
             .compress(Bitmap.CompressFormat.JPEG, 30, outputStream)
 
         return file.absolutePath
+    }
+
+    override suspend fun saveImageToPrivateStorageBitmap(bitmap: Bitmap) : Uri {
+
+        val generationName = generateImageNameForStorage()
+
+        try {
+            // Создаем новый файл для сохранения изображения
+            val file = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), generationName)
+
+            // Создаем поток для записи в файл
+            val outputStream = withContext(Dispatchers.IO) {
+                FileOutputStream(file)
+            }
+
+            // Сохраняем Bitmap изображение в формат JPEG с качеством 100
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+
+            // Очищаем и закрываем поток
+            withContext(Dispatchers.IO) {
+                outputStream.flush()
+            }
+            withContext(Dispatchers.IO) {
+                outputStream.close()
+            }
+
+            // Уведомляем пользователя об успешном сохранении
+            Toast.makeText(context, "Image saved successfully", Toast.LENGTH_SHORT).show()
+            return Uri.fromFile(file)
+
+        } catch (e: Exception) {
+            // Обрабатываем ошибку, если сохранение не удалось
+            Log.e("SaveImage", "Error saving image: ${e.message}")
+            Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
+            return Uri.EMPTY
+        }
+
+
+
+    }
+
+    private fun generateImageNameForStorage(): String {
+        return "cover_${System.currentTimeMillis()}.jpg"
     }
 
     override suspend fun deleteImageFromStorage(imagePath: String?) {

@@ -1,5 +1,6 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory.event
 
+import android.graphics.Bitmap
 import android.net.Uri
 
 sealed interface CreateProductEvent {
@@ -9,6 +10,7 @@ sealed interface CreateProductEvent {
     data class SetLocationId(val locationId: String) : CreateProductEvent
     data class SetCategoryId(val categoryId: String) : CreateProductEvent
     data class SetPathToImage(val pathToImage: Uri) : CreateProductEvent
+    data class SetPathToImageBitmap(val pathToImage: Uri) : CreateProductEvent
     data object ShowListBuilding : CreateProductEvent
     data class ShowListCategory(val locationId: String) : CreateProductEvent
 

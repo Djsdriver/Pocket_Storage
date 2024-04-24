@@ -1,12 +1,13 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pocketstorage.domain.model.Inventory
+import com.example.pocketstorage.domain.usecase.db.GetCategoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoryByIdUseCase
+import com.example.pocketstorage.domain.usecase.db.GetLocationByIdUseCase
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductPageEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.stateui.ProductPageUiState
-import com.example.pocketstorage.presentation.ui.screens.inventory.stateui.ProductUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +17,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProductPageViewModel @Inject constructor(
-    private val getInventoryByIdUseCase: GetInventoryByIdUseCase
+    private val getInventoryByIdUseCase: GetInventoryByIdUseCase,
+    private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
+    private val getLocationByIdUseCase: GetLocationByIdUseCase
 ): ViewModel() {
 
 
@@ -38,16 +41,23 @@ class ProductPageViewModel @Inject constructor(
     private fun showInfoProductById(id: String) {
         viewModelScope.launch {
             val product = getInventoryByIdUseCase.invoke(id)
+            val nameCategory = getCategoryByIdUseCase.invoke(product.categoryId)
+            val nameBuilding = getLocationByIdUseCase.invoke(product.locationId)
             _state.update {
                 it.copy(
                     name = product.name,
-                    location = product.locationId,
-                    category = product.categoryId,
-                    description = product.description
+                    idLocation = product.locationId,
+                    idCategory = product.categoryId,
+                    description = product.description,
+                    nameCategory = nameCategory.name,
+                    nameBuilding = nameBuilding.name,
+                    pathToImage = product.pathToImage ?: ""
                 )
             }
+            Log.d("_stateP","${_state.value.nameBuilding}")
         }
     }
+
 
 
 }

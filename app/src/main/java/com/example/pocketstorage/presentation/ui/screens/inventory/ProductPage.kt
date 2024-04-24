@@ -1,5 +1,7 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory
 
+import android.os.Environment
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -49,6 +51,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -56,11 +59,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.pocketstorage.R
-import com.example.pocketstorage.presentation.ui.screens.inventory.event.CreateProductEvent
+import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductPageEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.ProductPageViewModel
 import com.example.pocketstorage.ui.theme.PocketStorageTheme
+import com.valentinilk.shimmer.shimmer
+import java.io.File
 
 @Composable
 fun ProductPage(onClick: () -> Unit,id : String,viewModel: ProductPageViewModel,onEvent: (ProductPageEvent) -> Unit) {
@@ -132,7 +139,7 @@ fun ScaffoldWithTopBarProductPage(onClick: () -> Unit,id : String,viewModel: Pro
                         )
                     }
                 }
-                DashedBorderWithImage()
+                DashedBorderWithImage(viewModel)
                 TabScreen(id,viewModel)
             }
         }
@@ -141,7 +148,12 @@ fun ScaffoldWithTopBarProductPage(onClick: () -> Unit,id : String,viewModel: Pro
 }
 
 @Composable
-fun DashedBorderWithImage() {
+fun DashedBorderWithImage(viewModel: ProductPageViewModel) {
+    val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+    val filePath = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "my_album")
+    val imageFile = File(filePath, state.pathToImage)
+    val placeholder = painterResource(id = R.drawable.add_photo_alternate)
     val stroke = Stroke(
         width = 2f,
         pathEffect = PathEffect.dashPathEffect(floatArrayOf(30f, 30f), 0f)
@@ -151,19 +163,42 @@ fun DashedBorderWithImage() {
         Modifier
             .fillMaxWidth()
             .height(240.dp)
-            .drawBehind {
-                drawRoundRect(
-                    cornerRadius = CornerRadius(8f, 8f),
-                    color = blueColor,
-                    style = stroke
-                )
+            .run {
+                if (state.pathToImage.isNotEmpty()) {
+                    this
+                } else {
+                    drawBehind {
+                        drawRoundRect(
+                            cornerRadius = CornerRadius(8f, 8f),
+                            color = blueColor,
+                            style = stroke
+                        )
+                    }
+                }
             },
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.add_photo_alternate),
-            contentDescription = "add"
-        )
+        if (imageFile.exists()) {
+            AsyncImage(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(8.dp)),
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imageFile)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Image(
+                painter = placeholder,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(5.dp)
+                    .clip(RoundedCornerShape(8.dp)))
+        }
     }
 }
 
@@ -383,6 +418,7 @@ fun ButtonSaveProductPage(onClick: () -> Unit) {
 @Composable
 fun DetailsScreen(id : String,viewModel: ProductPageViewModel) {
     val state by viewModel.state.collectAsState()
+    Log.d("stateProduct", "${state.nameBuilding}")
     Box(
         modifier = Modifier
             .fillMaxWidth(),
@@ -394,7 +430,7 @@ fun DetailsScreen(id : String,viewModel: ProductPageViewModel) {
             }
             Row {
                 Text(text = "Category:", fontSize = 12.sp)
-                Text(text = state.category, fontSize = 12.sp)
+                Text(text = state.nameCategory, fontSize = 12.sp)
             }
             Row {
                 Text(text = "Description: ", fontSize = 12.sp)
@@ -404,8 +440,8 @@ fun DetailsScreen(id : String,viewModel: ProductPageViewModel) {
                 )
             }
             Row {
-                Text(text = "Inventory number: A111", fontSize = 12.sp)
-                Text(text = state.location, fontSize = 12.sp)
+                Text(text = "Location: ", fontSize = 12.sp)
+                Text(text = state.nameBuilding, fontSize = 12.sp)
             }
         }
 

@@ -1,5 +1,6 @@
 package com.example.pocketstorage.domain.repository
 
+import android.graphics.Bitmap
 import android.net.Uri
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Inventory
@@ -41,5 +42,6 @@ interface DatabaseRepository {
     suspend fun getLocationById(locationId: String): Location
 
     suspend fun saveImageToPrivateStorage(uri: Uri, nameOfImage: String): String
+    suspend fun saveImageToPrivateStorageBitmap(bitmap: Bitmap) : Uri
     suspend fun deleteImageFromStorage(imagePath: String?)
 }
