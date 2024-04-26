@@ -2,6 +2,7 @@ package com.example.pocketstorage.di.db
 
 import com.example.pocketstorage.domain.repository.DatabaseRepository
 import com.example.pocketstorage.domain.usecase.db.DeleteCategoryUseCase
+import com.example.pocketstorage.domain.usecase.db.DeleteImageFromBitmapDirectoryUseCase
 import com.example.pocketstorage.domain.usecase.db.DeleteInventoryUseCase
 import com.example.pocketstorage.domain.usecase.db.DeleteLocationUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
@@ -135,4 +136,11 @@ class DomainModule {
             : SaveImageToPrivateStorageBitmapUseCase {
         return SaveImageToPrivateStorageBitmapUseCase(databaseRepository)
     }
+    @Provides
+    fun provideDeleteImageFromBitmapDirectoryUseCase(databaseRepository: DatabaseRepository)
+            : DeleteImageFromBitmapDirectoryUseCase {
+        return DeleteImageFromBitmapDirectoryUseCase(databaseRepository)
+    }
+
+
 }

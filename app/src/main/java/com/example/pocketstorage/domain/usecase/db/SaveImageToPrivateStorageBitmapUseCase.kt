@@ -6,7 +6,7 @@ import com.example.pocketstorage.domain.repository.DatabaseRepository
 
 class SaveImageToPrivateStorageBitmapUseCase(private val databaseRepository: DatabaseRepository) {
 
-    suspend operator fun invoke(bitmap: Bitmap) : Uri {
-       return databaseRepository.saveImageToPrivateStorageBitmap(bitmap)
+    suspend operator fun invoke(bitmap: Bitmap,nameOfImage: String) : Uri {
+       return databaseRepository.saveImageToPrivateStorageBitmap(bitmap,nameOfImage)
     }
 }

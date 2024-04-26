@@ -1,5 +1,7 @@
 package com.example.pocketstorage.data.repository
 
+import android.content.Context
+import android.widget.Toast
 import com.example.pocketstorage.domain.repository.ScannerRepository
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
@@ -9,7 +11,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class ScannerRepositoryImpl @Inject constructor(private val scanner: GmsBarcodeScanner): ScannerRepository {
+class ScannerRepositoryImpl @Inject constructor(private val context: Context,private val scanner: GmsBarcodeScanner): ScannerRepository {
     override fun scanProduct(): Flow<String> {
         return callbackFlow {
             scanner.startScan()
@@ -19,6 +21,7 @@ class ScannerRepositoryImpl @Inject constructor(private val scanner: GmsBarcodeS
                     }
                 }.addOnFailureListener {
                     it.printStackTrace()
+                    Toast.makeText(context, "Продукт не найден", Toast.LENGTH_LONG).show()
                 }
             awaitClose {  }
         }

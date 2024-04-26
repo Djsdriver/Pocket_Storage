@@ -16,7 +16,6 @@ class GenerationQRCodeRepositoryImpl @Inject constructor(private val barcodeEnco
             e.printStackTrace()
         }
 
-
         return null
     }
 }

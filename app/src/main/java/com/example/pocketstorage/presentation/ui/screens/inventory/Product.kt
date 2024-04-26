@@ -156,7 +156,7 @@ fun InventoryScreen(
     LaunchedEffect(startScan.data) {
         if (startScan.data.isNotEmpty()) {
             sendIdToProductPage.invoke(startScan.data)
-            viewModel.clearScannerState()
+            onEvent(ProductEvent.CleanerScannerState)
         }
     }
     Log.d("search_screen", "${stateProduct.searchText}")
@@ -194,11 +194,8 @@ fun InventoryScreen(
                 modifier = Modifier
                     .padding(end = 8.dp)
                     .clickable {
-                        viewModel
-                            .logOut()
-                            .run {
-                                onClickLogOut()
-                            }
+                        onEvent(ProductEvent.LogOutProfile)
+                        onClickLogOut()
                     }
             )
         }
@@ -324,7 +321,7 @@ fun InventoryScreen(
 
     }
     if (openScan.value) {
-        viewModel.startScan()
+        onEvent(ProductEvent.StartScan)
         openScan.value = !openScan.value
         Log.d("scannerLogUi", "${startScan.data}")
     }

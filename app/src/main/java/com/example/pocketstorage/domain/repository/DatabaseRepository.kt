@@ -42,6 +42,6 @@ interface DatabaseRepository {
     suspend fun getLocationById(locationId: String): Location
 
     suspend fun saveImageToPrivateStorage(uri: Uri, nameOfImage: String): String
-    suspend fun saveImageToPrivateStorageBitmap(bitmap: Bitmap) : Uri
+    suspend fun saveImageToPrivateStorageBitmap(bitmap: Bitmap,nameOfImage: String) : Uri
     suspend fun deleteImageFromStorage(imagePath: String?)
 }
