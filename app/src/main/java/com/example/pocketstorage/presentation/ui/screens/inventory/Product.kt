@@ -6,6 +6,8 @@ import android.content.Context
 import android.os.Environment
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,6 +47,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,25 +76,20 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.pocketstorage.R
 import com.example.pocketstorage.components.DialogWithImage
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.graphs.BottomBarScreen
 import com.example.pocketstorage.graphs.HomeNavGraph
-import com.example.pocketstorage.presentation.ui.screens.inventory.event.CreateProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryViewModel
 import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import com.google.firebase.auth.FirebaseAuth
-import com.valentinilk.shimmer.ShimmerBounds
-import com.valentinilk.shimmer.rememberShimmer
 import com.valentinilk.shimmer.shimmer
 import java.io.File
-import kotlin.math.min
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -104,6 +102,24 @@ fun HomeScreen(navController: NavHostController = rememberNavController()) {
     ) {
         HomeNavGraph(navController = navController)
     }
+}
+
+@Composable
+fun CameraPermission(viewModel: InventoryViewModel, onEvent: (ProductEvent) -> Unit) {
+    val state by viewModel.state.collectAsState()
+    val launcherCamera = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            onEvent(ProductEvent.PermissionCamera(isGranted))
+        }
+    )
+
+    if (!state.permissionCamera) {
+        SideEffect {
+            launcherCamera.launch(android.Manifest.permission.CAMERA)
+        }
+    }
+
 }
 
 /*@Composable
@@ -229,13 +245,17 @@ fun InventoryScreen(
                         unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
                     ),
                     value = stateProduct.searchText,
-                    onValueChange = {onEvent(ProductEvent.SetSearchText(it))}
+                    onValueChange = { onEvent(ProductEvent.SetSearchText(it)) }
                 )
             }
 
             ImageQRScanner {
                 openScan.value = !openScan.value
             }
+
+            CameraPermission(viewModel = viewModel, onEvent = onEvent)
+
+
         }
 
 
@@ -308,16 +328,20 @@ fun InventoryScreen(
                 .padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
                 .fillMaxWidth()
         )
-            LazyColumn(
-                modifier = Modifier
-                    .padding(start = 24.dp, end = 24.dp)
-                    .background(Color.White)
-            ) {
-                items(stateProduct.products) { inventories ->
-                    ListRow({ onClick.invoke(inventories.id) }, inventory = inventories,stateProduct.loading)
-                    Log.d("image", "${inventories.pathToImage}")
-                }
+        LazyColumn(
+            modifier = Modifier
+                .padding(start = 24.dp, end = 24.dp)
+                .background(Color.White)
+        ) {
+            items(stateProduct.products) { inventories ->
+                ListRow(
+                    { onClick.invoke(inventories.id) },
+                    inventory = inventories,
+                    stateProduct.loading
+                )
+                Log.d("image", "${inventories.pathToImage}")
             }
+        }
 
     }
     if (openScan.value) {
@@ -340,14 +364,14 @@ fun TextFieldSearchInventoryNameOrId(
     label: @Composable () -> Unit,
     leadingIcon: @Composable () -> Unit,
     colors: TextFieldColors,
-    value :String,
+    value: String,
     onValueChange: (String) -> Unit
 ) {
 
     OutlinedTextField(
         modifier = modifier,
         value = value,
-        onValueChange =  onValueChange ,
+        onValueChange = onValueChange,
         label = label,
         leadingIcon = leadingIcon,
         colors = colors
@@ -431,7 +455,8 @@ fun ListRow(onClick: () -> Unit, inventory: Inventory, loading: Boolean) {
                 modifier = Modifier
                     .size(100.dp)
                     .padding(5.dp)
-                    .clip(RoundedCornerShape(8.dp)))
+                    .clip(RoundedCornerShape(8.dp))
+            )
         }
 
         Text(
@@ -495,7 +520,7 @@ fun RowScope.AddItem(
         onClick = {
             navController.navigate(screen.route) {
                 popUpTo(navController.graph.findStartDestination().id) {
-                     saveState = true
+                    saveState = true
                 }
                 launchSingleTop = true
                 // Restore state when reselecting a previously selected item

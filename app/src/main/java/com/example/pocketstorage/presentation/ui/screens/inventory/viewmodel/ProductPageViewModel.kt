@@ -23,16 +23,16 @@ class ProductPageViewModel @Inject constructor(
     private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
     private val getLocationByIdUseCase: GetLocationByIdUseCase,
     private val generationQrCodeProductUseCase: GenerationQrCodeProductUseCase
-): ViewModel() {
+) : ViewModel() {
 
 
     private val _state = MutableStateFlow(ProductPageUiState())
     val state = _state.asStateFlow()
 
 
-    fun event(productPageEvent: ProductPageEvent){
-        when (productPageEvent){
-            is ProductPageEvent.ShowInfoProduct ->{
+    fun event(productPageEvent: ProductPageEvent) {
+        when (productPageEvent) {
+            is ProductPageEvent.ShowInfoProduct -> {
                 _state.update {
                     it.copy(idProduct = productPageEvent.idProduct)
                 }
@@ -63,14 +63,13 @@ class ProductPageViewModel @Inject constructor(
                     pathToImage = product.pathToImage ?: ""
                 )
             }
-            Log.d("_stateP","${_state.value.nameBuilding}")
+            Log.d("_stateP", "${_state.value.nameBuilding}")
         }
     }
 
     fun generateQRCode(content: String): Bitmap? {
         return generationQrCodeProductUseCase.invoke(content)
     }
-
 
 
 }

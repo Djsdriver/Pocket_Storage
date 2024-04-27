@@ -76,6 +76,16 @@ class InventoryViewModel @Inject constructor(
                 startScan()
             }
 
+            is ProductEvent.PermissionCamera -> {
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(
+                            permissionCamera = productEvent.isGranted
+                        )
+                    }
+                }
+            }
+
             is ProductEvent.CleanerScannerState -> {
                 clearScannerState()
             }

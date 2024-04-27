@@ -332,7 +332,6 @@ fun QRScreen(content: String, onEvent: (ProductPageEvent) -> Unit,viewModel: Pro
 
     }
 
-
 }
 
 @Preview(showBackground = true)
