@@ -1,11 +1,13 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel
 
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.domain.usecase.db.GetCategoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationByIdUseCase
+import com.example.pocketstorage.domain.usecase.product.GenerationQrCodeProductUseCase
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductPageEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.stateui.ProductPageUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +21,8 @@ import javax.inject.Inject
 class ProductPageViewModel @Inject constructor(
     private val getInventoryByIdUseCase: GetInventoryByIdUseCase,
     private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
-    private val getLocationByIdUseCase: GetLocationByIdUseCase
+    private val getLocationByIdUseCase: GetLocationByIdUseCase,
+    private val generationQrCodeProductUseCase: GenerationQrCodeProductUseCase
 ): ViewModel() {
 
 
@@ -34,6 +37,12 @@ class ProductPageViewModel @Inject constructor(
                     it.copy(idProduct = productPageEvent.idProduct)
                 }
                 showInfoProductById(_state.value.idProduct)
+            }
+
+            is ProductPageEvent.GenerationQrCode -> {
+                _state.update {
+                    it.copy(generatedBitmap = generateQRCode(productPageEvent.content))
+                }
             }
         }
     }
@@ -56,6 +65,10 @@ class ProductPageViewModel @Inject constructor(
             }
             Log.d("_stateP","${_state.value.nameBuilding}")
         }
+    }
+
+    fun generateQRCode(content: String): Bitmap? {
+        return generationQrCodeProductUseCase.invoke(content)
     }
 
 

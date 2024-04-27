@@ -1,5 +1,6 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory
 
+import android.graphics.Bitmap
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
@@ -50,7 +51,9 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -140,7 +143,7 @@ fun ScaffoldWithTopBarProductPage(onClick: () -> Unit,id : String,viewModel: Pro
                     }
                 }
                 DashedBorderWithImage(viewModel)
-                TabScreen(id,viewModel)
+                TabScreen(id,viewModel,onEvent)
             }
         }
     )
@@ -204,7 +207,7 @@ fun DashedBorderWithImage(viewModel: ProductPageViewModel) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TabScreen(id : String,viewModel: ProductPageViewModel) {
+fun TabScreen(id : String,viewModel: ProductPageViewModel, onEvent: (ProductPageEvent) -> Unit) {
     var tabIndex by remember { mutableStateOf(0) }
 
     val tabs = listOf("Details", "Location", "QR")
@@ -262,7 +265,7 @@ fun TabScreen(id : String,viewModel: ProductPageViewModel) {
             when (it) {
                 0 -> TabItem.DetailsScreen1(id = id, viewModel = viewModel).screen.invoke()
                 1 -> TabItem.LocationsScreen.screen.invoke()
-                2 -> TabItem.QRScreen.screen.invoke()
+                2 -> TabItem.QRScreen1(content = id, onEvent = onEvent, viewModel = viewModel).screen.invoke()
             }
         }
     }
@@ -273,13 +276,19 @@ typealias ComposableFun = @Composable () -> Unit
 
 sealed class TabItem(var screen: ComposableFun) {
     data class DetailsScreen1(val id: String, val viewModel: ProductPageViewModel) : TabItem({ DetailsScreen(id,viewModel) })
-    object LocationsScreen : TabItem({ LocationsScreen() })
-    object QRScreen : TabItem({ QRScreen() })
+    data object LocationsScreen : TabItem({ LocationsScreen() })
+    data class QRScreen1(val content: String, val onEvent: (ProductPageEvent) -> Unit, val viewModel: ProductPageViewModel) : TabItem({ QRScreen(content = content, onEvent = onEvent, viewModel= viewModel) })
 }
 
 
 @Composable
-fun QRScreen() {
+fun QRScreen(content: String, onEvent: (ProductPageEvent) -> Unit,viewModel: ProductPageViewModel) {
+    LaunchedEffect(Unit){
+        onEvent(ProductPageEvent.GenerationQrCode(content))
+    }
+    val state by viewModel.state.collectAsState()
+    //val bitmap = viewModel.generateQRCode(content)
+
     val context = LocalContext.current // Получение доступа к контексту
     Box(
         modifier = Modifier
@@ -287,17 +296,18 @@ fun QRScreen() {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(
-                painter = painterResource(id = R.drawable.qr_code_for_mobile),
-                contentDescription = "qr",
-                modifier = Modifier
-                    .size(128.dp)
-                    .clickable {
-                        Toast
-                            .makeText(context, "Click", Toast.LENGTH_LONG)
-                            .show()
-                    }
-            )
+            if (state.generatedBitmap!=null){
+                Image(
+                    bitmap = state.generatedBitmap!!.asImageBitmap() ,
+                    contentDescription = "qr",
+                    modifier = Modifier
+                        .size(128.dp)
+                        .clickable {
+                            onEvent(ProductPageEvent.GenerationQrCode(content = content))
+                        }
+                )
+            }
+
             Row() {
                 IconButton(modifier = Modifier.padding(end = 40.dp), onClick = { /*TODO*/ }) {
                     Icon(
