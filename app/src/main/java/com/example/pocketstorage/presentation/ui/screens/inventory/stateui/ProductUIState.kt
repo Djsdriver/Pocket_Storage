@@ -12,5 +12,6 @@ data class ProductUIState(
     val selectedIdBuilding: String = "",
     val data:String = "",
     val searchText : String = "",
-    val loading: Boolean = false
+    val loading: Boolean = false,
+    val permissionCamera: Boolean = false
 )

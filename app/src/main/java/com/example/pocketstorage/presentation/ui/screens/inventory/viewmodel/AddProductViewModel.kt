@@ -1,14 +1,18 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel
 
+import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Inventory
+import com.example.pocketstorage.domain.usecase.db.DeleteImageFromBitmapDirectoryUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertInventoryUseCase
+import com.example.pocketstorage.domain.usecase.db.SaveImageToPrivateStorageBitmapUseCase
 import com.example.pocketstorage.domain.usecase.db.SaveImageToPrivateStorageUseCase
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.CreateProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryUiState
@@ -26,7 +30,9 @@ class AddProductViewModel @Inject constructor(
     private val getLocationsUseCase: GetLocationsUseCase,
     private val getCategoriesByBuildingIdUseCase: GetCategoriesByBuildingIdUseCase,
     private val insertInventoryUseCase: InsertInventoryUseCase,
-    private val saveImageToPrivateStorageUseCase: SaveImageToPrivateStorageUseCase
+    private val saveImageToPrivateStorageUseCase: SaveImageToPrivateStorageUseCase,
+    private val saveImageToPrivateStorageBitmapUseCase: SaveImageToPrivateStorageBitmapUseCase,
+    private val deleteImageFromBitmapDirectoryUseCase: DeleteImageFromBitmapDirectoryUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(InventoryUiState())
@@ -64,6 +70,8 @@ class AddProductViewModel @Inject constructor(
                 viewModelScope.launch {
                     saveImageToPrivateStorageUseCase.invoke(pathToImage.toUri(), generationName)
                     insertInventoryUseCase.invoke(product)
+                    Log.d("delete", "$pathToImage")
+                    deleteImageFromBitmapDirectoryUseCase.invoke(generationName)
 
                     _state.update {
                         it.copy(
@@ -119,7 +127,15 @@ class AddProductViewModel @Inject constructor(
                     }
                 }
 
-
+            }
+            is CreateProductEvent.SetPathToImageBitmap ->{
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(
+                            pathToImage = createProductEvent.pathToImage.toString()
+                        )
+                    }
+                }
             }
 
             is CreateProductEvent.ShowListBuilding -> {
@@ -154,6 +170,17 @@ class AddProductViewModel @Inject constructor(
 
 
             else -> {}
+        }
+    }
+
+    fun savePathImageBitmap(bitmap: Bitmap) {
+        viewModelScope.launch {
+            val path = saveImageToPrivateStorageBitmapUseCase.invoke(bitmap,generationName)
+            _state.update {
+                it.copy(
+                    pathToImage = path.toString()
+                )
+            }
         }
     }
 

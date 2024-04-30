@@ -18,6 +18,7 @@ import com.example.pocketstorage.presentation.ui.screens.inventory.InventoryScre
 import com.example.pocketstorage.presentation.ui.screens.inventory.ProductPage
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.AddProductViewModel
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryViewModel
+import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.ProductPageViewModel
 
 
 @Composable
@@ -80,12 +81,15 @@ fun NavGraphBuilder.inventoryNavGraph(navController: NavHostController) {
             }
         )
     ) {
+        val viewModel = hiltViewModel<ProductPageViewModel>()
         val id = it.arguments?.getString("id") ?: ""
         ProductPage(
             {
                 navController.navigateUp()
             },
-            id = id
+            id = id,
+            viewModel = viewModel,
+            onEvent = viewModel::event
         )
     }
 }

@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
+import android.widget.Toast
 import com.example.pocketstorage.data.db.AppDatabase
 import com.example.pocketstorage.data.db.model.toCategory
 import com.example.pocketstorage.data.db.model.toCategoryEntity
@@ -16,9 +18,10 @@ import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.repository.DatabaseRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
@@ -47,19 +50,22 @@ class DatabaseRepositoryImpl @Inject constructor(
 
     override fun getInventories(): Flow<List<Inventory>> = flow {
         val inventoryEntityList = appDatabase.inventoryDao().getInventories()
-        val inventoryList = inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }
+        val inventoryList =
+            inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }
         emit(inventoryList)
     }
 
     override fun getInventoriesByCategoryId(categoryId: String): Flow<List<Inventory>> = flow {
         val inventoryEntityList = appDatabase.inventoryDao().getInventoriesByCategoryId(categoryId)
-        val inventoryList = inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }
+        val inventoryList =
+            inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }
         emit(inventoryList)
     }
 
     override fun getInventoriesByLocationId(locationId: String): Flow<List<Inventory>> = flow {
         val inventoryEntityList = appDatabase.inventoryDao().getInventoriesByLocationId(locationId)
-        val inventoryList = inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }
+        val inventoryList =
+            inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }
         emit(inventoryList)
     }
 
@@ -72,13 +78,15 @@ class DatabaseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getCategoryById(categoryId: String): Category {
-        val categoryEntity =  appDatabase.categoryDao().getCategoryById(categoryId)
+        val categoryEntity = appDatabase.categoryDao().getCategoryById(categoryId)
         return categoryEntity.toCategory()
     }
 
     override fun getCategoriesByBuildingId(buildingId: String): Flow<List<Category>> = flow {
-        val categoriesByBuildingId = appDatabase.categoryDao().getCategoriesByBuildingId(buildingId = buildingId)
-        val categoriesList = categoriesByBuildingId.map { listCategoriesByBuildingId->listCategoriesByBuildingId.toCategory() }
+        val categoriesByBuildingId =
+            appDatabase.categoryDao().getCategoriesByBuildingId(buildingId = buildingId)
+        val categoriesList =
+            categoriesByBuildingId.map { listCategoriesByBuildingId -> listCategoriesByBuildingId.toCategory() }
         emit(categoriesList)
     }
 
@@ -119,12 +127,64 @@ class DatabaseRepositoryImpl @Inject constructor(
         val outputStream = FileOutputStream(file)
         BitmapFactory
             .decodeStream(inputStream)
-            .compress(Bitmap.CompressFormat.JPEG, 30, outputStream)
+            .compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
 
         return file.absolutePath
     }
 
+    override suspend fun saveImageToPrivateStorageBitmap(bitmap: Bitmap, nameOfImage: String): Uri {
+
+        try {
+            // Создаем новый файл для сохранения изображения
+            val filePath =
+                File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "bitmapImage")
+            if (!filePath.exists()) {
+                filePath.mkdirs()
+            }
+            val file = File(filePath, nameOfImage)
+            // Создаем поток для записи в файл
+            val outputStream = withContext(Dispatchers.IO) {
+                FileOutputStream(file)
+            }
+
+            // Сохраняем Bitmap изображение в формат JPEG с качеством 100
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+
+            // Очищаем и закрываем поток
+            withContext(Dispatchers.IO) {
+                outputStream.flush()
+            }
+            withContext(Dispatchers.IO) {
+                outputStream.close()
+            }
+
+            // Уведомляем пользователя об успешном сохранении
+            Toast.makeText(context, "Image saved successfully", Toast.LENGTH_SHORT).show()
+            return Uri.fromFile(file)
+
+        } catch (e: Exception) {
+            // Обрабатываем ошибку, если сохранение не удалось
+            Log.e("SaveImage", "Error saving image: ${e.message}")
+            Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
+            return Uri.EMPTY
+        }
+
+    }
+
+
     override suspend fun deleteImageFromStorage(imagePath: String?) {
-        TODO("Not yet implemented")
+        val filePath =
+            File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "bitmapImage")
+        if (imagePath != null && imagePath.isNotEmpty()) {
+            val file = File(filePath, imagePath)
+            if (file.exists()) {
+                file.delete()
+
+            } else {
+                Log.d("Image", "Image not found at path")
+            }
+        } else {
+            Log.d("Image", "Invalid image path")
+        }
     }
 }

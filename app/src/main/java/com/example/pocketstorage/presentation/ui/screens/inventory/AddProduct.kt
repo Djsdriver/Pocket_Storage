@@ -78,6 +78,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
@@ -249,24 +250,13 @@ fun BaseContent(
             onEvent(CreateProductEvent.SetLocationId(selectedLocationName))
             onEvent(CreateProductEvent.ShowListCategory(selectedLocationName))
             buildingIdString = selectedLocationName
-            Log.d("buildingIdString", "$buildingIdString")
-            Toast.makeText(
-                context,
-                "Selected Location ID: ${selectedLocationName}",
-                Toast.LENGTH_SHORT
-            ).show()
+
         }
-        //заменить на категории
         BaseDropdownMenuCategory(
             listOfElements = state.categories, //заменить на категории
             modifier = Modifier.padding(top = topPadding)
         ) { selectedIdCategory ->
             onEvent(CreateProductEvent.SetCategoryId(selectedIdCategory))
-            Toast.makeText(
-                context,
-                "Selected Category ID: ${selectedIdCategory}",
-                Toast.LENGTH_SHORT
-            ).show()
         }
 
         BaseButton(
@@ -284,6 +274,7 @@ fun BaseContent(
 }
 
 
+@SuppressLint("ResourceAsColor")
 @Composable
 fun AddPictureCard(
     onClick: () -> Unit,
@@ -332,13 +323,19 @@ fun AddPictureCard(
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
             Log.d("uri", "$uri")
             imageUri = uri
-            onEvent(CreateProductEvent.SetPathToImage(uri!!))
+            uri?.let { CreateProductEvent.SetPathToImage(it) }?.let { onEvent(it) }
         }
 
     val launcherCamera =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { photoBitmap ->
             bitmap.value = photoBitmap
             imageUri = null
+            viewModel.savePathImageBitmap(bitmap.value!!)
+
+
+            Log.d("path","$photoBitmap")
+
+
 
             pathToLoadingPicture = photoBitmap.toString()
             if (photoBitmap != null) {
@@ -346,6 +343,10 @@ fun AddPictureCard(
             } else {
                 color.value = color.value
             }
+
+           Log.d("launchCamera","$photoBitmap")
+            Log.d("launchCamera","${bitmap.value}")
+            Log.d("launchCamera","${pathToLoadingPicture}")
 
         }
 
