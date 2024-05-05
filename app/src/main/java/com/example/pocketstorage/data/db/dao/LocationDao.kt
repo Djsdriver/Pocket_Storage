@@ -22,4 +22,7 @@ interface LocationDao {
 
     @Query("SELECT * FROM location_table WHERE id = :locationId")
     suspend fun getLocationById(locationId: String): LocationEntity
+
+    @Query("SELECT name FROM location_table WHERE id = :locationId")
+    suspend fun getLocationNameById(locationId: String): String
 }

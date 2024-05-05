@@ -72,14 +72,10 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-
-
     //Add navigation dependency
     implementation ("androidx.navigation:navigation-compose:2.6.0-alpha04")
 
     implementation ("androidx.compose.material:material:1.4.2")
-
-
 
     //retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -89,6 +85,7 @@ dependencies {
     //viewmodel
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.activity:activity-ktx:1.7.2")
+
     //navigation
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.3")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.3")
@@ -126,5 +123,6 @@ dependencies {
 
     implementation("com.valentinilk.shimmer:compose-shimmer:1.3.0")
 
-
+    //excel
+    implementation("org.apache.poi:poi:5.2.3")
 }

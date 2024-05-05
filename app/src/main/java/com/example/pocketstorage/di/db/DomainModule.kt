@@ -8,11 +8,13 @@ import com.example.pocketstorage.domain.usecase.db.DeleteLocationUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoryByIdUseCase
+import com.example.pocketstorage.domain.usecase.db.GetCategoryNameByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesByCategoryIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesByLocationIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationByIdUseCase
+import com.example.pocketstorage.domain.usecase.db.GetLocationNameByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertInventoryUseCase
@@ -142,5 +144,15 @@ class DomainModule {
         return DeleteImageFromBitmapDirectoryUseCase(databaseRepository)
     }
 
+    @Provides
+    fun provideGetCategoryNameByIdUseCase(databaseRepository: DatabaseRepository)
+    : GetCategoryNameByIdUseCase {
+        return GetCategoryNameByIdUseCase(databaseRepository)
+    }
 
+    @Provides
+    fun provideGetLocationNameByIdUseCase(databaseRepository: DatabaseRepository)
+    : GetLocationNameByIdUseCase {
+        return GetLocationNameByIdUseCase(databaseRepository)
+    }
 }

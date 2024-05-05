@@ -3,8 +3,10 @@ package com.example.pocketstorage.presentation.ui.screens.inventory
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.os.Environment
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -119,19 +121,7 @@ fun CameraPermission(viewModel: InventoryViewModel, onEvent: (ProductEvent) -> U
             launcherCamera.launch(android.Manifest.permission.CAMERA)
         }
     }
-
 }
-
-/*@Composable
-@Preview(showBackground = true)
-fun InventoryScreenPreview() {
-    InventoryScreen(
-        onClick = {},
-        onClickAdd = {},
-        onClickLogOut = {},
-        sendIdToProductPage = {},
-        onEvent = {})
-}*/
 
 @Composable
 fun InventoryScreen(
@@ -152,6 +142,21 @@ fun InventoryScreen(
     val context = LocalContext.current
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
 
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            onEvent(ProductEvent.PermissionExternalStorage(isGranted = isGranted))
+
+            if (!isGranted) {
+                Toast.makeText(
+                    context,
+                    "You can change storage permissions in application properties",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+        }
+    )
 
     LaunchedEffect(stateProduct.selectedIdBuilding) {
         onEvent(ProductEvent.StartLoading)
@@ -160,10 +165,17 @@ fun InventoryScreen(
             onEvent(ProductEvent.StopLoading)
             onEvent(ProductEvent.ShowProductSelectedBuilding)
         }
+
+    }
+
+    if (stateProduct.toastNotification) {
+        Toast.makeText(context, "Inventories export to excel file", Toast.LENGTH_SHORT).show()
+        viewModel.resetToastNotificationState()
     }
 
 
     val shouldShowDialog = remember { mutableStateOf(false) }
+
     BackHandler {
         shouldShowDialog.value = true
     }
@@ -301,10 +313,15 @@ fun InventoryScreen(
                         modifier = Modifier.padding(end = 15.dp)
                     )
                     Text(text = "Export", fontSize = 16.sp)
-                }) {
-                //Click
-
-            }
+                },
+                onClick = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        onEvent(ProductEvent.PermissionExternalStorage(isGranted = true))
+                    } else {
+                        requestPermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    }
+                }
+            )
 
             ButtonInventoryScreen(modifier = Modifier
                 .size(width = 150.dp, height = 48.dp),
@@ -344,18 +361,14 @@ fun InventoryScreen(
         }
 
     }
+
     if (openScan.value) {
         onEvent(ProductEvent.StartScan)
         openScan.value = !openScan.value
         Log.d("scannerLogUi", "${startScan.data}")
     }
 
-
-
-
     SnackBarToast(snackbarMessage = snackbarMessage, context = context)
-
-
 }
 
 @Composable

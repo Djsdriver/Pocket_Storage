@@ -187,4 +187,12 @@ class DatabaseRepositoryImpl @Inject constructor(
             Log.d("Image", "Invalid image path")
         }
     }
+
+    override suspend fun getCategoryNameById(categoryId: String): String {
+        return appDatabase.categoryDao().getCategoryNameById(categoryId)
+    }
+
+    override suspend fun getLocationNameById(locationId: String): String {
+        return appDatabase.locationDao().getLocationNameById(locationId)
+    }
 }

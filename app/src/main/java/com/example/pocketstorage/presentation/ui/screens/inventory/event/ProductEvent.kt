@@ -9,5 +9,5 @@ sealed interface ProductEvent {
     data object StopLoading : ProductEvent
     data class SetSearchText(val text: String) : ProductEvent
     data class PermissionCamera(val isGranted: Boolean) : ProductEvent
-
+    data class PermissionExternalStorage(val isGranted: Boolean) : ProductEvent
 }
