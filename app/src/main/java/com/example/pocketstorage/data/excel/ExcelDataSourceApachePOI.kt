@@ -2,6 +2,8 @@ package com.example.pocketstorage.data.excel
 
 import android.content.ContentValues
 import android.content.Context
+import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
 import com.example.pocketstorage.domain.model.TableInventory
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
@@ -17,7 +19,7 @@ class ExcelDataSourceApachePOI(private val context: Context) :
 
         val workbook = HSSFWorkbook()
 
-        val sheet = workbook.createSheet("Excel Export")
+        val sheet = workbook.createSheet("Inventories")
 
         val header = sheet.createRow(0)
 
@@ -50,11 +52,42 @@ class ExcelDataSourceApachePOI(private val context: Context) :
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val formattedDateTime = currentDateTime.format(formatter)
 
-        val externalDir = context.getExternalFilesDir("Excel files")
-        val newFile = File(externalDir, "Inventories ${formattedDateTime}.xlsx")
-        val fileOut = FileOutputStream(newFile)
-        workbook.write(fileOut)
-        fileOut.close()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, "Inventories $formattedDateTime.xlsx")
+            }
+
+            val excelUri = context
+                .contentResolver
+                .insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+            if (excelUri != null) {
+                val outputStream = context.contentResolver.openOutputStream(excelUri)
+
+                try {
+                    workbook.write(outputStream)
+                } finally {
+                    outputStream?.close()
+                }
+            }
+        } else {
+
+            val externalDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+
+            if (externalDir.canWrite()) {
+                val newFile = File(externalDir, "Inventories ${formattedDateTime}.xlsx")
+                val fileOut = FileOutputStream(newFile)
+
+                try {
+                    workbook.write(fileOut)
+                } finally {
+                    fileOut.close()
+                }
+            }
+        }
+
         workbook.close()
     }
 }

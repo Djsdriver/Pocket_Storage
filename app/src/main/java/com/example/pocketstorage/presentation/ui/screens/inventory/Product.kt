@@ -168,8 +168,8 @@ fun InventoryScreen(
 
     }
 
-    if (stateProduct.toastNotification) {
-        Toast.makeText(context, "Inventories export to excel file", Toast.LENGTH_SHORT).show()
+    if (stateProduct.toastNotification.isActivated) {
+        Toast.makeText(context, stateProduct.toastNotification.message, Toast.LENGTH_SHORT).show()
         viewModel.resetToastNotificationState()
     }
 

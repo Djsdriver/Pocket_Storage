@@ -18,6 +18,7 @@ import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStora
 import com.example.pocketstorage.domain.usecase.product.GetDataFromQRCodeUseCase
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.stateui.ProductUIState
+import com.example.pocketstorage.utils.Notification
 import com.example.pocketstorage.utils.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -94,39 +95,62 @@ class InventoryViewModel @Inject constructor(
             is ProductEvent.PermissionExternalStorage -> {
                 if (productEvent.isGranted) {
 
-                    val tableInventoryList: ArrayList<TableInventory> = ArrayList()
+                    if (state.value.products.isNotEmpty()) {
+                        val tableInventoryList: ArrayList<TableInventory> = ArrayList()
 
-                    val inventories = state.value.products
+                        val inventories = state.value.products
 
-                    var count = 0
+                        var count = 0
 
-                    viewModelScope.launch {
-                        inventories.forEach { inventory ->
-                            val categoryName = getCategoryNameByIdUseCase(inventory.categoryId)
-                            val location = getLocationByIdUseCase(inventory.locationId)
-                            val tableInventory = TableInventory(
-                                id = (++count).toString(),
-                                name = inventory.name,
-                                description = inventory.description,
-                                categoryName = categoryName,
-                                locationName = location.name,
-                                locationIndex = location.index,
-                                locationAddress = location.address
-                            )
+                        viewModelScope.launch {
+                            inventories.forEach { inventory ->
+                                val categoryName = getCategoryNameByIdUseCase(inventory.categoryId)
+                                val location = getLocationByIdUseCase(inventory.locationId)
+                                val tableInventory = TableInventory(
+                                    id = (++count).toString(),
+                                    name = inventory.name,
+                                    description = inventory.description,
+                                    categoryName = categoryName,
+                                    locationName = location.name,
+                                    locationIndex = location.index,
+                                    locationAddress = location.address
+                                )
 
-                            tableInventoryList.add(tableInventory)
+                                tableInventoryList.add(tableInventory)
+                            }
+
+                            exportInventoriesToExcelFileUseCase(tableInventoryList)
+
+                            _state.update {
+                                it.copy(
+                                    toastNotification = Notification(
+                                        isActivated = true,
+                                        message = "The products are exported to an excel file" +
+                                                " in the Downloads folder"
+                                    )
+                                )
+                            }
                         }
-
-                        exportInventoriesToExcelFileUseCase(tableInventoryList)
-
+                    } else {
                         _state.update {
-                           it.copy(
-                               toastNotification = true
-                           )
+                            it.copy(
+                                toastNotification = Notification(
+                                    isActivated = true,
+                                    message = "Inventory list is empty for current building"
+                                )
+                            )
                         }
                     }
                 } else {
-                    Log.d("STORAGE", "IS NOT GRANTED IN VIEWMODEL")
+                    _state.update {
+                        it.copy(
+                            toastNotification = Notification(
+                                isActivated = true,
+                                message = "Permission has not been granted. " +
+                                        "You can get it in app settings"
+                            )
+                        )
+                    }
                 }
             }
 
@@ -196,7 +220,7 @@ class InventoryViewModel @Inject constructor(
     fun resetToastNotificationState() {
         _state.update {
             it.copy(
-                toastNotification = false
+                toastNotification = Notification(isActivated = false)
             )
         }
     }
