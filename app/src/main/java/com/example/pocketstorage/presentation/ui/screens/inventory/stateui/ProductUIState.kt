@@ -15,5 +15,5 @@ data class ProductUIState(
     val searchText : String = "",
     val loading: Boolean = false,
     val permissionCamera: Boolean = false,
-    val toastNotification: Notification = Notification()
+    val toastNotification: Notification = Notification(),
 )

@@ -3,6 +3,7 @@ package com.example.pocketstorage.presentation.ui.screens.inventory
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.Log
@@ -157,6 +158,12 @@ fun InventoryScreen(
 
         }
     )
+
+    val launcherContent =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+            Log.d("uri", "$uri")
+            onEvent(ProductEvent.ImportInventoriesFromExcel(uri.toString()))
+        }
 
     LaunchedEffect(stateProduct.selectedIdBuilding) {
         onEvent(ProductEvent.StartLoading)
@@ -333,8 +340,7 @@ fun InventoryScreen(
                     )
                     Text(text = "Import", fontSize = 16.sp)
                 }) {
-                //Click
-
+                launcherContent.launch("*/*")
             }
 
         }
@@ -560,8 +566,3 @@ private fun SnackBarToast(
 
     }
 }
-
-
-
-
-

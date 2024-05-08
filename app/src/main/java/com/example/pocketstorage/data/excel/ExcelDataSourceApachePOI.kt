@@ -5,7 +5,11 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.core.net.toUri
+import com.example.pocketstorage.core.utils.UNDEFINED_ID
 import com.example.pocketstorage.domain.model.TableInventory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import java.io.File
 import java.io.FileOutputStream
@@ -55,7 +59,7 @@ class ExcelDataSourceApachePOI(private val context: Context) :
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 
             val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, "Inventories $formattedDateTime.xlsx")
+                put(MediaStore.MediaColumns.DISPLAY_NAME, "Inventories $formattedDateTime.xls")
             }
 
             val excelUri = context
@@ -77,7 +81,7 @@ class ExcelDataSourceApachePOI(private val context: Context) :
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
             if (externalDir.canWrite()) {
-                val newFile = File(externalDir, "Inventories ${formattedDateTime}.xlsx")
+                val newFile = File(externalDir, "Inventories ${formattedDateTime}.xls")
                 val fileOut = FileOutputStream(newFile)
 
                 try {
@@ -90,5 +94,48 @@ class ExcelDataSourceApachePOI(private val context: Context) :
 
         workbook.close()
     }
-}
 
+    override suspend fun importInventoryFromExcelFile(uriFile: String?) : List<TableInventory> {
+
+        val inventoryList = mutableListOf<TableInventory>()
+
+        withContext(Dispatchers.IO) {
+            val inputStream = context.contentResolver.openInputStream(uriFile!!.toUri())
+            if (inputStream != null) {
+                val workbook = HSSFWorkbook(inputStream)
+                val sheet = workbook.getSheetAt(0)
+
+
+                for (i in 1 until sheet.physicalNumberOfRows) {
+                    val row = sheet.getRow(i)
+
+                    val name = row.getCell(1)?.stringCellValue ?: ""
+                    val description = row.getCell(2)?.stringCellValue ?: ""
+                    val categoryName = row.getCell(3)?.stringCellValue ?: ""
+                    val locationName = row.getCell(4)?.stringCellValue ?: ""
+                    val locationIndex = row.getCell(5)?.stringCellValue ?: ""
+                    val locationAddress = row.getCell(6)?.stringCellValue ?: ""
+
+                    val inventory = TableInventory(
+                        name = name,
+                        description = description,
+                        categoryName = categoryName,
+                        locationName = locationName,
+                        locationIndex = locationIndex,
+                        locationAddress = locationAddress
+                    )
+                    inventoryList.add(inventory)
+                }
+
+                workbook.close()
+                inputStream.close()
+            } else {
+                // Обработка ошибки чтения inputStream
+            }
+        }
+
+
+        return inventoryList
+
+    }
+}
