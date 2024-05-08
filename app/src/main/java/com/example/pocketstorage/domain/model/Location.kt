@@ -8,8 +8,6 @@ data class Location(
     val index: String= "",
     val address: String= "",
     val isSaved: Boolean = false,
-
-
 ){
     fun doesMatchSearchQuery(query: String): Boolean {
         val matchingCombinations = listOf(

@@ -44,8 +44,6 @@ fun HomeNavGraph(navController: NavHostController) {
                     navController.navigate(InventoryScreenState.InfoProduct(idProductFromQrCode).route)
                 },
                 viewModel::event
-
-
             )
         }
         composable(route = BottomBarScreen.Category.route) {

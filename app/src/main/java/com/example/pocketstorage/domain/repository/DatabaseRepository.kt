@@ -44,4 +44,8 @@ interface DatabaseRepository {
     suspend fun saveImageToPrivateStorage(uri: Uri, nameOfImage: String): String
     suspend fun saveImageToPrivateStorageBitmap(bitmap: Bitmap,nameOfImage: String) : Uri
     suspend fun deleteImageFromStorage(imagePath: String?)
+
+    suspend fun getCategoryNameById(categoryId: String): String
+
+    suspend fun getLocationNameById(locationId: String): String
 }

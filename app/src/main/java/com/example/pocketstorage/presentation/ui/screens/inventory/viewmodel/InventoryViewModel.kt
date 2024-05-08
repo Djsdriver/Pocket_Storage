@@ -4,21 +4,27 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
+import com.example.pocketstorage.domain.model.Inventory
+import com.example.pocketstorage.domain.model.TableInventory
 import com.example.pocketstorage.domain.usecase.LogOutUseCase
+import com.example.pocketstorage.domain.usecase.db.GetCategoryByIdUseCase
+import com.example.pocketstorage.domain.usecase.db.GetCategoryNameByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesByLocationIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesUseCase
-import com.example.pocketstorage.domain.usecase.db.GetInventoryByIdUseCase
+import com.example.pocketstorage.domain.usecase.db.GetLocationByIdUseCase
+import com.example.pocketstorage.domain.usecase.db.GetLocationNameByIdUseCase
+import com.example.pocketstorage.domain.usecase.excel.ExportInventoriesToExcelFileUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import com.example.pocketstorage.domain.usecase.product.GetDataFromQRCodeUseCase
-import com.example.pocketstorage.presentation.ui.screens.building.BuildingUiState
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.stateui.ProductUIState
+import com.example.pocketstorage.utils.Notification
 import com.example.pocketstorage.utils.SnackbarManager
-import com.example.pocketstorage.utils.SnackbarMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,17 +35,17 @@ class InventoryViewModel @Inject constructor(
     private val getDataFromQRCodeUseCase: GetDataFromQRCodeUseCase,
     private val getInventoriesByLocationIdUseCase: GetInventoriesByLocationIdUseCase,
     private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase,
-    private val getInventoriesUseCase: GetInventoriesUseCase
-
+    private val getInventoriesUseCase: GetInventoriesUseCase,
+    private val exportInventoriesToExcelFileUseCase: ExportInventoriesToExcelFileUseCase,
+    private val getCategoryNameByIdUseCase: GetCategoryNameByIdUseCase,
+    private val getLocationByIdUseCase: GetLocationByIdUseCase
 ) : ViewModel() {
-
 
     private val _scannerState = MutableStateFlow(ScannerUiState())
     val scannerState = _scannerState.asStateFlow()
 
     private val _state = MutableStateFlow(ProductUIState())
     val state = _state.asStateFlow()
-
 
     fun event(productEvent: ProductEvent) {
         when (productEvent) {
@@ -81,6 +87,68 @@ class InventoryViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             permissionCamera = productEvent.isGranted
+                        )
+                    }
+                }
+            }
+
+            is ProductEvent.PermissionExternalStorage -> {
+                if (productEvent.isGranted) {
+
+                    if (state.value.products.isNotEmpty()) {
+                        val tableInventoryList: ArrayList<TableInventory> = ArrayList()
+
+                        val inventories = state.value.products
+
+                        var count = 0
+
+                        viewModelScope.launch {
+                            inventories.forEach { inventory ->
+                                val categoryName = getCategoryNameByIdUseCase(inventory.categoryId)
+                                val location = getLocationByIdUseCase(inventory.locationId)
+                                val tableInventory = TableInventory(
+                                    id = (++count).toString(),
+                                    name = inventory.name,
+                                    description = inventory.description,
+                                    categoryName = categoryName,
+                                    locationName = location.name,
+                                    locationIndex = location.index,
+                                    locationAddress = location.address
+                                )
+
+                                tableInventoryList.add(tableInventory)
+                            }
+
+                            exportInventoriesToExcelFileUseCase(tableInventoryList)
+
+                            _state.update {
+                                it.copy(
+                                    toastNotification = Notification(
+                                        isActivated = true,
+                                        message = "The products are exported to an excel file" +
+                                                " in the Downloads folder"
+                                    )
+                                )
+                            }
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                toastNotification = Notification(
+                                    isActivated = true,
+                                    message = "Inventory list is empty for current building"
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    _state.update {
+                        it.copy(
+                            toastNotification = Notification(
+                                isActivated = true,
+                                message = "Permission has not been granted. " +
+                                        "You can get it in app settings"
+                            )
                         )
                     }
                 }
@@ -149,6 +217,13 @@ class InventoryViewModel @Inject constructor(
         logOutUseCase.invoke()
     }
 
+    fun resetToastNotificationState() {
+        _state.update {
+            it.copy(
+                toastNotification = Notification(isActivated = false)
+            )
+        }
+    }
 }
 
 

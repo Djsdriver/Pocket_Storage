@@ -1,6 +1,7 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory.stateui
 
 import com.example.pocketstorage.domain.model.Inventory
+import com.example.pocketstorage.utils.Notification
 
 data class ProductUIState(
     val name: String = "",
@@ -13,5 +14,6 @@ data class ProductUIState(
     val data:String = "",
     val searchText : String = "",
     val loading: Boolean = false,
-    val permissionCamera: Boolean = false
+    val permissionCamera: Boolean = false,
+    val toastNotification: Notification = Notification()
 )
