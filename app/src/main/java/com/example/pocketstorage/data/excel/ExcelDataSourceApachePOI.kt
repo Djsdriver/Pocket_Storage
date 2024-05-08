@@ -11,6 +11,7 @@ import com.example.pocketstorage.domain.model.TableInventory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
+import org.apache.poi.ss.usermodel.CellType
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDateTime
@@ -109,12 +110,53 @@ class ExcelDataSourceApachePOI(private val context: Context) :
                 for (i in 1 until sheet.physicalNumberOfRows) {
                     val row = sheet.getRow(i)
 
-                    val name = row.getCell(1)?.stringCellValue ?: ""
-                    val description = row.getCell(2)?.stringCellValue ?: ""
-                    val categoryName = row.getCell(3)?.stringCellValue ?: ""
-                    val locationName = row.getCell(4)?.stringCellValue ?: ""
-                    val locationIndex = row.getCell(5)?.stringCellValue ?: ""
-                    val locationAddress = row.getCell(6)?.stringCellValue ?: ""
+                    val name = row.getCell(1)?.let {
+                        when (it.cellType) {
+                            CellType.STRING -> it.stringCellValue
+                            CellType.NUMERIC -> it.numericCellValue.toString()
+                            else -> ""
+                        }
+                    } ?: ""
+
+                    val description = row.getCell(2)?.let {
+                        when (it.cellType) {
+                            CellType.STRING -> it.stringCellValue
+                            CellType.NUMERIC -> it.numericCellValue.toString()
+                            else -> ""
+                        }
+                    } ?: ""
+
+                    val categoryName = row.getCell(3)?.let {
+                        when (it.cellType) {
+                            CellType.STRING -> it.stringCellValue
+                            CellType.NUMERIC -> it.numericCellValue.toString()
+                            else -> ""
+                        }
+                    } ?: ""
+
+                    val locationName = row.getCell(4)?.let {
+                        when (it.cellType) {
+                            CellType.STRING -> it.stringCellValue
+                            CellType.NUMERIC -> it.numericCellValue.toString()
+                            else -> ""
+                        }
+                    } ?: ""
+
+                    val locationIndex = row.getCell(5)?.let {
+                        when (it.cellType) {
+                            CellType.STRING -> it.stringCellValue
+                            CellType.NUMERIC -> it.numericCellValue.toString()
+                            else -> ""
+                        }
+                    } ?: ""
+
+                    val locationAddress = row.getCell(6)?.let {
+                        when (it.cellType) {
+                            CellType.STRING -> it.stringCellValue
+                            CellType.NUMERIC -> it.numericCellValue.toString()
+                            else -> ""
+                        }
+                    } ?: ""
 
                     val inventory = TableInventory(
                         name = name,
