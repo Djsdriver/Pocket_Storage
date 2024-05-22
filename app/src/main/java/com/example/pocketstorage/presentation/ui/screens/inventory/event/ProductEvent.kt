@@ -10,4 +10,5 @@ sealed interface ProductEvent {
     data class SetSearchText(val text: String) : ProductEvent
     data class PermissionCamera(val isGranted: Boolean) : ProductEvent
     data class PermissionExternalStorage(val isGranted: Boolean) : ProductEvent
+    data class ImportInventoriesFromExcel(val uri: String) : ProductEvent
 }

@@ -8,4 +8,8 @@ class ExcelRepositoryImpl(private val excelDataSource: ExcelDataSource) : ExcelR
     override fun exportTableInventoryListToExcelFile(tableInventoryList: List<TableInventory>) {
         excelDataSource.exportInventoryToExcelFile(tableInventoryList)
     }
+
+    override suspend fun importTableInventoryListFromExcelFile(uriFile: String?): List<TableInventory> {
+        return excelDataSource.importInventoryFromExcelFile(uriFile)
+    }
 }
