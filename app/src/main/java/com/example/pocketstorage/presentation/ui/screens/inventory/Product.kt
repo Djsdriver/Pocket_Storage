@@ -16,6 +16,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Checkbox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
@@ -63,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -184,7 +187,12 @@ fun InventoryScreen(
     val shouldShowDialog = remember { mutableStateOf(false) }
 
     BackHandler {
-        shouldShowDialog.value = true
+        if (stateProduct.showCheckbox){
+            viewModel.showCheckbox(false)
+        }else{
+            shouldShowDialog.value = true
+        }
+
     }
 
 
@@ -360,7 +368,8 @@ fun InventoryScreen(
                 ListRow(
                     { onClick.invoke(inventories.id) },
                     inventory = inventories,
-                    stateProduct.loading
+                    stateProduct.loading,
+                    viewModel,
                 )
                 Log.d("image", "${inventories.pathToImage}")
             }
@@ -432,11 +441,19 @@ fun ButtonInventoryScreen(
 }
 
 @Composable
-fun ListRow(onClick: () -> Unit, inventory: Inventory, loading: Boolean) {
+fun ListRow(onClick: () -> Unit,
+            inventory: Inventory,
+            loading: Boolean,
+            viewModel: InventoryViewModel, ) {
     val context = LocalContext.current
     val filePath = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "my_album")
     val imageFile = File(filePath, inventory.pathToImage!!)
     val placeholder = painterResource(id = R.drawable.add_photo_alternate)
+    val showCheck by viewModel.state.collectAsState()
+    val isSelectedd = remember { mutableStateOf(viewModel.state.value.isSelectedList.contains(inventory.id)) }
+
+
+
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -446,7 +463,16 @@ fun ListRow(onClick: () -> Unit, inventory: Inventory, loading: Boolean) {
             .wrapContentHeight()
             .fillMaxWidth()
             .background(colorResource(id = R.color.AdamantineBlue))
-            .clickable { onClick() }
+            .pointerInput(UInt) {
+                detectTapGestures(
+                    onTap = {
+                        onClick()
+                    },
+                    onLongPress = {
+                        viewModel.showCheckbox(true)
+                    }
+                )
+            }
             .run {
                 if (loading) shimmer() else this
             }
@@ -487,6 +513,16 @@ fun ListRow(onClick: () -> Unit, inventory: Inventory, loading: Boolean) {
                 if (loading) shimmer() else this
             }
         )
+        if (showCheck.showCheckbox) {
+            Checkbox(
+                checked = isSelectedd.value,
+                onCheckedChange = {
+                    isSelectedd.value = it
+                    viewModel.addListSelected(inventory.id, it)
+                }
+            )
+        }
+
     }
 }
 

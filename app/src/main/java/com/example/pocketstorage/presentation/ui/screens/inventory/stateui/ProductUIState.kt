@@ -16,4 +16,7 @@ data class ProductUIState(
     val loading: Boolean = false,
     val permissionCamera: Boolean = false,
     val toastNotification: Notification = Notification(),
+    val isSelected : Boolean = false,
+    val showCheckbox: Boolean = false,
+    val isSelectedList : MutableList<String> = mutableListOf()
 )

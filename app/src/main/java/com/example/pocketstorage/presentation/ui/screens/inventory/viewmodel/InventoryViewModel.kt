@@ -59,6 +59,42 @@ class InventoryViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
 
+    fun showCheckbox(check: Boolean){
+        _state.update {
+            it.copy(
+                showCheckbox = check
+            )
+        }
+    }
+
+    fun update(check: Boolean){
+        _state.update {
+            it.copy(
+                isSelected = check
+            )
+        }
+    }
+
+    fun addListSelected(inventoryId: String, isChecked: Boolean) {
+        _state.update { currentState ->
+            val updatedList = currentState.isSelectedList.toMutableList()
+
+            if (isChecked) {
+                updatedList.add(inventoryId)
+            } else {
+                updatedList.remove(inventoryId)
+            }
+
+            currentState.copy(
+                isSelectedList = updatedList.toMutableList()
+            )
+        }
+        Log.d("listId"," ${_state.value.isSelectedList}")
+
+    }
+
+
+
     fun event(productEvent: ProductEvent) {
         when (productEvent) {
             is ProductEvent.ShowProductSelectedBuilding -> {
