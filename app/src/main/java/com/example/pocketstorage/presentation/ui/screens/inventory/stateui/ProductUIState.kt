@@ -18,5 +18,5 @@ data class ProductUIState(
     val toastNotification: Notification = Notification(),
     val isSelected : Boolean = false,
     val showCheckbox: Boolean = false,
-    val isSelectedList : MutableList<String> = mutableListOf()
+    val isSelectedList : MutableList<Inventory> = mutableListOf()
 )

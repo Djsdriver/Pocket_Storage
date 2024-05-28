@@ -9,6 +9,7 @@ import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.model.TableInventory
 import com.example.pocketstorage.domain.usecase.LogOutUseCase
+import com.example.pocketstorage.domain.usecase.db.DeleteInventoryUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoryNameByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesByLocationIdUseCase
@@ -49,7 +50,8 @@ class InventoryViewModel @Inject constructor(
     private val insertCategoryUseCase: InsertCategoryUseCase,
     private val insertLocationUseCase: InsertLocationUseCase,
     private val getLocationsUseCase: GetLocationsUseCase,
-    private val getCategoriesUseCase: GetCategoriesUseCase
+    private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val deleteInventoryUseCase: DeleteInventoryUseCase,
 ) : ViewModel() {
 
     private val _scannerState = MutableStateFlow(ScannerUiState())
@@ -58,16 +60,34 @@ class InventoryViewModel @Inject constructor(
     private val _state = MutableStateFlow(ProductUIState())
     val state = _state.asStateFlow()
 
+    fun deleteItems(inventory: Inventory) {
+        val selectedInventoryList = state.value.isSelectedList.toList()
+        if (selectedInventoryList.isNotEmpty()) {
+            viewModelScope.launch {
+                    deleteInventoryUseCase(inventory)
+            }
+            _state.update {
+                it.copy(
+                    products = it.products.filterNot { inventory ->
+                        selectedInventoryList.contains(inventory)
+                    },
+                    isSelectedList = mutableListOf(),
+                    showCheckbox = false
+                )
+            }
+        }
+    }
 
-    fun showCheckbox(check: Boolean){
+    fun showCheckbox(check: Boolean, emptyList: MutableList<Inventory> = mutableListOf()) {
         _state.update {
             it.copy(
-                showCheckbox = check
+                showCheckbox = check,
+                isSelectedList = emptyList,
             )
         }
     }
 
-    fun update(check: Boolean){
+    fun update(check: Boolean) {
         _state.update {
             it.copy(
                 isSelected = check
@@ -75,24 +95,23 @@ class InventoryViewModel @Inject constructor(
         }
     }
 
-    fun addListSelected(inventoryId: String, isChecked: Boolean) {
+    fun addListSelected(inventory: Inventory, isChecked: Boolean) {
         _state.update { currentState ->
             val updatedList = currentState.isSelectedList.toMutableList()
 
             if (isChecked) {
-                updatedList.add(inventoryId)
+                updatedList.add(inventory)
             } else {
-                updatedList.remove(inventoryId)
+                updatedList.remove(inventory)
             }
 
             currentState.copy(
                 isSelectedList = updatedList.toMutableList()
             )
         }
-        Log.d("listId"," ${_state.value.isSelectedList}")
+        Log.d("listId", " ${_state.value.isSelectedList}")
 
     }
-
 
 
     fun event(productEvent: ProductEvent) {
@@ -226,6 +245,10 @@ class InventoryViewModel @Inject constructor(
                 importFile(productEvent.uri)
             }
 
+            is ProductEvent.DeleteItems -> {
+                deleteItems(productEvent.inventory)
+            }
+
             else -> {}
         }
     }
@@ -245,10 +268,16 @@ class InventoryViewModel @Inject constructor(
             if (buildingExists) {
                 SnackbarManager.showMessage("Здание уже существует в базе данных")
             } else {
-                insertBuildingAndInventoriesAndCategories(locationName, locationIndex, locationAddress, list)
+                insertBuildingAndInventoriesAndCategories(
+                    locationName,
+                    locationIndex,
+                    locationAddress,
+                    list
+                )
             }
         }
     }
+
     //Пробегаюсь по списку списку зданий и проверяю, сушествует ли адрес данного здания
     private suspend fun doesBuildingExist(locationAddress: String): Boolean {
         val buildingExistsState = MutableStateFlow(false)
@@ -261,7 +290,10 @@ class InventoryViewModel @Inject constructor(
 
     //Вставка данных в базу данных
     private fun insertBuildingAndInventoriesAndCategories(
-        locationName: String, locationIndex: String, locationAddress: String, list: List<TableInventory>
+        locationName: String,
+        locationIndex: String,
+        locationAddress: String,
+        list: List<TableInventory>
     ) {
         var buildingId = ""
         viewModelScope.launch {
@@ -281,7 +313,12 @@ class InventoryViewModel @Inject constructor(
                 list.forEach {
                     val categoryName = it.categoryName
                     if (!categoriesMap.containsKey(categoryName)) {
-                        insertCategoryUseCase.invoke(Category(name = categoryName, buildingId = buildingId))
+                        insertCategoryUseCase.invoke(
+                            Category(
+                                name = categoryName,
+                                buildingId = buildingId
+                            )
+                        )
                         getCategoriesUseCase.invoke().collect { categories ->
                             categories.forEach { category ->
                                 if (category.name == categoryName) {
@@ -292,7 +329,14 @@ class InventoryViewModel @Inject constructor(
                     }
 
                     val categoryId = categoriesMap[categoryName] ?: ""
-                    insertInventoryUseCase.invoke(Inventory(name = it.name, description = it.description, locationId = buildingId, categoryId = categoryId))
+                    insertInventoryUseCase.invoke(
+                        Inventory(
+                            name = it.name,
+                            description = it.description,
+                            locationId = buildingId,
+                            categoryId = categoryId
+                        )
+                    )
                 }
 
                 SnackbarManager.showMessage("Здание успешно импортировано.")

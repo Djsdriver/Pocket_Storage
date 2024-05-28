@@ -207,7 +207,8 @@ fun AuthorizationScreen(
             onDismissRequest = { shouldShowDialog.value = false },
             onConfirmation = { activity?.finish() },
             painter = painterResource(id = R.drawable.cat_dialog),
-            imageDescription = "cat"
+            imageDescription = "cat",
+            text = "Вы точно хотите завершить работу?"
         )
     }
 

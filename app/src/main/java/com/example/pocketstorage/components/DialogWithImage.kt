@@ -26,6 +26,7 @@ fun DialogWithImage(
     onConfirmation: () -> Unit,
     painter: Painter,
     imageDescription: String,
+    text: String
 ) {
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Card(
@@ -49,7 +50,7 @@ fun DialogWithImage(
                         .height(160.dp)
                 )
                 Text(
-                    text = "Вы точно хотите завершить работу?",
+                    text = text,
                     modifier = Modifier.padding(16.dp),
                 )
                 Row(

@@ -185,11 +185,13 @@ fun InventoryScreen(
 
 
     val shouldShowDialog = remember { mutableStateOf(false) }
+    val shouldShowDialogDeleteItems = remember { mutableStateOf(false) }
 
     BackHandler {
-        if (stateProduct.showCheckbox){
+        if (stateProduct.showCheckbox) {
             viewModel.showCheckbox(false)
-        }else{
+            viewModel.update(false)
+        } else {
             shouldShowDialog.value = true
         }
 
@@ -212,8 +214,27 @@ fun InventoryScreen(
             onDismissRequest = { shouldShowDialog.value = false },
             onConfirmation = { activity?.finish() },
             painter = painterResource(id = R.drawable.cat_dialog),
-            imageDescription = "cat"
+            imageDescription = "cat",
+            text = "Вы точно хотите завершить работу?"
         )
+    }
+
+    if (shouldShowDialogDeleteItems.value) {
+        DialogWithImage(
+            onDismissRequest = { shouldShowDialogDeleteItems.value = false },
+            onConfirmation = {
+                stateProduct.isSelectedList.forEach {
+                    onEvent(ProductEvent.DeleteItems(it))
+                    Toast.makeText(context, "${it.name} delete",Toast.LENGTH_LONG).show()
+
+                }
+                shouldShowDialogDeleteItems.value = false
+                             },
+            painter = painterResource(id = R.drawable.cat_dialog),
+            imageDescription = "cat",
+            text = "Вы точно хотите удалить объекты?"
+        )
+        Log.d("spisok", "${stateProduct.isSelectedList}")
     }
 
     Column(
@@ -359,6 +380,18 @@ fun InventoryScreen(
                 .padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
                 .fillMaxWidth()
         )
+        if (stateProduct.isSelectedList.isNotEmpty()){
+            Text(
+                text = "Delete",
+                fontSize = 16.sp,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clickable {
+                        shouldShowDialogDeleteItems.value = true
+                    }
+            )
+        }
+
         LazyColumn(
             modifier = Modifier
                 .padding(start = 24.dp, end = 24.dp)
@@ -441,18 +474,24 @@ fun ButtonInventoryScreen(
 }
 
 @Composable
-fun ListRow(onClick: () -> Unit,
-            inventory: Inventory,
-            loading: Boolean,
-            viewModel: InventoryViewModel, ) {
+fun ListRow(
+    onClick: () -> Unit,
+    inventory: Inventory,
+    loading: Boolean,
+    viewModel: InventoryViewModel,
+) {
     val context = LocalContext.current
     val filePath = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "my_album")
     val imageFile = File(filePath, inventory.pathToImage!!)
     val placeholder = painterResource(id = R.drawable.add_photo_alternate)
     val showCheck by viewModel.state.collectAsState()
-    val isSelectedd = remember { mutableStateOf(viewModel.state.value.isSelectedList.contains(inventory.id)) }
+    val isSelectedd =
+        remember { mutableStateOf(viewModel.state.value.isSelectedList.contains(inventory)) }
 
 
+    if (showCheck.isSelectedList.isEmpty()) {
+        isSelectedd.value = false
+    }
 
 
     Row(
@@ -518,7 +557,7 @@ fun ListRow(onClick: () -> Unit,
                 checked = isSelectedd.value,
                 onCheckedChange = {
                     isSelectedd.value = it
-                    viewModel.addListSelected(inventory.id, it)
+                    viewModel.addListSelected(inventory, it)
                 }
             )
         }
