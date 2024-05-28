@@ -39,6 +39,15 @@ class DatabaseRepositoryImpl @Inject constructor(
         appDatabase.inventoryDao().deleteInventory(inventory.toInventoryEntity())
     }
 
+    override suspend fun deleteInventoryById(inventoryId: String) {
+        // Получение инвентаря по ID
+        val inventory = appDatabase.inventoryDao().getInventoryById(inventoryId)
+
+        // Удаление инвентаря из базы данных
+        appDatabase.inventoryDao().deleteInventory(inventory)
+    }
+
+
     override suspend fun updateInventory(inventory: Inventory) {
         appDatabase.inventoryDao().updateInventory(inventory.toInventoryEntity())
     }

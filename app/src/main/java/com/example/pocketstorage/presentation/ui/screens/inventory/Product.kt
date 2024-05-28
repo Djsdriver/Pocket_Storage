@@ -223,11 +223,9 @@ fun InventoryScreen(
         DialogWithImage(
             onDismissRequest = { shouldShowDialogDeleteItems.value = false },
             onConfirmation = {
-                stateProduct.isSelectedList.forEach {
-                    onEvent(ProductEvent.DeleteItems(it))
-                    Toast.makeText(context, "${it.name} delete",Toast.LENGTH_LONG).show()
+                    onEvent(ProductEvent.DeleteItems)
+                    Toast.makeText(context, "${stateProduct.isSelectedList} delete",Toast.LENGTH_LONG).show()
 
-                }
                 shouldShowDialogDeleteItems.value = false
                              },
             painter = painterResource(id = R.drawable.cat_dialog),
@@ -235,6 +233,7 @@ fun InventoryScreen(
             text = "Вы точно хотите удалить объекты?"
         )
         Log.d("spisok", "${stateProduct.isSelectedList}")
+        Log.d("spisokProduct", "${stateProduct.products}")
     }
 
     Column(
@@ -486,7 +485,7 @@ fun ListRow(
     val placeholder = painterResource(id = R.drawable.add_photo_alternate)
     val showCheck by viewModel.state.collectAsState()
     val isSelectedd =
-        remember { mutableStateOf(viewModel.state.value.isSelectedList.contains(inventory)) }
+        remember { mutableStateOf(viewModel.state.value.isSelectedList.contains(inventory.id)) }
 
 
     if (showCheck.isSelectedList.isEmpty()) {

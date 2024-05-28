@@ -9,6 +9,7 @@ import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.model.TableInventory
 import com.example.pocketstorage.domain.usecase.LogOutUseCase
+import com.example.pocketstorage.domain.usecase.db.DeleteInventoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.DeleteInventoryUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoryNameByIdUseCase
@@ -52,6 +53,7 @@ class InventoryViewModel @Inject constructor(
     private val getLocationsUseCase: GetLocationsUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val deleteInventoryUseCase: DeleteInventoryUseCase,
+    private val deleteInventoryByIdUseCase: DeleteInventoryByIdUseCase
 ) : ViewModel() {
 
     private val _scannerState = MutableStateFlow(ScannerUiState())
@@ -60,25 +62,27 @@ class InventoryViewModel @Inject constructor(
     private val _state = MutableStateFlow(ProductUIState())
     val state = _state.asStateFlow()
 
-    fun deleteItems(inventory: Inventory) {
+    fun deleteItems() {
         val selectedInventoryList = state.value.isSelectedList.toList()
         if (selectedInventoryList.isNotEmpty()) {
             viewModelScope.launch {
-                    deleteInventoryUseCase(inventory)
-            }
-            _state.update {
-                it.copy(
-                    products = it.products.filterNot { inventory ->
-                        selectedInventoryList.contains(inventory)
-                    },
-                    isSelectedList = mutableListOf(),
-                    showCheckbox = false
-                )
+                selectedInventoryList.forEach { id ->
+                    deleteInventoryByIdUseCase(id)
+                }
+                _state.update {
+                    it.copy(
+                        products = it.products.filterNot { inventory ->
+                            selectedInventoryList.contains(inventory.id)
+                        },
+                        isSelectedList = mutableListOf(),
+                        showCheckbox = false
+                    )
+                }
             }
         }
     }
 
-    fun showCheckbox(check: Boolean, emptyList: MutableList<Inventory> = mutableListOf()) {
+    fun showCheckbox(check: Boolean, emptyList: MutableList<String> = mutableListOf()) {
         _state.update {
             it.copy(
                 showCheckbox = check,
@@ -100,9 +104,9 @@ class InventoryViewModel @Inject constructor(
             val updatedList = currentState.isSelectedList.toMutableList()
 
             if (isChecked) {
-                updatedList.add(inventory)
+                updatedList.add(inventory.id)
             } else {
-                updatedList.remove(inventory)
+                updatedList.remove(inventory.id)
             }
 
             currentState.copy(
@@ -246,7 +250,7 @@ class InventoryViewModel @Inject constructor(
             }
 
             is ProductEvent.DeleteItems -> {
-                deleteItems(productEvent.inventory)
+                deleteItems()
             }
 
             else -> {}

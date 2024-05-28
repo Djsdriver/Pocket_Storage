@@ -17,6 +17,10 @@ interface InventoryDao {
     @Delete
     suspend fun deleteInventory(inventory: InventoryEntity)
 
+    // Добавлен новый метод для удаления инвентаря по ID
+    @Query("DELETE FROM inventory_table WHERE id = :inventoryId")
+    suspend fun deleteInventoryById(inventoryId: String)
+
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateInventory(inventory: InventoryEntity)
 

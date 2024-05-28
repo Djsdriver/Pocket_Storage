@@ -13,6 +13,8 @@ interface DatabaseRepository {
 
     suspend fun deleteInventory(inventory: Inventory)
 
+    suspend fun deleteInventoryById(inventoryId: String)
+
     suspend fun updateInventory(inventory: Inventory)
 
     suspend fun getInventoryById(inventoryId: String): Inventory

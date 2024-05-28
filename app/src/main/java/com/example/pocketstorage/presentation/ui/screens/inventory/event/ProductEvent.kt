@@ -14,5 +14,5 @@ sealed interface ProductEvent {
     data class PermissionExternalStorage(val isGranted: Boolean) : ProductEvent
     data class ImportInventoriesFromExcel(val uri: String) : ProductEvent
 
-    data class DeleteItems(val inventory: Inventory): ProductEvent
+    data object DeleteItems: ProductEvent
 }
