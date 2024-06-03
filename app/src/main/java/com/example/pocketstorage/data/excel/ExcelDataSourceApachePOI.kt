@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import androidx.core.net.toUri
 import com.example.pocketstorage.core.utils.UNDEFINED_ID
 import com.example.pocketstorage.domain.model.TableInventory
@@ -13,6 +14,7 @@ import kotlinx.coroutines.withContext
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.CellType
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -96,88 +98,93 @@ class ExcelDataSourceApachePOI(private val context: Context) :
         workbook.close()
     }
 
-    override suspend fun importInventoryFromExcelFile(uriFile: String?) : List<TableInventory> {
+    override suspend fun importInventoryFromExcelFile(uriFile: String?): List<TableInventory> {
 
         val inventoryList = mutableListOf<TableInventory>()
 
         withContext(Dispatchers.IO) {
-            val inputStream = context.contentResolver.openInputStream(uriFile!!.toUri())
-            if (inputStream != null) {
-                val workbook = HSSFWorkbook(inputStream)
-                val sheet = workbook.getSheetAt(0)
+            try {
+                val inputStream =
+                    uriFile?.let { context.contentResolver.openInputStream(it.toUri()) }
+                inputStream.let {
+                    val workbook = HSSFWorkbook(inputStream)
+                    val sheet = workbook.getSheetAt(0)
 
 
-                for (i in 1 until sheet.physicalNumberOfRows) {
-                    val row = sheet.getRow(i)
+                    for (i in 1 until sheet.physicalNumberOfRows) {
+                        val row = sheet.getRow(i)
 
-                    val name = row.getCell(1)?.let {
-                        when (it.cellType) {
-                            CellType.STRING -> it.stringCellValue
-                            CellType.NUMERIC -> it.numericCellValue.toString()
-                            else -> ""
-                        }
-                    } ?: ""
+                        val name = row.getCell(1)?.let {
+                            when (it.cellType) {
+                                CellType.STRING -> it.stringCellValue
+                                CellType.NUMERIC -> it.numericCellValue.toString()
+                                else -> ""
+                            }
+                        } ?: ""
 
-                    val description = row.getCell(2)?.let {
-                        when (it.cellType) {
-                            CellType.STRING -> it.stringCellValue
-                            CellType.NUMERIC -> it.numericCellValue.toString()
-                            else -> ""
-                        }
-                    } ?: ""
+                        val description = row.getCell(2)?.let {
+                            when (it.cellType) {
+                                CellType.STRING -> it.stringCellValue
+                                CellType.NUMERIC -> it.numericCellValue.toString()
+                                else -> ""
+                            }
+                        } ?: ""
 
-                    val categoryName = row.getCell(3)?.let {
-                        when (it.cellType) {
-                            CellType.STRING -> it.stringCellValue
-                            CellType.NUMERIC -> it.numericCellValue.toString()
-                            else -> ""
-                        }
-                    } ?: ""
+                        val categoryName = row.getCell(3)?.let {
+                            when (it.cellType) {
+                                CellType.STRING -> it.stringCellValue
+                                CellType.NUMERIC -> it.numericCellValue.toString()
+                                else -> ""
+                            }
+                        } ?: ""
 
-                    val locationName = row.getCell(4)?.let {
-                        when (it.cellType) {
-                            CellType.STRING -> it.stringCellValue
-                            CellType.NUMERIC -> it.numericCellValue.toString()
-                            else -> ""
-                        }
-                    } ?: ""
+                        val locationName = row.getCell(4)?.let {
+                            when (it.cellType) {
+                                CellType.STRING -> it.stringCellValue
+                                CellType.NUMERIC -> it.numericCellValue.toString()
+                                else -> ""
+                            }
+                        } ?: ""
 
-                    val locationIndex = row.getCell(5)?.let {
-                        when (it.cellType) {
-                            CellType.STRING -> it.stringCellValue
-                            CellType.NUMERIC -> it.numericCellValue.toString()
-                            else -> ""
-                        }
-                    } ?: ""
+                        val locationIndex = row.getCell(5)?.let {
+                            when (it.cellType) {
+                                CellType.STRING -> it.stringCellValue
+                                CellType.NUMERIC -> it.numericCellValue.toString()
+                                else -> ""
+                            }
+                        } ?: ""
 
-                    val locationAddress = row.getCell(6)?.let {
-                        when (it.cellType) {
-                            CellType.STRING -> it.stringCellValue
-                            CellType.NUMERIC -> it.numericCellValue.toString()
-                            else -> ""
-                        }
-                    } ?: ""
+                        val locationAddress = row.getCell(6)?.let {
+                            when (it.cellType) {
+                                CellType.STRING -> it.stringCellValue
+                                CellType.NUMERIC -> it.numericCellValue.toString()
+                                else -> ""
+                            }
+                        } ?: ""
 
-                    val inventory = TableInventory(
-                        name = name,
-                        description = description,
-                        categoryName = categoryName,
-                        locationName = locationName,
-                        locationIndex = locationIndex,
-                        locationAddress = locationAddress
-                    )
-                    inventoryList.add(inventory)
+                        val inventory = TableInventory(
+                            name = name,
+                            description = description,
+                            categoryName = categoryName,
+                            locationName = locationName,
+                            locationIndex = locationIndex,
+                            locationAddress = locationAddress
+                        )
+                        inventoryList.add(inventory)
+                    }
+
+                    workbook.close()
+                    inputStream?.close()
                 }
-
-                workbook.close()
-                inputStream.close()
-            } else {
-                // Обработка ошибки чтения inputStream
+            } catch (e: FileNotFoundException) {
+                // Handle file not found exception
+                Log.e("FileError", "File not found: ${e.message}")
+            } catch (e: Exception) {
+                // Handle other exceptions
+                Log.e("ImportError", "Error importing file: ${e.message}")
             }
+
         }
-
-
         return inventoryList
-
     }
 }

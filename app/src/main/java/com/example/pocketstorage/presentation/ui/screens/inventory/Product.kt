@@ -51,12 +51,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -95,6 +98,7 @@ import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import com.google.firebase.auth.FirebaseAuth
 import com.valentinilk.shimmer.shimmer
+import kotlinx.coroutines.coroutineScope
 import java.io.File
 
 
@@ -145,6 +149,7 @@ fun InventoryScreen(
     val openScan = remember { mutableStateOf(false) }
     val context = LocalContext.current
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
+
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -197,17 +202,13 @@ fun InventoryScreen(
 
     }
 
-
     LaunchedEffect(startScan.data) {
         if (startScan.data.isNotEmpty()) {
             sendIdToProductPage.invoke(startScan.data)
             onEvent(ProductEvent.CleanerScannerState)
         }
     }
-    Log.d("search_screen", "${stateProduct.searchText}")
 
-    Log.d("list_invent", "${stateProduct.products}")
-    Log.d("selecred_building_screen", "${stateProduct.selectedIdBuilding}")
 
     if (shouldShowDialog.value) {
         DialogWithImage(
@@ -223,7 +224,9 @@ fun InventoryScreen(
         DialogWithImage(
             onDismissRequest = { shouldShowDialogDeleteItems.value = false },
             onConfirmation = {
-                    onEvent(ProductEvent.DeleteItems)
+                    viewModel.deleteItems {
+                        viewModel.update(false)
+                    }
                     Toast.makeText(context, "${stateProduct.isSelectedList} delete",Toast.LENGTH_LONG).show()
 
                 shouldShowDialogDeleteItems.value = false
@@ -232,9 +235,10 @@ fun InventoryScreen(
             imageDescription = "cat",
             text = "Вы точно хотите удалить объекты?"
         )
-        Log.d("spisok", "${stateProduct.isSelectedList}")
+        Log.d("spisokSelectedList", "${stateProduct.isSelectedList}")
         Log.d("spisokProduct", "${stateProduct.products}")
     }
+
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -396,14 +400,22 @@ fun InventoryScreen(
                 .padding(start = 24.dp, end = 24.dp)
                 .background(Color.White)
         ) {
-            items(stateProduct.products) { inventories ->
-                ListRow(
-                    { onClick.invoke(inventories.id) },
-                    inventory = inventories,
-                    stateProduct.loading,
-                    viewModel,
-                )
-                Log.d("image", "${inventories.pathToImage}")
+            items(stateProduct.products,
+                key = { item ->
+                    // Ваша логика для генерации ключа на основе элемента `item`
+                    item!!.id // Например, если `item` имеет поле `id`, можно использовать его как ключ
+                }) { inventories ->
+                if (inventories != null) {
+                    ListRow(
+                        {
+                            onClick.invoke(it)
+                            Log.d("inventories.id", "${inventories.id}")
+                        },
+                        inventory = inventories,
+                        stateProduct.loading,
+                        viewModel,
+                    )
+                }
             }
         }
 
@@ -474,7 +486,7 @@ fun ButtonInventoryScreen(
 
 @Composable
 fun ListRow(
-    onClick: () -> Unit,
+    onClick: (String) -> Unit,
     inventory: Inventory,
     loading: Boolean,
     viewModel: InventoryViewModel,
@@ -485,7 +497,7 @@ fun ListRow(
     val placeholder = painterResource(id = R.drawable.add_photo_alternate)
     val showCheck by viewModel.state.collectAsState()
     val isSelectedd =
-        remember { mutableStateOf(viewModel.state.value.isSelectedList.contains(inventory.id)) }
+        remember { mutableStateOf(showCheck.isSelectedList.contains(inventory.id)) }
 
 
     if (showCheck.isSelectedList.isEmpty()) {
@@ -504,7 +516,8 @@ fun ListRow(
             .pointerInput(UInt) {
                 detectTapGestures(
                     onTap = {
-                        onClick()
+                        onClick(inventory.id)
+
                     },
                     onLongPress = {
                         viewModel.showCheckbox(true)
