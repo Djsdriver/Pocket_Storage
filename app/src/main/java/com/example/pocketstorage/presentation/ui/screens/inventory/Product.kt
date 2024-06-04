@@ -30,6 +30,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -88,6 +90,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pocketstorage.R
 import com.example.pocketstorage.components.DialogWithImage
+import com.example.pocketstorage.components.bottomBorder
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.graphs.BottomBarScreen
 import com.example.pocketstorage.graphs.HomeNavGraph
@@ -376,24 +379,33 @@ fun InventoryScreen(
             }
 
         }
-        Text(
-            text = "Recently added",
-            fontSize = 24.sp,
+        Row(
             modifier = Modifier
-                .padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
-                .fillMaxWidth()
-        )
-        if (stateProduct.isSelectedList.isNotEmpty()){
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(
-                text = "Delete",
-                fontSize = 16.sp,
+                text = "Recently added",
+                fontSize = 24.sp,
                 modifier = Modifier
-                    .padding(end = 8.dp)
-                    .clickable {
-                        shouldShowDialogDeleteItems.value = true
-                    }
+                    .padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
             )
+            if (stateProduct.isSelectedList.isNotEmpty()){
+                Text(
+                    text = "Delete",
+                    fontSize = 16.sp,
+                    color = Color.Red,
+                    modifier = Modifier
+                        .padding(top = 6.dp,end = 30.dp)
+                        .bottomBorder(2.dp)
+                        .clickable {
+                            shouldShowDialogDeleteItems.value = true
+                        }
+                )
+            }
         }
+
 
         LazyColumn(
             modifier = Modifier
@@ -507,6 +519,7 @@ fun ListRow(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .padding(2.dp)
             .clip(RoundedCornerShape(8.dp))
@@ -517,7 +530,6 @@ fun ListRow(
                 detectTapGestures(
                     onTap = {
                         onClick(inventory.id)
-
                     },
                     onLongPress = {
                         viewModel.showCheckbox(true)
@@ -528,52 +540,56 @@ fun ListRow(
                 if (loading) shimmer() else this
             }
     ) {
-        if (imageFile.exists()) {
-            AsyncImage(
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(5.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .run {
-                        if (loading) shimmer() else this
-                    },
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageFile)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Image(
-                painter = placeholder,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(5.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            )
-        }
-
-        Text(
-            text = inventory.name,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White,
-            modifier = Modifier.run {
-                if (loading) shimmer() else this
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically) {
+            if (imageFile.exists()) {
+                AsyncImage(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .padding(5.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .run {
+                            if (loading) shimmer() else this
+                        },
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageFile)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = placeholder,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .padding(5.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
             }
-        )
-        if (showCheck.showCheckbox) {
-            Checkbox(
-                checked = isSelectedd.value,
-                onCheckedChange = {
-                    isSelectedd.value = it
-                    viewModel.addListSelected(inventory, it)
-                }
+            Text(
+                text = inventory.name,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                modifier = Modifier.weight(1f)
             )
         }
 
+        Box(Modifier
+            .padding(end = 8.dp)) {
+            if (showCheck.showCheckbox) {
+                Checkbox(
+                    checked = isSelectedd.value,
+                    onCheckedChange = {
+                        isSelectedd.value = it
+                        viewModel.addListSelected(inventory, it)
+                    },
+                )
+            }
+        }
     }
 }
 
