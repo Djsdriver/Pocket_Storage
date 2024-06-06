@@ -62,6 +62,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
 import com.example.pocketstorage.domain.model.Category
+import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryViewModel
 
 @Composable
@@ -302,8 +303,11 @@ private fun RenderScreen(viewModel: CategoryViewModel, uiState: CategoriesUiStat
                         .padding(start = 24.dp, end = 24.dp)
                         .background(Color.White)
                 ) {
-                    items(uiState.categories) { categories ->
-                        ProductsOfTheCategories(categories)
+                    items(uiState.categories,
+                        key = {
+                            it.id
+                        }) { categories ->
+                        ProductsOfTheCategories(categoriesState.inventoryList,categories,viewModel)
                     }
                 }
             }
@@ -373,15 +377,18 @@ fun ButtonForTheCategoryScreen(
 }
 
 
-data class ItemsCategoryModel(val nameProduct: String)
-
 @Composable
 fun ExpandableListItem(
     category: Category,
-    items: List<ItemsCategoryModel>,
-    onItemClick: (String) -> Unit
+    items: List<Inventory>,
+    onItemClick: (String) -> Unit,
+    onItemCategoryClick: (String) -> Unit,
+    viewModel: CategoryViewModel
 ) {
-    var expanded by remember { mutableStateOf(false) }
+
+    val expandedCategoryId by viewModel.categoriesState.collectAsState()
+    val expanded = expandedCategoryId.activeCategory == category.id
+    val expandedIcon = viewModel.categoriesState.value.expandedIcons[category.id] ?: false
 
     Column {
         // Заголовок элемента списка
@@ -389,7 +396,18 @@ fun ExpandableListItem(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expanded = !expanded }
+                .clickable {
+                    if (expandedCategoryId.activeCategory == category.id) {
+                        viewModel.clearActiveCategory() // Clear active category when clicked again
+
+                    } else {
+                        onItemCategoryClick(category.id)
+                        // Set clicked category as active
+                    }
+                    viewModel.toggleExpandIcon(category.id)
+
+
+                }
                 .padding(bottom = 8.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(colorResource(id = R.color.AdamantineBlue))
@@ -419,7 +437,7 @@ fun ExpandableListItem(
 
             Icon(
                 modifier = Modifier.size(24.dp),
-                painter = painterResource(id = if (expanded) R.drawable.expand_more else R.drawable.expand_more_less),
+                painter = painterResource(id = if (expandedIcon) R.drawable.expand_more else R.drawable.expand_more_less),
                 contentDescription = "Expand/Collapse",
                 tint = Color.White
             )
@@ -430,7 +448,7 @@ fun ExpandableListItem(
         val state = rememberScrollState()
         LaunchedEffect(Unit) { state.animateScrollTo(100) }
         // Список элементов, отображаемых при развернутом состоянии
-        if (expanded) {
+        if (expandedCategoryId.activeCategory == category.id) {
             Column(
                 modifier = Modifier
                     .size(width = 300.dp, height = 150.dp)
@@ -439,43 +457,42 @@ fun ExpandableListItem(
             ) {
                 items.forEach { item ->
                     Text(
-                        text = item.nameProduct,
+                        text = item.name,
                         fontSize = 16.sp,
                         modifier = Modifier
-                            .clickable { onItemClick(item.nameProduct) }
+                            .clickable { onItemClick(item.id) }
                             .padding(4.dp)
                     )
                 }
             }
+
         }
     }
-}
+    }
 
 @Composable
-fun ProductsOfTheCategories(category: Category) {
+fun ProductsOfTheCategories(items: List<Inventory>,category: Category,viewModel: CategoryViewModel) {
     val selectedItems = remember { mutableStateListOf<String>() }
 
     Column {
         ExpandableListItem(
             category = category,
-            items = listOf(
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-            ),
+            items = items.filter { it.categoryId == category.id },
             onItemClick = { subitem ->
                 if (selectedItems.contains(subitem)) {
                     selectedItems.remove(subitem)
                 } else {
                     selectedItems.add(subitem)
                 }
-            }
+            },
+            onItemCategoryClick = {
+                viewModel.activeCategory(it)
+                viewModel.getInventoryByCategoryId(it)
+
+            },
+            viewModel
         )
+        Log.d("selectedItems", "${selectedItems}")
     }
 }
 

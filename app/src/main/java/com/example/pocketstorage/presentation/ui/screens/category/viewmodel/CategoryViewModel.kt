@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.doesMatchSearchQuery
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
+import com.example.pocketstorage.domain.usecase.db.GetInventoriesByCategoryIdUseCase
+import com.example.pocketstorage.domain.usecase.db.GetInventoriesUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import com.example.pocketstorage.presentation.ui.screens.category.CategoriesStateForCurrentLocation
@@ -14,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,7 +25,9 @@ import javax.inject.Inject
 class CategoryViewModel @Inject constructor(
     private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase,
     private val insertCategoryUseCase: InsertCategoryUseCase,
-    private val getCategoriesByBuildingIdUseCase: GetCategoriesByBuildingIdUseCase
+    private val getCategoriesByBuildingIdUseCase: GetCategoriesByBuildingIdUseCase,
+    private val getInventoriesByCategoryIdUseCase: GetInventoriesByCategoryIdUseCase,
+    private val getInventoriesUseCase: GetInventoriesUseCase
 ) : ViewModel() {
 
     private val _categoriesState = MutableStateFlow(CategoriesStateForCurrentLocation())
@@ -38,6 +43,8 @@ class CategoryViewModel @Inject constructor(
             categoriesState.collect { state ->
                 if (state != null) {
                     getAllCategoriesByLocationId(state.currentLocationId)
+                    Log.d("inventoryListCategory", "${_categoriesState.value.inventoryList}")
+
                 }
                 if (state != null) {
                     _uiState.update {
@@ -49,12 +56,17 @@ class CategoryViewModel @Inject constructor(
                                     )
                                 }
                             )
+
                         } else {
                             CategoriesUiState.Success(
-                                categories = state.existingCategoriesForCurrentLocation
+                                categories = state.existingCategoriesForCurrentLocation,
+                                inventoryList = state.inventoryList
                             )
                         }
+
                     }
+                    Log.d("inventoryListCategory", "${_categoriesState.value.inventoryList}")
+
                 }
 
             }
@@ -102,5 +114,47 @@ class CategoryViewModel @Inject constructor(
             }
         }
     }
+
+    fun getInventoryByCategoryId(id:String){
+        viewModelScope.launch {
+                getInventoriesByCategoryIdUseCase.invoke(id).collect{list->
+                    _categoriesState.update {
+                        it.copy(
+                            inventoryList = list
+                        )
+                    }
+                }
+        }
+        Log.d("inventoryListCategory", "${_categoriesState.value.inventoryList}")
+
+    }
+
+    fun activeCategory(id:String){
+        _categoriesState.update {
+            it.copy(
+                activeCategory = id,
+            )
+        }
+    }
+
+    fun clearActiveCategory(){
+        _categoriesState.update {
+            it.copy(
+                activeCategory = "",
+            )
+        }
+    }
+    fun toggleExpandIcon(categoryId: String) {
+        _categoriesState.update { state ->
+            val expandedIcons = state.expandedIcons.toMutableMap()
+            expandedIcons[categoryId] = !(expandedIcons[categoryId] ?: false)
+            state.copy(expandedIcons = expandedIcons)
+        }
+    }
+
+
+
+
+    
 }
 
