@@ -147,7 +147,7 @@ class CategoryViewModel @Inject constructor(
     fun toggleExpandIcon(categoryId: String) {
         _categoriesState.update { state ->
             val expandedIcons = state.expandedIcons.toMutableMap()
-            expandedIcons[categoryId] = !(expandedIcons[categoryId] ?: false)
+            expandedIcons.replaceAll { key, value -> key == categoryId }
             state.copy(expandedIcons = expandedIcons)
         }
     }
