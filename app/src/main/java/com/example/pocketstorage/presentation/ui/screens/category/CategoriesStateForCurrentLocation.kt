@@ -8,7 +8,7 @@ data class CategoriesStateForCurrentLocation(
     val currentCategoryId: String = "",
     val existingCategoriesForCurrentLocation: List<Category> = emptyList(),
     val searchText: String = "",
-    val inventoryList : List<Inventory> = emptyList(),
+    val inventoryList: List<Inventory> = emptyList(),
     val expandedCategory: List<String> = emptyList(),
     val expandedCurrentCategory: Boolean = false,
     val activeCategory: String = "",

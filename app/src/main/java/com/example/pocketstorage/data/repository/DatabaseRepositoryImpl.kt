@@ -77,6 +77,10 @@ class DatabaseRepositoryImpl @Inject constructor(
         appDatabase.categoryDao().deleteCategory(category.toCategoryEntity())
     }
 
+    override suspend fun deleteCategoryById(categoryId: String) {
+        appDatabase.categoryDao().deleteCategoryById(categoryId)
+    }
+
     override suspend fun getCategoryById(categoryId: String): Category {
         val categoryEntity = appDatabase.categoryDao().getCategoryById(categoryId)
         return categoryEntity.toCategory()
