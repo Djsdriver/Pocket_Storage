@@ -44,7 +44,7 @@ class CategoryViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getCurrentLocationId()
-
+            getAllListInventory()
             categoriesState.collect { state ->
                 if (state != null) {
                     getAllCategoriesByLocationId(state.currentLocationId)
@@ -76,6 +76,7 @@ class CategoryViewModel @Inject constructor(
 
             }
         }
+
     }
 
     fun onSearchTextChange(text: String) {
@@ -92,6 +93,18 @@ class CategoryViewModel @Inject constructor(
             onSuccess()
         }
 
+    }
+
+    fun getAllListInventory(){
+        viewModelScope.launch {
+            getInventoriesUseCase.invoke().collect{list->
+                _categoriesState.update {
+                    it.copy(
+                        allListInventory = list
+                    )
+                }
+            }
+        }
     }
 
     fun deleteCategory(categoryId: String) {

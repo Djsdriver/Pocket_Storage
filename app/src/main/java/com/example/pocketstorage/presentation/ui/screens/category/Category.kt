@@ -427,6 +427,7 @@ fun ExpandableListItem(
 
     val expandedCategoryId by viewModel.categoriesState.collectAsState()
     val isLongPressActive = remember { mutableStateOf(false) }
+    val itemCountInCategory = expandedCategoryId.allListInventory.filter { it.categoryId == category.id }.size
 
 
     Column {
@@ -469,7 +470,7 @@ fun ExpandableListItem(
                     color = Color.White
                 )
                 Text(
-                    text = "5 elements",
+                    text = itemCountInCategory.toString(),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White

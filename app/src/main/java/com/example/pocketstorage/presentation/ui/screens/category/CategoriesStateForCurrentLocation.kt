@@ -12,5 +12,6 @@ data class CategoriesStateForCurrentLocation(
     val expandedCategory: List<String> = emptyList(),
     val expandedCurrentCategory: Boolean = false,
     val activeCategory: String = "",
-    val expandedIcons: Map<String, Boolean> = emptyMap()
+    val expandedIcons: Map<String, Boolean> = emptyMap(),
+    val allListInventory:  List<Inventory> = emptyList()
 )
