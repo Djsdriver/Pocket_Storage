@@ -16,6 +16,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,9 +30,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Checkbox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
@@ -49,12 +53,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -63,6 +70,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -82,6 +90,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pocketstorage.R
 import com.example.pocketstorage.components.DialogWithImage
+import com.example.pocketstorage.components.bottomBorder
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.graphs.BottomBarScreen
 import com.example.pocketstorage.graphs.HomeNavGraph
@@ -92,6 +101,7 @@ import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import com.google.firebase.auth.FirebaseAuth
 import com.valentinilk.shimmer.shimmer
+import kotlinx.coroutines.coroutineScope
 import java.io.File
 
 
@@ -143,6 +153,7 @@ fun InventoryScreen(
     val context = LocalContext.current
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
 
+
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
@@ -182,11 +193,17 @@ fun InventoryScreen(
 
 
     val shouldShowDialog = remember { mutableStateOf(false) }
+    val shouldShowDialogDeleteItems = remember { mutableStateOf(false) }
 
     BackHandler {
-        shouldShowDialog.value = true
-    }
+        if (stateProduct.showCheckbox) {
+            viewModel.showCheckbox(false)
+            viewModel.update(false)
+        } else {
+            shouldShowDialog.value = true
+        }
 
+    }
 
     LaunchedEffect(startScan.data) {
         if (startScan.data.isNotEmpty()) {
@@ -194,19 +211,37 @@ fun InventoryScreen(
             onEvent(ProductEvent.CleanerScannerState)
         }
     }
-    Log.d("search_screen", "${stateProduct.searchText}")
 
-    Log.d("list_invent", "${stateProduct.products}")
-    Log.d("selecred_building_screen", "${stateProduct.selectedIdBuilding}")
 
     if (shouldShowDialog.value) {
         DialogWithImage(
             onDismissRequest = { shouldShowDialog.value = false },
             onConfirmation = { activity?.finish() },
             painter = painterResource(id = R.drawable.cat_dialog),
-            imageDescription = "cat"
+            imageDescription = "cat",
+            text = "Вы точно хотите завершить работу?"
         )
     }
+
+    if (shouldShowDialogDeleteItems.value) {
+        DialogWithImage(
+            onDismissRequest = { shouldShowDialogDeleteItems.value = false },
+            onConfirmation = {
+                    viewModel.deleteItems {
+                        viewModel.update(false)
+                    }
+                    Toast.makeText(context, "${stateProduct.isSelectedList} delete",Toast.LENGTH_LONG).show()
+
+                shouldShowDialogDeleteItems.value = false
+                             },
+            painter = painterResource(id = R.drawable.cat_dialog),
+            imageDescription = "cat",
+            text = "Вы точно хотите удалить объекты?"
+        )
+        Log.d("spisokSelectedList", "${stateProduct.isSelectedList}")
+        Log.d("spisokProduct", "${stateProduct.products}")
+    }
+
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -344,25 +379,55 @@ fun InventoryScreen(
             }
 
         }
-        Text(
-            text = "Recently added",
-            fontSize = 24.sp,
+        Row(
             modifier = Modifier
-                .padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
-                .fillMaxWidth()
-        )
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Recently added",
+                fontSize = 24.sp,
+                modifier = Modifier
+                    .padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
+            )
+            if (stateProduct.isSelectedList.isNotEmpty()){
+                Text(
+                    text = "Delete",
+                    fontSize = 16.sp,
+                    color = Color.Red,
+                    modifier = Modifier
+                        .padding(top = 6.dp,end = 30.dp)
+                        .bottomBorder(2.dp)
+                        .clickable {
+                            shouldShowDialogDeleteItems.value = true
+                        }
+                )
+            }
+        }
+
+
         LazyColumn(
             modifier = Modifier
                 .padding(start = 24.dp, end = 24.dp)
                 .background(Color.White)
         ) {
-            items(stateProduct.products) { inventories ->
-                ListRow(
-                    { onClick.invoke(inventories.id) },
-                    inventory = inventories,
-                    stateProduct.loading
-                )
-                Log.d("image", "${inventories.pathToImage}")
+            items(stateProduct.products,
+                key = { item ->
+                    // Ваша логика для генерации ключа на основе элемента `item`
+                    item!!.id // Например, если `item` имеет поле `id`, можно использовать его как ключ
+                }) { inventories ->
+                if (inventories != null) {
+                    ListRow(
+                        {
+                            onClick.invoke(it)
+                            Log.d("inventories.id", "${inventories.id}")
+                        },
+                        inventory = inventories,
+                        stateProduct.loading,
+                        viewModel,
+                    )
+                }
             }
         }
 
@@ -432,61 +497,99 @@ fun ButtonInventoryScreen(
 }
 
 @Composable
-fun ListRow(onClick: () -> Unit, inventory: Inventory, loading: Boolean) {
+fun ListRow(
+    onClick: (String) -> Unit,
+    inventory: Inventory,
+    loading: Boolean,
+    viewModel: InventoryViewModel,
+) {
     val context = LocalContext.current
     val filePath = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "my_album")
     val imageFile = File(filePath, inventory.pathToImage!!)
     val placeholder = painterResource(id = R.drawable.add_photo_alternate)
+    val showCheck by viewModel.state.collectAsState()
+    val isSelectedd =
+        remember { mutableStateOf(showCheck.isSelectedList.contains(inventory.id)) }
+
+
+    if (showCheck.isSelectedList.isEmpty()) {
+        isSelectedd.value = false
+    }
+
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .padding(2.dp)
             .clip(RoundedCornerShape(8.dp))
             .wrapContentHeight()
             .fillMaxWidth()
             .background(colorResource(id = R.color.AdamantineBlue))
-            .clickable { onClick() }
+            .pointerInput(UInt) {
+                detectTapGestures(
+                    onTap = {
+                        onClick(inventory.id)
+                    },
+                    onLongPress = {
+                        viewModel.showCheckbox(true)
+                    }
+                )
+            }
             .run {
                 if (loading) shimmer() else this
             }
     ) {
-        if (imageFile.exists()) {
-            AsyncImage(
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(5.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .run {
-                        if (loading) shimmer() else this
-                    },
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageFile)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Image(
-                painter = placeholder,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(5.dp)
-                    .clip(RoundedCornerShape(8.dp))
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically) {
+            if (imageFile.exists()) {
+                AsyncImage(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .padding(5.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .run {
+                            if (loading) shimmer() else this
+                        },
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageFile)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = placeholder,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .padding(5.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+            }
+            Text(
+                text = inventory.name,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                modifier = Modifier.weight(1f)
             )
         }
 
-        Text(
-            text = inventory.name,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White,
-            modifier = Modifier.run {
-                if (loading) shimmer() else this
+        Box(Modifier
+            .padding(end = 8.dp)) {
+            if (showCheck.showCheckbox) {
+                Checkbox(
+                    checked = isSelectedd.value,
+                    onCheckedChange = {
+                        isSelectedd.value = it
+                        viewModel.addListSelected(inventory, it)
+                    },
+                )
             }
-        )
+        }
     }
 }
 

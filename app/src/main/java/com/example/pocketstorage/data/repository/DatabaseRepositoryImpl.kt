@@ -39,30 +39,40 @@ class DatabaseRepositoryImpl @Inject constructor(
         appDatabase.inventoryDao().deleteInventory(inventory.toInventoryEntity())
     }
 
+    override suspend fun deleteInventoryById(inventoryId: String) {
+        // Получение инвентаря по ID
+        val inventory = appDatabase.inventoryDao().getInventoryById(inventoryId)
+
+        // Удаление инвентаря из базы данных
+        appDatabase.inventoryDao().deleteInventory(inventory)
+    }
+
+
     override suspend fun updateInventory(inventory: Inventory) {
         appDatabase.inventoryDao().updateInventory(inventory.toInventoryEntity())
     }
 
-    override suspend fun getInventoryById(inventoryId: String): Inventory {
+    override suspend fun getInventoryById(inventoryId: String): Inventory? {
         val inventoryEntity = appDatabase.inventoryDao().getInventoryById(inventoryId)
         return inventoryEntity.toInventory()
+
     }
 
-    override fun getInventories(): Flow<List<Inventory>> = flow {
+    override fun getInventories(): Flow<List<Inventory?>> = flow {
         val inventoryEntityList = appDatabase.inventoryDao().getInventories()
         val inventoryList =
             inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }
         emit(inventoryList)
     }
 
-    override fun getInventoriesByCategoryId(categoryId: String): Flow<List<Inventory>> = flow {
+    override fun getInventoriesByCategoryId(categoryId: String): Flow<List<Inventory?>> = flow {
         val inventoryEntityList = appDatabase.inventoryDao().getInventoriesByCategoryId(categoryId)
         val inventoryList =
             inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }
         emit(inventoryList)
     }
 
-    override fun getInventoriesByLocationId(locationId: String): Flow<List<Inventory>> = flow {
+    override fun getInventoriesByLocationId(locationId: String): Flow<List<Inventory?>> = flow {
         val inventoryEntityList = appDatabase.inventoryDao().getInventoriesByLocationId(locationId)
         val inventoryList =
             inventoryEntityList.map { inventoryEntity -> inventoryEntity.toInventory() }

@@ -9,11 +9,14 @@ data class ProductUIState(
     val locationId: String = "",
     val categoryId: String = "",
     val pathToImage: String? = "",
-    val products: List<Inventory> = emptyList(),
+    val products: List<Inventory?> = emptyList(),
     val selectedIdBuilding: String = "",
     val data:String = "",
     val searchText : String = "",
     val loading: Boolean = false,
     val permissionCamera: Boolean = false,
     val toastNotification: Notification = Notification(),
+    val isSelected : Boolean = false,
+    val showCheckbox: Boolean = false,
+    val isSelectedList : MutableList<String> = mutableListOf()
 )

@@ -13,15 +13,17 @@ interface DatabaseRepository {
 
     suspend fun deleteInventory(inventory: Inventory)
 
+    suspend fun deleteInventoryById(inventoryId: String)
+
     suspend fun updateInventory(inventory: Inventory)
 
-    suspend fun getInventoryById(inventoryId: String): Inventory
+    suspend fun getInventoryById(inventoryId: String): Inventory?
 
-    fun getInventories(): Flow<List<Inventory>>
+    fun getInventories(): Flow<List<Inventory?>>
 
-    fun getInventoriesByCategoryId(categoryId: String): Flow<List<Inventory>>
+    fun getInventoriesByCategoryId(categoryId: String): Flow<List<Inventory?>>
 
-    fun getInventoriesByLocationId(locationId: String): Flow<List<Inventory>>
+    fun getInventoriesByLocationId(locationId: String): Flow<List<Inventory?>>
 
     suspend fun insertCategory(category: Category)
 

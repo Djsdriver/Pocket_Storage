@@ -1,5 +1,7 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory.event
 
+import com.example.pocketstorage.domain.model.Inventory
+
 sealed interface ProductEvent {
     data object ShowProductSelectedBuilding : ProductEvent
     data object StartScan : ProductEvent
@@ -11,4 +13,6 @@ sealed interface ProductEvent {
     data class PermissionCamera(val isGranted: Boolean) : ProductEvent
     data class PermissionExternalStorage(val isGranted: Boolean) : ProductEvent
     data class ImportInventoriesFromExcel(val uri: String) : ProductEvent
+
+    data class DeleteItems(val onSuccess: ()-> Unit): ProductEvent
 }

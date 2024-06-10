@@ -17,7 +17,11 @@ data class InventoryEntity(
     val pathToImage: String,
 )
 
-fun InventoryEntity.toInventory(): Inventory {
+fun InventoryEntity?.toInventory(): Inventory? {
+    if (this == null) {
+        return null
+    }
+
     return Inventory(
         id = this.id,
         name = this.name,
@@ -30,11 +34,11 @@ fun InventoryEntity.toInventory(): Inventory {
 
 fun Inventory.toInventoryEntity(): InventoryEntity {
     return InventoryEntity(
-        id = getUniqueIdentifier(),
+        id = getUniqueIdentifier() ,
         name = this.name,
         description = this.description,
         locationId = this.locationId,
         categoryId = this.categoryId,
-        pathToImage = this.pathToImage!!
+        pathToImage = this.pathToImage
     )
 }

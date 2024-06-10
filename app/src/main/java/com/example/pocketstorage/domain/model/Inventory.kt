@@ -8,7 +8,7 @@ data class Inventory(
     val description: String = " ",
     val locationId: String = "",
     val categoryId: String = "",
-    val pathToImage: String? = ""
+    val pathToImage: String = ""
 ){
     fun doesMatchSearchQuery(query: String): Boolean {
         val matchingCombinations = listOf(

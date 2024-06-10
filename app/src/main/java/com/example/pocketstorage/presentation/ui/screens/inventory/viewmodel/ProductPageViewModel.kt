@@ -50,18 +50,20 @@ class ProductPageViewModel @Inject constructor(
     private fun showInfoProductById(id: String) {
         viewModelScope.launch {
             val product = getInventoryByIdUseCase.invoke(id)
-            val nameCategory = getCategoryByIdUseCase.invoke(product.categoryId)
-            val nameBuilding = getLocationByIdUseCase.invoke(product.locationId)
-            _state.update {
-                it.copy(
-                    name = product.name,
-                    idLocation = product.locationId,
-                    idCategory = product.categoryId,
-                    description = product.description,
-                    nameCategory = nameCategory.name,
-                    nameBuilding = nameBuilding.name,
-                    pathToImage = product.pathToImage ?: ""
-                )
+            val nameCategory = product?.let { getCategoryByIdUseCase.invoke(it.categoryId) }
+            val nameBuilding = product?.let { getLocationByIdUseCase.invoke(it.locationId) }
+            if (product != null) {
+                _state.update {
+                    it.copy(
+                        name = product.name,
+                        idLocation = product.locationId,
+                        idCategory = product.categoryId,
+                        description = product.description,
+                        nameCategory = nameCategory!!.name,
+                        nameBuilding = nameBuilding!!.name,
+                        pathToImage = product.pathToImage ?: ""
+                    )
+                }
             }
             Log.d("_stateP", "${_state.value.nameBuilding}")
         }

@@ -4,7 +4,7 @@ import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.domain.repository.DatabaseRepository
 
 class GetInventoryByIdUseCase(private val databaseRepository: DatabaseRepository) {
-    suspend operator fun invoke(inventoryId: String): Inventory {
+    suspend operator fun invoke(inventoryId: String): Inventory? {
         return databaseRepository.getInventoryById(inventoryId)
     }
 }

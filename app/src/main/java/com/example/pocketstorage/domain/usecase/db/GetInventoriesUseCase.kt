@@ -5,7 +5,7 @@ import com.example.pocketstorage.domain.repository.DatabaseRepository
 import kotlinx.coroutines.flow.Flow
 
 class GetInventoriesUseCase(private val databaseRepository: DatabaseRepository) {
-    operator fun invoke(): Flow<List<Inventory>> {
+    operator fun invoke(): Flow<List<Inventory?>> {
         return databaseRepository.getInventories()
     }
 }
