@@ -531,7 +531,7 @@ fun BaseDropdownMenuCategory(
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth(),
-            value = selectedElement?.name ?: "without building",
+            value = selectedElement?.name ?: "without category",
             onValueChange = { value = it },
             label = { Text(text = "without building") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },

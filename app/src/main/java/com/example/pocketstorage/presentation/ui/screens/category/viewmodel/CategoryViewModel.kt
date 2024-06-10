@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.doesMatchSearchQuery
 import com.example.pocketstorage.domain.usecase.db.DeleteCategoryByIdUseCase
-import com.example.pocketstorage.domain.usecase.db.DeleteCategoryUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesByCategoryIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesUseCase
@@ -19,7 +18,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -111,7 +109,7 @@ class CategoryViewModel @Inject constructor(
         viewModelScope.launch {
             val inventoryList = getInventoriesUseCase.invoke()
             inventoryList.collect { listInventory ->
-                if (listInventory.any { it.categoryId == categoryId }) {
+                if (listInventory.any { it?.categoryId == categoryId }) {
                     SnackbarManager.showMessage("The category is not empty and cannot be deleted")
                 } else {
                     deleteCategoryByIdUseCase.invoke(categoryId)

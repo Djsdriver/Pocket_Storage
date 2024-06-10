@@ -46,7 +46,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,11 +60,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
 import com.example.pocketstorage.components.DialogWithImage
 import com.example.pocketstorage.domain.model.Category
@@ -419,7 +416,7 @@ fun ButtonForTheCategoryScreen(
 @Composable
 fun ExpandableListItem(
     category: Category,
-    items: List<Inventory>,
+    items: List<Inventory?>,
     onItemClick: (String) -> Unit,
     onItemCategoryClick: (String) -> Unit,
     viewModel: CategoryViewModel
@@ -427,7 +424,7 @@ fun ExpandableListItem(
 
     val expandedCategoryId by viewModel.categoriesState.collectAsState()
     val isLongPressActive = remember { mutableStateOf(false) }
-    val itemCountInCategory = expandedCategoryId.allListInventory.filter { it.categoryId == category.id }.size
+    val itemCountInCategory = expandedCategoryId.allListInventory.filter { it?.categoryId == category.id }.size
 
 
     Column {
@@ -505,13 +502,15 @@ fun ExpandableListItem(
                     .verticalScroll(state)
             ) {
                 items.forEach { item ->
-                    Text(
-                        text = item.name,
-                        fontSize = 16.sp,
-                        modifier = Modifier
-                            .clickable { onItemClick(item.id) }
-                            .padding(4.dp)
-                    )
+                    item?.name?.let {
+                        Text(
+                            text = it,
+                            fontSize = 16.sp,
+                            modifier = Modifier
+                                .clickable { onItemClick(item.id) }
+                                .padding(4.dp)
+                        )
+                    }
                 }
             }
 
@@ -533,6 +532,7 @@ fun HandleLongPressDialog(
                 onLongClick.value = false
             },
             painter = painterResource(id = R.drawable.cat_dialog),
+            text = "Вы действительно хотите удалить выбранную категорию?",
             imageDescription = "cat"
         )
     }
@@ -540,7 +540,7 @@ fun HandleLongPressDialog(
 
 @Composable
 fun ProductsOfTheCategories(
-    items: List<Inventory>,
+    items: List<Inventory?>,
     category: Category,
     viewModel: CategoryViewModel,
     onClickExpandedItem: (String) -> Unit
@@ -550,7 +550,7 @@ fun ProductsOfTheCategories(
     Column {
         ExpandableListItem(
             category = category,
-            items = items.filter { it.categoryId == category.id },
+            items = items.filter { it?.categoryId == category.id },
             onItemClick =
             {
                 onClickExpandedItem(it)
