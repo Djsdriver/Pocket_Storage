@@ -48,8 +48,13 @@ fun HomeNavGraph(navController: NavHostController) {
         }
         composable(route = BottomBarScreen.Category.route) {
             val viewModel = hiltViewModel<CategoryViewModel>()
-            Category(viewModel = viewModel)
+            Category(viewModel = viewModel){idProduct->
+                navController.navigate(InventoryScreenState.InfoProduct(idProduct).route)
+            }
         }
+
+
+
         composable(route = BottomBarScreen.Building.route) {
             Building {
                 navController.navigate(BuildingScreenState.CreateBuilding.route)
@@ -58,6 +63,7 @@ fun HomeNavGraph(navController: NavHostController) {
         inventoryNavGraph(navController = navController)
         buildingNavGraph(navController = navController)
         authNavGraph(navController = navController)
+        categoryNavGraph(navController = navController)
     }
 }
 
@@ -71,6 +77,28 @@ fun NavGraphBuilder.inventoryNavGraph(navController: NavHostController) {
             onEvent = viewModel::event
         )
     }
+    composable(
+        route = InventoryScreenState.InfoProduct("{id}").route,
+        arguments = listOf(
+            navArgument("id") {
+                type = NavType.StringType
+            }
+        )
+    ) {
+        val viewModel = hiltViewModel<ProductPageViewModel>()
+        val id = it.arguments?.getString("id") ?: ""
+        ProductPage(
+            {
+                navController.navigateUp()
+            },
+            id = id,
+            viewModel = viewModel,
+            onEvent = viewModel::event
+        )
+    }
+}
+
+fun NavGraphBuilder.categoryNavGraph(navController: NavHostController) {
     composable(
         route = InventoryScreenState.InfoProduct("{id}").route,
         arguments = listOf(

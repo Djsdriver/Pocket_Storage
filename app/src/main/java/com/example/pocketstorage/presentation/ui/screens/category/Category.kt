@@ -1,10 +1,12 @@
 package com.example.pocketstorage.presentation.ui.screens.category
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,11 +36,14 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -51,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -61,19 +67,29 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pocketstorage.R
+import com.example.pocketstorage.components.DialogWithImage
 import com.example.pocketstorage.domain.model.Category
+import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryViewModel
+import com.example.pocketstorage.utils.SnackbarManager
+import com.example.pocketstorage.utils.SnackbarMessage
+import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 
 @Composable
-fun Category(viewModel: CategoryViewModel) {
-    CategoryScreen(viewModel)
+fun Category(viewModel: CategoryViewModel, onClickExpandedItem: (String) -> Unit) {
+    CategoryScreen(viewModel) {
+        onClickExpandedItem(it)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CategoryScreen(viewModel: CategoryViewModel = hiltViewModel()) {
+fun CategoryScreen(
+    viewModel: CategoryViewModel = hiltViewModel(),
+    onClickExpandedItem: (String) -> Unit
+) {
     val uiState by viewModel.uiState.collectAsState()
     val categoriesState by viewModel.categoriesState.collectAsState()
 
@@ -89,6 +105,7 @@ fun CategoryScreen(viewModel: CategoryViewModel = hiltViewModel()) {
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
+    val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.onSearchTextChange("")
@@ -163,8 +180,17 @@ fun CategoryScreen(viewModel: CategoryViewModel = hiltViewModel()) {
                 )
 
             }
-            RenderScreen(viewModel = viewModel, uiState = uiState)
+            RenderScreen(viewModel = viewModel, uiState = uiState) {
+                onClickExpandedItem(it)
+                Log.d("ExpandItemsId", "$it")
+            }
+
+
         }
+        SnackBarToast(
+            snackbarMessage = snackbarMessage,
+            context = context
+        )
 
         if (showBottomSheet) {
             ModalBottomSheet(
@@ -235,7 +261,7 @@ fun CategoryScreen(viewModel: CategoryViewModel = hiltViewModel()) {
                                             buildingId = categoriesState.currentLocationId
                                         )
 
-                                        viewModel.saveCategoryOnLocalStorage(category){
+                                        viewModel.saveCategoryOnLocalStorage(category) {
                                             viewModel.getAllCategoriesByLocationId(categoriesState.currentLocationId)
                                         }
 
@@ -277,7 +303,11 @@ fun CategoryScreen(viewModel: CategoryViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun RenderScreen(viewModel: CategoryViewModel, uiState: CategoriesUiState) {
+private fun RenderScreen(
+    viewModel: CategoryViewModel,
+    uiState: CategoriesUiState,
+    onClickExpandedItem: (String) -> Unit
+) {
     val categoriesState by viewModel.categoriesState.collectAsState()
     when (uiState) {
         is CategoriesUiState.Loading -> {
@@ -287,7 +317,10 @@ private fun RenderScreen(viewModel: CategoryViewModel, uiState: CategoriesUiStat
         }
 
         is CategoriesUiState.Success -> {
-            LaunchedEffect(categoriesState.currentLocationId) {
+            LaunchedEffect(
+                categoriesState.currentLocationId,
+                categoriesState.existingCategoriesForCurrentLocation
+            ) {
                 viewModel.getAllCategoriesByLocationId(categoriesState.currentLocationId)
             }
 
@@ -302,8 +335,18 @@ private fun RenderScreen(viewModel: CategoryViewModel, uiState: CategoriesUiStat
                         .padding(start = 24.dp, end = 24.dp)
                         .background(Color.White)
                 ) {
-                    items(uiState.categories) { categories ->
-                        ProductsOfTheCategories(categories)
+                    items(uiState.categories,
+                        key = {
+                            it.id
+                        }) { categories ->
+                        ProductsOfTheCategories(
+                            items = categoriesState.inventoryList,
+                            category = categories,
+                            viewModel = viewModel,
+                            onClickExpandedItem = {
+                                onClickExpandedItem(it)
+                            }
+                        )
                     }
                 }
             }
@@ -373,15 +416,19 @@ fun ButtonForTheCategoryScreen(
 }
 
 
-data class ItemsCategoryModel(val nameProduct: String)
-
 @Composable
 fun ExpandableListItem(
     category: Category,
-    items: List<ItemsCategoryModel>,
-    onItemClick: (String) -> Unit
+    items: List<Inventory>,
+    onItemClick: (String) -> Unit,
+    onItemCategoryClick: (String) -> Unit,
+    viewModel: CategoryViewModel
 ) {
-    var expanded by remember { mutableStateOf(false) }
+
+    val expandedCategoryId by viewModel.categoriesState.collectAsState()
+    val isLongPressActive = remember { mutableStateOf(false) }
+    val itemCountInCategory = expandedCategoryId.allListInventory.filter { it.categoryId == category.id }.size
+
 
     Column {
         // Заголовок элемента списка
@@ -389,7 +436,20 @@ fun ExpandableListItem(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expanded = !expanded }
+                .pointerInput(UInt) {
+                    detectTapGestures(
+                        onTap = {
+                            if (expandedCategoryId.activeCategory == category.id) {
+                                viewModel.clearActiveCategory() // Clear active category when clicked again
+                            } else {
+                                onItemCategoryClick(category.id) // Set clicked category as active
+                            }
+                        },
+                        onLongPress = {
+                            isLongPressActive.value = true
+                        }
+                    )
+                }
                 .padding(bottom = 8.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(colorResource(id = R.color.AdamantineBlue))
@@ -410,7 +470,7 @@ fun ExpandableListItem(
                     color = Color.White
                 )
                 Text(
-                    text = "5 elements",
+                    text = itemCountInCategory.toString(),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
@@ -419,18 +479,25 @@ fun ExpandableListItem(
 
             Icon(
                 modifier = Modifier.size(24.dp),
-                painter = painterResource(id = if (expanded) R.drawable.expand_more else R.drawable.expand_more_less),
+                painter = painterResource(id = if (expandedCategoryId.activeCategory == category.id) R.drawable.expand_more else R.drawable.expand_more_less),
                 contentDescription = "Expand/Collapse",
                 tint = Color.White
             )
             Spacer(modifier = Modifier.width(10.dp))
         }
 
+        if (isLongPressActive.value) {
+            HandleLongPressDialog(
+                onLongClick = isLongPressActive,
+                category = category,
+                viewModel = viewModel
+            )
+        }
 
         val state = rememberScrollState()
         LaunchedEffect(Unit) { state.animateScrollTo(100) }
         // Список элементов, отображаемых при развернутом состоянии
-        if (expanded) {
+        if (expandedCategoryId.activeCategory == category.id) {
             Column(
                 modifier = Modifier
                     .size(width = 300.dp, height = 150.dp)
@@ -439,43 +506,80 @@ fun ExpandableListItem(
             ) {
                 items.forEach { item ->
                     Text(
-                        text = item.nameProduct,
+                        text = item.name,
                         fontSize = 16.sp,
                         modifier = Modifier
-                            .clickable { onItemClick(item.nameProduct) }
+                            .clickable { onItemClick(item.id) }
                             .padding(4.dp)
                     )
                 }
             }
+
         }
     }
 }
 
 @Composable
-fun ProductsOfTheCategories(category: Category) {
+fun HandleLongPressDialog(
+    onLongClick: MutableState<Boolean>,
+    category: Category?,
+    viewModel: CategoryViewModel
+) {
+    if (onLongClick.value) {
+        DialogWithImage(
+            onDismissRequest = { onLongClick.value = false },
+            onConfirmation = {
+                category?.let { viewModel.deleteCategory(it.id) }
+                onLongClick.value = false
+            },
+            painter = painterResource(id = R.drawable.cat_dialog),
+            imageDescription = "cat"
+        )
+    }
+}
+
+@Composable
+fun ProductsOfTheCategories(
+    items: List<Inventory>,
+    category: Category,
+    viewModel: CategoryViewModel,
+    onClickExpandedItem: (String) -> Unit
+) {
     val selectedItems = remember { mutableStateListOf<String>() }
 
     Column {
         ExpandableListItem(
             category = category,
-            items = listOf(
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-                ItemsCategoryModel("Philiphs 241V8L"),
-            ),
-            onItemClick = { subitem ->
-                if (selectedItems.contains(subitem)) {
-                    selectedItems.remove(subitem)
-                } else {
-                    selectedItems.add(subitem)
-                }
-            }
+            items = items.filter { it.categoryId == category.id },
+            onItemClick =
+            {
+                onClickExpandedItem(it)
+            },
+            onItemCategoryClick = {
+                viewModel.activeCategory(it)
+                viewModel.getInventoryByCategoryId(it)
+
+            },
+            viewModel
         )
+        Log.d("selectedItems", "${selectedItems}")
+    }
+}
+
+@Composable
+private fun SnackBarToast(
+    snackbarMessage: SnackbarMessage?, context: Context
+) {
+    snackbarMessage?.let { message ->
+        Log.d("snack", "${message}")
+        Snackbar(modifier = Modifier.padding(8.dp), actionOnNewLine = true, dismissAction = {
+            TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
+                Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
+            }
+        }) {
+            Text(message.toMessage(context.resources), fontSize = 12.sp)
+        }
+
     }
 }
 

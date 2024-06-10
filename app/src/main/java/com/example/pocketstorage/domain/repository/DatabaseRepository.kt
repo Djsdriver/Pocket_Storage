@@ -28,6 +28,7 @@ interface DatabaseRepository {
     suspend fun insertCategory(category: Category)
 
     suspend fun deleteCategory(category: Category)
+    suspend fun deleteCategoryById(categoryId: String)
 
     suspend fun getCategoryById(categoryId: String): Category
 
