@@ -119,6 +119,25 @@ class DatabaseRepositoryImpl @Inject constructor(
         appDatabase.locationDao().deleteLocation(location.toLocationEntity())
     }
 
+    override suspend fun deleteLocationAndRelatedEntities(locationId: String) {
+        val location = appDatabase.locationDao().getLocationById(locationId)
+
+        // Удаляем продукты с id зданием
+        val inventories = appDatabase.inventoryDao().getInventoriesByLocationId(locationId)
+        inventories.forEach { inventory ->
+            appDatabase.inventoryDao().deleteInventory(inventory)
+        }
+
+        // Удаляем категории с id зданием
+        val categories = appDatabase.categoryDao().getCategoriesByBuildingId(location.id)
+        categories.forEach { category ->
+            appDatabase.categoryDao().deleteCategory(category)
+        }
+
+        // Удаляем здание
+        appDatabase.locationDao().deleteLocation(location)
+    }
+
     override fun getLocations(): Flow<List<Location>> = flow {
         val locationEntityList = appDatabase.locationDao().getLocations()
         val locationList = locationEntityList.map { locationEntity -> locationEntity.toLocation() }

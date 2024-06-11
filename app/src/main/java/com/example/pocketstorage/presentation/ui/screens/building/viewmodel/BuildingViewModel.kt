@@ -2,6 +2,7 @@ package com.example.pocketstorage.presentation.ui.screens.building.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pocketstorage.domain.usecase.db.DeleteLocationByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import com.example.pocketstorage.domain.usecase.prefs.SaveLocationIdToDataStorageUseCase
@@ -20,6 +21,7 @@ class BuildingViewModel @Inject constructor(
     private val getLocationsUseCase: GetLocationsUseCase,
     private val saveLocationIdToDataStorageUseCase: SaveLocationIdToDataStorageUseCase,
     private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase,
+    private val deleteLocationByIdUseCase: DeleteLocationByIdUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BuildingState())
@@ -97,6 +99,13 @@ class BuildingViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    fun deleteBuildingById(buildingId: String){
+        viewModelScope.launch {
+            deleteLocationByIdUseCase(buildingId)
+            refreshLocations()
         }
     }
 

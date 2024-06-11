@@ -39,6 +39,7 @@ interface DatabaseRepository {
     suspend fun insertLocation(location: Location)
 
     suspend fun deleteLocation(location: Location)
+    suspend fun deleteLocationAndRelatedEntities(locationId: String)
 
     fun getLocations(): Flow<List<Location>>
 

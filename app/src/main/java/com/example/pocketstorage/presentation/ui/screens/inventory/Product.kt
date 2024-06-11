@@ -61,6 +61,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,6 +91,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pocketstorage.R
 import com.example.pocketstorage.components.DialogWithImage
+import com.example.pocketstorage.components.SnackBarToast
 import com.example.pocketstorage.components.bottomBorder
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.graphs.BottomBarScreen
@@ -102,6 +104,8 @@ import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
 import com.google.firebase.auth.FirebaseAuth
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 
 
@@ -653,19 +657,4 @@ fun RowScope.AddItem(
     )
 }
 
-@Composable
-private fun SnackBarToast(
-    snackbarMessage: SnackbarMessage?, context: Context
-) {
-    snackbarMessage?.let { message ->
-        Log.d("snack", "${message}")
-        Snackbar(modifier = Modifier.padding(8.dp), actionOnNewLine = true, dismissAction = {
-            TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
-                Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
-            }
-        }) {
-            Text(message.toMessage(context.resources), fontSize = 12.sp)
-        }
 
-    }
-}
