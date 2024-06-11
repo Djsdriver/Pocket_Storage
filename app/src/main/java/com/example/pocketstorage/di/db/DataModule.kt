@@ -1,6 +1,5 @@
 package com.example.pocketstorage.di.db
 
-import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import com.example.pocketstorage.data.db.AppDatabase
@@ -10,7 +9,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.android.scopes.ViewModelScoped
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -26,8 +24,11 @@ class DataModule {
             context,
             AppDatabase::class.java,
             "database.db"
-        ).build()
+        )
+            //.addMigrations(MIGRATION_1_2) раскоментировать при миграции
+            .build()
     }
+
 
 
     @Singleton
