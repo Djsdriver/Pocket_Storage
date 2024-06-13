@@ -42,6 +42,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -49,6 +50,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,12 +67,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pocketstorage.R
 import com.example.pocketstorage.components.DialogWithImage
+import com.example.pocketstorage.components.SnackBarToast
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryViewModel
 import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun Category(viewModel: CategoryViewModel, onClickExpandedItem: (String) -> Unit) {
@@ -467,8 +472,8 @@ fun ExpandableListItem(
                     color = Color.White
                 )
                 Text(
-                    text = itemCountInCategory.toString(),
-                    fontSize = 24.sp,
+                    text = "Количество: $itemCountInCategory",
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
                 )
@@ -566,21 +571,5 @@ fun ProductsOfTheCategories(
     }
 }
 
-@Composable
-private fun SnackBarToast(
-    snackbarMessage: SnackbarMessage?, context: Context
-) {
-    snackbarMessage?.let { message ->
-        Log.d("snack", "${message}")
-        Snackbar(modifier = Modifier.padding(8.dp), actionOnNewLine = true, dismissAction = {
-            TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
-                Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
-            }
-        }) {
-            Text(message.toMessage(context.resources), fontSize = 12.sp)
-        }
-
-    }
-}
 
 

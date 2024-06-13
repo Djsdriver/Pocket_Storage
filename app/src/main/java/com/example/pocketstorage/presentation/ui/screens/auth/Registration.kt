@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.pocketstorage.R
+import com.example.pocketstorage.components.SnackBarToast
 import com.example.pocketstorage.graphs.Graph
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.AuthorizationViewModel
 import com.example.pocketstorage.presentation.ui.screens.auth.viewmodel.RegistrationViewModel
@@ -165,26 +166,4 @@ private fun SignUpStateUser(
         onSignUpClickDone()
     }
 
-}
-
-@Composable
-private fun SnackBarToast(
-    snackbarMessage: SnackbarMessage?,
-    context: Context
-) {
-    snackbarMessage?.let { message ->
-        Log.d("snack", "${message}")
-        Snackbar(
-            modifier = Modifier.padding(8.dp),
-            actionOnNewLine = true,
-            dismissAction = {
-                TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
-                    Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
-                }
-            }
-        ) {
-            Text(message.toMessage(context.resources), fontSize = 12.sp)
-        }
-
-    }
 }

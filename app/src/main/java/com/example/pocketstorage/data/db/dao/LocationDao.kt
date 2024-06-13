@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.example.pocketstorage.data.db.model.LocationEntity
 
@@ -16,6 +17,10 @@ interface LocationDao {
 
     @Delete
     suspend fun deleteLocation(location: LocationEntity)
+
+    @Transaction
+    @Query("DELETE FROM location_table WHERE id = :locationId")
+    suspend fun deleteLocationAndRelatedEntities(locationId: String)
 
     @Query("SELECT * FROM location_table")
     suspend fun getLocations(): List<LocationEntity>

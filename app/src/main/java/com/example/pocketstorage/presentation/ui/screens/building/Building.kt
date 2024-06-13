@@ -1,10 +1,12 @@
 package com.example.pocketstorage.presentation.ui.screens.building
 
 
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,23 +32,31 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pocketstorage.R
+import com.example.pocketstorage.components.DialogWithImage
+import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.presentation.ui.screens.building.viewmodel.BuildingViewModel
+import com.example.pocketstorage.presentation.ui.screens.category.viewmodel.CategoryViewModel
 
 
 @Composable
@@ -121,7 +131,7 @@ fun BuildingScreen(viewModel: BuildingViewModel, onClick: () -> Unit) {
                 }
             )
         }
-        RenderScreen(viewModel,uiState)
+        RenderScreen(viewModel = viewModel, uiState = uiState)
     }
 }
 
@@ -135,7 +145,7 @@ private fun RenderScreen(viewModel: BuildingViewModel,uiState: BuildingUiState) 
         }
 
         is BuildingUiState.Success -> {
-            LaunchedEffect(Unit){
+            LaunchedEffect(currentState.locations){
                 viewModel.getLocationIdFromDataStore()
             }
 
@@ -150,10 +160,13 @@ private fun RenderScreen(viewModel: BuildingViewModel,uiState: BuildingUiState) 
                         .padding(start = 24.dp, end = 24.dp)
                         .background(Color.White)
                 ) {
-                    items(currentState.locations) { location ->
-                        ListRowBuilding(model = location){buildingId->
+                    items(currentState.locations,
+                        key = {
+                            it.id
+                        }) { location ->
+                        ListRowBuilding(model = location, onItemsSelected = {buildingId->
                             viewModel.saveBuildingId(buildingId)
-                        }
+                        })
                     }
                 }
             }
@@ -208,6 +221,7 @@ fun ListRowBuilding(model: Location, onItemsSelected: (String) -> Unit) {
     val viewModel = hiltViewModel<BuildingViewModel>()
 
     val buildingState by viewModel.state.collectAsState()
+    val isLongPressActive = remember { mutableStateOf(false) }
     val animatedColorState = animateColorAsState(
         targetValue = if (model.id == buildingState.selectedIdBuilding) colorResource(id = R.color.SpanishGrey) else colorResource(id = R.color.AdamantineBlue),
         label = ""
@@ -228,8 +242,16 @@ fun ListRowBuilding(model: Location, onItemsSelected: (String) -> Unit) {
             .size(width = animatedWidthState.value, height = animatedHeightState.value)
             .clip(RoundedCornerShape(8.dp))
             .background(animatedColorState.value)
-            .clickable {
-                onItemsSelected(model.id)
+            .pointerInput(UInt) {
+                detectTapGestures(
+                    onTap = {
+                        onItemsSelected(model.id)
+                    },
+                    onLongPress = {
+                        isLongPressActive.value = true
+                        Log.d("BuildingId1","${model.id}")
+                    }
+                )
             }
             .offset(x = 0.dp, y = 0.dp)
             .graphicsLayer {
@@ -259,6 +281,33 @@ fun ListRowBuilding(model: Location, onItemsSelected: (String) -> Unit) {
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.White
+        )
+    }
+    if (isLongPressActive.value) {
+        HandleLongPressDialog(
+            location = model,
+            onLongClick = isLongPressActive,
+            viewModel = viewModel
+        )
+    }
+}
+
+@Composable
+fun HandleLongPressDialog(
+    onLongClick: MutableState<Boolean>,
+    location: Location,
+    viewModel: BuildingViewModel
+) {
+    if (onLongClick.value) {
+        DialogWithImage(
+            onDismissRequest = { onLongClick.value = false },
+            onConfirmation = {
+                location.let { viewModel.deleteBuildingById(it.id) }
+                onLongClick.value = false
+            },
+            painter = painterResource(id = R.drawable.cat_dialog),
+            text = "Удалить выбранное здание и все связующие компоненты с ним?",
+            imageDescription = "cat"
         )
     }
 }

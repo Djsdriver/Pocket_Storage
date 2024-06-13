@@ -6,6 +6,7 @@ import com.example.pocketstorage.domain.usecase.db.DeleteCategoryUseCase
 import com.example.pocketstorage.domain.usecase.db.DeleteImageFromBitmapDirectoryUseCase
 import com.example.pocketstorage.domain.usecase.db.DeleteInventoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.DeleteInventoryUseCase
+import com.example.pocketstorage.domain.usecase.db.DeleteLocationByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.DeleteLocationUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesByBuildingIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesUseCase
@@ -60,6 +61,12 @@ class DomainModule {
     fun provideDeleteLocationUseCase(databaseRepository: DatabaseRepository)
     : DeleteLocationUseCase {
         return DeleteLocationUseCase(databaseRepository)
+    }
+
+    @Provides
+    fun provideDeleteLocationByIdUseCase(databaseRepository: DatabaseRepository)
+            : DeleteLocationByIdUseCase {
+        return DeleteLocationByIdUseCase(databaseRepository)
     }
 
     @Provides

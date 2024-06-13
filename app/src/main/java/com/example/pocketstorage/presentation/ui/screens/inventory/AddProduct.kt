@@ -51,11 +51,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -85,6 +87,7 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.pocketstorage.R
+import com.example.pocketstorage.components.SnackBarToast
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.CreateProductEvent
@@ -92,6 +95,8 @@ import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.Add
 import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.utils.SnackbarMessage
 import com.example.pocketstorage.utils.SnackbarMessage.Companion.toMessage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
 import kotlin.math.min
 
@@ -592,22 +597,5 @@ fun BaseButton(
         enabled = enabled
     ) {
         Text(text = text, color = Color.White)
-    }
-}
-
-@Composable
-private fun SnackBarToast(
-    snackbarMessage: SnackbarMessage?, context: Context
-) {
-    snackbarMessage?.let { message ->
-        Log.d("snack", "${message}")
-        Snackbar(modifier = Modifier.padding(8.dp), actionOnNewLine = true, dismissAction = {
-            TextButton(onClick = { SnackbarManager.clearSnackbarState() }) {
-                Text(text = "Закрыть", color = colorResource(id = R.color.AdamantineBlue))
-            }
-        }) {
-            Text(message.toMessage(context.resources), fontSize = 12.sp)
-        }
-
     }
 }
