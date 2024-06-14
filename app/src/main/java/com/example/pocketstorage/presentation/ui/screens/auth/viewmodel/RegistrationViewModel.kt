@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
+import com.example.pocketstorage.domain.usecase.CreateUserAndLinkDatabaseUseCase
 import com.example.pocketstorage.utils.SnackbarManager
 import com.example.pocketstorage.domain.usecase.SignUpUseCase
 import com.example.pocketstorage.presentation.ui.screens.auth.AuthFlowScreenState
@@ -24,7 +25,8 @@ import com.example.pocketstorage.R.string as AppText
 
 @HiltViewModel
 class RegistrationViewModel @Inject constructor(
-    private val signUp: SignUpUseCase
+    private val signUp: SignUpUseCase,
+    private val createUserAndLinkDatabaseUseCase: CreateUserAndLinkDatabaseUseCase
 ) : ViewModel() {
 
 
@@ -74,6 +76,7 @@ class RegistrationViewModel @Inject constructor(
                         success = true
                     )
                 }
+                createUserAndLinkDatabaseUseCase.execute()
             }
 
             is TaskResult.Error -> {

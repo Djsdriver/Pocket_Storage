@@ -2,6 +2,8 @@ package com.example.pocketstorage.di.auth
 
 
 import com.example.pocketstorage.domain.repository.AuthRepository
+import com.example.pocketstorage.domain.repository.DatabaseFirebaseRealtimeRepository
+import com.example.pocketstorage.domain.usecase.CreateUserAndLinkDatabaseUseCase
 import com.example.pocketstorage.domain.usecase.GetAuthStateUseCase
 import com.example.pocketstorage.domain.usecase.LogOutUseCase
 import com.example.pocketstorage.domain.usecase.SignInUseCase
@@ -33,6 +35,11 @@ class DomainModule {
     @Provides
     fun provideLogOutUseCase(authRepository: AuthRepository): LogOutUseCase {
         return LogOutUseCase(repository = authRepository)
+    }
+
+    @Provides
+    fun provideCreateDatabaseRealtimeUseCase(databaseFirebaseRealtimeRepository: DatabaseFirebaseRealtimeRepository): CreateUserAndLinkDatabaseUseCase {
+        return CreateUserAndLinkDatabaseUseCase(databaseFirebaseRealtimeRepository =  databaseFirebaseRealtimeRepository)
     }
 
 
