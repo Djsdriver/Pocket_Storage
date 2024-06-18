@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pocketstorage.R
+import com.example.pocketstorage.components.BottomSheetContent
 import com.example.pocketstorage.components.DialogWithImage
 import com.example.pocketstorage.components.SnackBarToast
 import com.example.pocketstorage.domain.model.Category
@@ -195,17 +196,13 @@ fun CategoryScreen(
         )
 
         if (showBottomSheet) {
-            ModalBottomSheet(
-                modifier = Modifier
-                    .wrapContentWidth(align = Alignment.CenterHorizontally)
-                    .height(400.dp),
+            BottomSheetContent(
+                sheetState = sheetState,
                 onDismissRequest = {
                     showBottomSheet = false
                     errorTextIsVisible = false
-                },
-                sheetState = sheetState
-            ) {
-
+                }
+            ){
                 var categoryName: String? by rememberSaveable {
                     mutableStateOf(null)
                 }
