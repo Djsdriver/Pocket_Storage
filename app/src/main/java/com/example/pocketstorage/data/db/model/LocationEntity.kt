@@ -32,3 +32,12 @@ fun Location.toLocationEntity(): LocationEntity {
         address = this.address
     )
 }
+
+fun Location.toLocationEntityFromExcel(): LocationEntity {
+    return LocationEntity(
+        id = this.id,
+        name = this.name,
+        index = this.index,
+        address = this.address
+    )
+}

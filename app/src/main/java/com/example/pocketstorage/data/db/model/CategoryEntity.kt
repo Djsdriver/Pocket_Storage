@@ -29,3 +29,11 @@ fun Category.toCategoryEntity(): CategoryEntity {
         buildingId = this.buildingId
     )
 }
+
+fun Category.toCategoryEntityFromExcel(): CategoryEntity {
+    return CategoryEntity(
+        id = this.id,
+        name = this.name,
+        buildingId = this.buildingId
+    )
+}

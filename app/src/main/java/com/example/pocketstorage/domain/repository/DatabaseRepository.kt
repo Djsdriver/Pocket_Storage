@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface DatabaseRepository {
 
     suspend fun insertInventory(inventory: Inventory)
+    suspend fun insertInventoryFromExcel(inventory: Inventory)
 
     suspend fun deleteInventory(inventory: Inventory)
 
@@ -26,6 +27,7 @@ interface DatabaseRepository {
     fun getInventoriesByLocationId(locationId: String): Flow<List<Inventory?>>
 
     suspend fun insertCategory(category: Category)
+    suspend fun insertCategoryFromExcel(category: Category)
 
     suspend fun deleteCategory(category: Category)
     suspend fun deleteCategoryById(categoryId: String)
@@ -37,6 +39,7 @@ interface DatabaseRepository {
     fun getCategories(): Flow<List<Category>>
 
     suspend fun insertLocation(location: Location)
+    suspend fun insertLocationFromExcel(location: Location)
 
     suspend fun deleteLocation(location: Location)
     suspend fun deleteLocationAndRelatedEntities(locationId: String)

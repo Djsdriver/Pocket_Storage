@@ -19,8 +19,11 @@ import com.example.pocketstorage.domain.usecase.db.GetInventoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationNameByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
+import com.example.pocketstorage.domain.usecase.db.InsertCategoryFromExcelUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
+import com.example.pocketstorage.domain.usecase.db.InsertInventoryFromExcelUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertInventoryUseCase
+import com.example.pocketstorage.domain.usecase.db.InsertLocationFromExcelUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertLocationUseCase
 import com.example.pocketstorage.domain.usecase.db.SaveImageToPrivateStorageBitmapUseCase
 import com.example.pocketstorage.domain.usecase.db.SaveImageToPrivateStorageUseCase
@@ -122,17 +125,33 @@ class DomainModule {
     : InsertCategoryUseCase {
         return InsertCategoryUseCase(databaseRepository)
     }
+    @Provides
+    fun provideInsertCategoryFromExcelUseCase(databaseRepository: DatabaseRepository)
+            : InsertCategoryFromExcelUseCase {
+        return InsertCategoryFromExcelUseCase(databaseRepository)
+    }
 
     @Provides
     fun provideInsertInventoryUseCase(databaseRepository: DatabaseRepository)
     : InsertInventoryUseCase {
         return InsertInventoryUseCase(databaseRepository)
     }
+    @Provides
+    fun provideInsertInventoryFromExcelUseCase(databaseRepository: DatabaseRepository)
+    : InsertInventoryFromExcelUseCase {
+        return InsertInventoryFromExcelUseCase(databaseRepository)
+    }
 
     @Provides
     fun provideInsertLocationUseCase(databaseRepository: DatabaseRepository)
     : InsertLocationUseCase {
         return InsertLocationUseCase(databaseRepository)
+    }
+
+    @Provides
+    fun provideInsertLocationFromExcelUseCase(databaseRepository: DatabaseRepository)
+            : InsertLocationFromExcelUseCase {
+        return InsertLocationFromExcelUseCase(databaseRepository)
     }
 
     @Provides

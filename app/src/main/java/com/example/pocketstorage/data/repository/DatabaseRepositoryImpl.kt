@@ -10,10 +10,13 @@ import android.widget.Toast
 import com.example.pocketstorage.data.db.AppDatabase
 import com.example.pocketstorage.data.db.model.toCategory
 import com.example.pocketstorage.data.db.model.toCategoryEntity
+import com.example.pocketstorage.data.db.model.toCategoryEntityFromExcel
 import com.example.pocketstorage.data.db.model.toInventory
 import com.example.pocketstorage.data.db.model.toInventoryEntity
+import com.example.pocketstorage.data.db.model.toInventoryEntityFromExcel
 import com.example.pocketstorage.data.db.model.toLocation
 import com.example.pocketstorage.data.db.model.toLocationEntity
+import com.example.pocketstorage.data.db.model.toLocationEntityFromExcel
 import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.domain.model.Location
@@ -33,6 +36,10 @@ class DatabaseRepositoryImpl @Inject constructor(
 ) : DatabaseRepository {
     override suspend fun insertInventory(inventory: Inventory) {
         appDatabase.inventoryDao().insertInventory(inventory.toInventoryEntity())
+    }
+
+    override suspend fun insertInventoryFromExcel(inventory: Inventory) {
+        appDatabase.inventoryDao().insertInventory(inventory.toInventoryEntityFromExcel())
     }
 
     override suspend fun deleteInventory(inventory: Inventory) {
@@ -83,6 +90,10 @@ class DatabaseRepositoryImpl @Inject constructor(
         appDatabase.categoryDao().insertCategory(category.toCategoryEntity())
     }
 
+    override suspend fun insertCategoryFromExcel(category: Category) {
+        appDatabase.categoryDao().insertCategory(category.toCategoryEntityFromExcel())
+    }
+
     override suspend fun deleteCategory(category: Category) {
         appDatabase.categoryDao().deleteCategory(category.toCategoryEntity())
     }
@@ -113,6 +124,10 @@ class DatabaseRepositoryImpl @Inject constructor(
 
     override suspend fun insertLocation(location: Location) {
         appDatabase.locationDao().insertLocation(location.toLocationEntity())
+    }
+
+    override suspend fun insertLocationFromExcel(location: Location) {
+        appDatabase.locationDao().insertLocation(location.toLocationEntityFromExcel())
     }
 
     override suspend fun deleteLocation(location: Location) {
