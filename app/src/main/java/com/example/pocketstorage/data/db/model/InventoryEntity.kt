@@ -42,3 +42,16 @@ fun Inventory.toInventoryEntity(): InventoryEntity {
         pathToImage = this.pathToImage
     )
 }
+
+fun Inventory.toInventoryEntityFromExcel(): InventoryEntity {
+    return InventoryEntity(
+        id = this.id ,
+        name = this.name,
+        description = this.description,
+        locationId = this.locationId,
+        categoryId = this.categoryId,
+        pathToImage = this.pathToImage
+    )
+}
+
+

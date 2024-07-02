@@ -17,8 +17,11 @@ import com.example.pocketstorage.domain.usecase.db.GetInventoriesByLocationIdUse
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
+import com.example.pocketstorage.domain.usecase.db.InsertCategoryFromExcelUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
+import com.example.pocketstorage.domain.usecase.db.InsertInventoryFromExcelUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertInventoryUseCase
+import com.example.pocketstorage.domain.usecase.db.InsertLocationFromExcelUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertLocationUseCase
 import com.example.pocketstorage.domain.usecase.excel.ExportInventoriesToExcelFileUseCase
 import com.example.pocketstorage.domain.usecase.excel.ImportInventoriesFromExcelFileUseCase
@@ -48,8 +51,11 @@ class InventoryViewModel @Inject constructor(
     private val getLocationByIdUseCase: GetLocationByIdUseCase,
     private val importInventoriesFromExcelFileUseCase: ImportInventoriesFromExcelFileUseCase,
     private val insertInventoryUseCase: InsertInventoryUseCase,
+    private val insertInventoryFromExcelUseCase: InsertInventoryFromExcelUseCase,
     private val insertCategoryUseCase: InsertCategoryUseCase,
+    private val insertCategoryFromExcelUseCase: InsertCategoryFromExcelUseCase,
     private val insertLocationUseCase: InsertLocationUseCase,
+    private val insertLocationFromExcelUseCase: InsertLocationFromExcelUseCase,
     private val getLocationsUseCase: GetLocationsUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val deleteInventoryUseCase: DeleteInventoryUseCase,
@@ -112,9 +118,12 @@ class InventoryViewModel @Inject constructor(
                                 val location = getLocationByIdUseCase(inventory!!.locationId)
                                 val tableInventory = TableInventory(
                                     id = (++count).toString(),
-                                    name = inventory!!.name,
+                                    idInventory = inventory.id,
+                                    name = inventory.name,
                                     description = inventory.description,
+                                    idCategory = inventory.categoryId,
                                     categoryName = categoryName!!,
+                                    idLocation = inventory.locationId,
                                     locationName = location.name,
                                     locationIndex = location.index,
                                     locationAddress = location.address,
@@ -274,6 +283,7 @@ class InventoryViewModel @Inject constructor(
                 val locationName = list[0].locationName
                 val locationIndex = list[0].locationIndex
                 val locationAddress = list[0].locationAddress
+                val idLocation = list[0].idLocation
                 Log.d("buildingExists0", "$locationName $locationAddress")
 
                 val buildingExists = doesBuildingExist(locationAddress)
@@ -282,7 +292,7 @@ class InventoryViewModel @Inject constructor(
                 if (buildingExists) {
                     SnackbarManager.showMessage("Здание уже существует в базе данных")
                 } else {
-                    insertBuildingAndInventoriesAndCategories(locationName, locationIndex, locationAddress, list)
+                    insertBuildingAndInventoriesAndCategories(idLocation,locationName, locationIndex, locationAddress, list)
                 }
             } else {
                 SnackbarManager.showMessage("Здание не загружено")
@@ -302,6 +312,7 @@ class InventoryViewModel @Inject constructor(
 
     //Вставка данных в базу данных
     private fun insertBuildingAndInventoriesAndCategories(
+        idLocation: String,
         locationName: String,
         locationIndex: String,
         locationAddress: String,
@@ -309,8 +320,8 @@ class InventoryViewModel @Inject constructor(
     ) {
         var buildingId = ""
         viewModelScope.launch {
-            insertLocationUseCase.invoke(
-                Location(name = locationName, index = locationIndex, address = locationAddress)
+            insertLocationFromExcelUseCase.invoke(
+                Location(id = idLocation ,name = locationName, index = locationIndex, address = locationAddress)
             )
 
             getLocationsUseCase.invoke().collect { locations ->
@@ -324,9 +335,11 @@ class InventoryViewModel @Inject constructor(
 
                 list.forEach {
                     val categoryName = it.categoryName
+                    val idCategory = it.idCategory
                     if (!categoriesMap.containsKey(categoryName)) {
-                        insertCategoryUseCase.invoke(
+                        insertCategoryFromExcelUseCase.invoke(
                             Category(
+                                id = idCategory,
                                 name = categoryName,
                                 buildingId = buildingId
                             )
@@ -341,8 +354,9 @@ class InventoryViewModel @Inject constructor(
                     }
 
                     val categoryId = categoriesMap[categoryName] ?: ""
-                    insertInventoryUseCase.invoke(
+                    insertInventoryFromExcelUseCase.invoke(
                         Inventory(
+                            id = it.idInventory,
                             name = it.name,
                             description = it.description,
                             locationId = buildingId,
@@ -350,6 +364,8 @@ class InventoryViewModel @Inject constructor(
                         )
                     )
                 }
+
+                Log.d("ListImport", "$list")
 
                 SnackbarManager.showMessage("Здание успешно импортировано.")
             }

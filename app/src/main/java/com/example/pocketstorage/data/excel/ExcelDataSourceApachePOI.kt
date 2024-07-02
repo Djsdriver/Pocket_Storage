@@ -114,7 +114,7 @@ class ExcelDataSourceApachePOI(private val context: Context) :
                     for (i in 1 until sheet.physicalNumberOfRows) {
                         val row = sheet.getRow(i)
 
-                        val name = row.getCell(1)?.let {
+                        val idInventory = row.getCell(1)?.let {
                             when (it.cellType) {
                                 CellType.STRING -> it.stringCellValue
                                 CellType.NUMERIC -> it.numericCellValue.toString()
@@ -122,7 +122,7 @@ class ExcelDataSourceApachePOI(private val context: Context) :
                             }
                         } ?: ""
 
-                        val description = row.getCell(2)?.let {
+                        val name = row.getCell(2)?.let {
                             when (it.cellType) {
                                 CellType.STRING -> it.stringCellValue
                                 CellType.NUMERIC -> it.numericCellValue.toString()
@@ -130,7 +130,7 @@ class ExcelDataSourceApachePOI(private val context: Context) :
                             }
                         } ?: ""
 
-                        val categoryName = row.getCell(3)?.let {
+                        val description = row.getCell(3)?.let {
                             when (it.cellType) {
                                 CellType.STRING -> it.stringCellValue
                                 CellType.NUMERIC -> it.numericCellValue.toString()
@@ -138,7 +138,7 @@ class ExcelDataSourceApachePOI(private val context: Context) :
                             }
                         } ?: ""
 
-                        val locationName = row.getCell(4)?.let {
+                        val idCategory = row.getCell(4)?.let {
                             when (it.cellType) {
                                 CellType.STRING -> it.stringCellValue
                                 CellType.NUMERIC -> it.numericCellValue.toString()
@@ -146,7 +146,14 @@ class ExcelDataSourceApachePOI(private val context: Context) :
                             }
                         } ?: ""
 
-                        val locationIndex = row.getCell(5)?.let {
+                        val categoryName = row.getCell(5)?.let {
+                            when (it.cellType) {
+                                CellType.STRING -> it.stringCellValue
+                                CellType.NUMERIC -> it.numericCellValue.toString()
+                                else -> ""
+                            }
+                        } ?: ""
+                        val idLocation = row.getCell(6)?.let {
                             when (it.cellType) {
                                 CellType.STRING -> it.stringCellValue
                                 CellType.NUMERIC -> it.numericCellValue.toString()
@@ -154,7 +161,23 @@ class ExcelDataSourceApachePOI(private val context: Context) :
                             }
                         } ?: ""
 
-                        val locationAddress = row.getCell(6)?.let {
+                        val locationName = row.getCell(7)?.let {
+                            when (it.cellType) {
+                                CellType.STRING -> it.stringCellValue
+                                CellType.NUMERIC -> it.numericCellValue.toString()
+                                else -> ""
+                            }
+                        } ?: ""
+
+                        val locationIndex = row.getCell(8)?.let {
+                            when (it.cellType) {
+                                CellType.STRING -> it.stringCellValue
+                                CellType.NUMERIC -> it.numericCellValue.toString()
+                                else -> ""
+                            }
+                        } ?: ""
+
+                        val locationAddress = row.getCell(9)?.let {
                             when (it.cellType) {
                                 CellType.STRING -> it.stringCellValue
                                 CellType.NUMERIC -> it.numericCellValue.toString()
@@ -163,9 +186,12 @@ class ExcelDataSourceApachePOI(private val context: Context) :
                         } ?: ""
 
                         val inventory = TableInventory(
+                            idInventory = idInventory,
                             name = name,
                             description = description,
+                            idCategory = idCategory,
                             categoryName = categoryName,
+                            idLocation = idLocation,
                             locationName = locationName,
                             locationIndex = locationIndex,
                             locationAddress = locationAddress
