@@ -15,4 +15,9 @@ sealed interface ProductEvent {
     data class ImportInventoriesFromExcel(val uri: String) : ProductEvent
 
     data class DeleteItems(val onSuccess: ()-> Unit): ProductEvent
+
+    class CurrentUser(val currentUser: String) : ProductEvent
+
+    data object ExportDataInFirebase : ProductEvent
+
 }

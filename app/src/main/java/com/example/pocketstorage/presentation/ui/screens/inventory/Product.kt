@@ -130,6 +130,7 @@ fun InventoryScreen(
     onClick: (String) -> Unit,
     onClickAdd: () -> Unit,
     onClickLogOut: () -> Unit,
+    goToPageAuth: () -> Unit,
     sendIdToProductPage: (String) -> Unit,
     onEvent: (ProductEvent) -> Unit
 ) {
@@ -184,11 +185,11 @@ fun InventoryScreen(
 
 
     val shouldShowDialog = remember { mutableStateOf(false) }
+    val shouldShowDialogNoAuthUser = remember { mutableStateOf(false) }
     val shouldShowDialogDeleteItems = remember { mutableStateOf(false) }
     var showBottomSheetExport by rememberSaveable { mutableStateOf(false) }
     var showBottomSheetImport by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
-   // val sheetStateImport = rememberModalBottomSheetState()
 
     BackHandler {
         if (stateProduct.showCheckbox) {
@@ -215,6 +216,19 @@ fun InventoryScreen(
             painter = painterResource(id = R.drawable.cat_dialog),
             imageDescription = "cat",
             text = "Вы точно хотите завершить работу?"
+        )
+    }
+
+    if (shouldShowDialogNoAuthUser.value){
+        DialogWithImage(
+            onDismissRequest = { shouldShowDialogNoAuthUser.value = false },
+            onConfirmation = {
+                goToPageAuth()
+                shouldShowDialogNoAuthUser.value = false
+            },
+            painter = painterResource(id = R.drawable.cat_dialog),
+            imageDescription = "cat",
+            text = "Вы не авторизованы, хотите перейти на страницу авторизации?"
         )
     }
 
@@ -353,11 +367,6 @@ fun InventoryScreen(
                 },
                 onClick = {
                     showBottomSheetExport = true
-                    /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        onEvent(ProductEvent.PermissionExternalStorage(isGranted = true))
-                    } else {
-                        requestPermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    }*/
                 }
             )
 
@@ -475,7 +484,12 @@ fun InventoryScreen(
                     Text(text = "Export to Firebase", fontSize = 16.sp)
                 },
                 onClick = {
-                    //
+                    if (viewModel.getAuth()){
+                        onEvent(ProductEvent.ExportDataInFirebase)
+                        showBottomSheetExport = false
+                    } else {
+                       shouldShowDialogNoAuthUser.value = true
+                    }
                 }
             )
         }

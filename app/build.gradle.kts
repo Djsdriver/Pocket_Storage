@@ -111,6 +111,10 @@ dependencies {
 
     //firebase
     implementation("com.google.firebase:firebase-auth")
+    implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
+
+    // Add the dependency for the Realtime Database library
+    implementation("com.google.firebase:firebase-database")
 
     //datastore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
