@@ -13,6 +13,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
 
 import javax.inject.Singleton
 
@@ -30,8 +31,8 @@ class AuthModule {
 
     @Provides
     @Singleton
-    fun provideDatabaseRealtimeRepository(appDatabase: AppDatabase): DatabaseFirebaseRealtimeRepository {
-        return DatabaseFirebaseRealtimeRepositoryImpl(provideDatabaseRealtimeInstance(), provideAuth(),appDatabase)
+    fun provideDatabaseRealtimeRepository(appDatabase: AppDatabase,coroutineScope: CoroutineScope): DatabaseFirebaseRealtimeRepository {
+        return DatabaseFirebaseRealtimeRepositoryImpl(provideDatabaseRealtimeInstance(), provideAuth(),appDatabase,coroutineScope)
     }
 
     @Singleton
@@ -45,6 +46,5 @@ class AuthModule {
     /*@Singleton
     @Provides
     fun provideDatabaseFirestoreInstance(): FirebaseFirestore = FirebaseFirestore.getInstance()*/
-
 
 }

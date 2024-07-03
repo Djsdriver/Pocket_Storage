@@ -8,10 +8,9 @@ import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Inventory
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.domain.model.TableInventory
-import com.example.pocketstorage.domain.usecase.GetAuthStateUseCase
-import com.example.pocketstorage.domain.usecase.LogOutUseCase
+import com.example.pocketstorage.domain.usecase.firebase.GetAuthStateUseCase
+import com.example.pocketstorage.domain.usecase.firebase.LogOutUseCase
 import com.example.pocketstorage.domain.usecase.db.DeleteInventoryByIdUseCase
-import com.example.pocketstorage.domain.usecase.db.DeleteInventoryUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoriesUseCase
 import com.example.pocketstorage.domain.usecase.db.GetCategoryNameByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoriesByLocationIdUseCase
@@ -19,14 +18,12 @@ import com.example.pocketstorage.domain.usecase.db.GetInventoriesUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertCategoryFromExcelUseCase
-import com.example.pocketstorage.domain.usecase.db.InsertCategoryUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertInventoryFromExcelUseCase
-import com.example.pocketstorage.domain.usecase.db.InsertInventoryUseCase
 import com.example.pocketstorage.domain.usecase.db.InsertLocationFromExcelUseCase
-import com.example.pocketstorage.domain.usecase.db.InsertLocationUseCase
 import com.example.pocketstorage.domain.usecase.excel.ExportInventoriesToExcelFileUseCase
 import com.example.pocketstorage.domain.usecase.excel.ImportInventoriesFromExcelFileUseCase
 import com.example.pocketstorage.domain.usecase.firebase.CreateUserAndLinkDatabaseUseCase
+import com.example.pocketstorage.domain.usecase.firebase.GetDataFromFirebaseUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import com.example.pocketstorage.domain.usecase.product.GetDataFromQRCodeUseCase
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductEvent
@@ -36,7 +33,6 @@ import com.example.pocketstorage.utils.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -59,7 +55,8 @@ class InventoryViewModel @Inject constructor(
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val deleteInventoryByIdUseCase: DeleteInventoryByIdUseCase,
     private val getAuthStateUseCase: GetAuthStateUseCase,
-    private val createUserAndLinkDatabaseUseCase: CreateUserAndLinkDatabaseUseCase
+    private val createUserAndLinkDatabaseUseCase: CreateUserAndLinkDatabaseUseCase,
+    private val getDataFromFirebaseUseCase: GetDataFromFirebaseUseCase,
 ) : ViewModel() {
 
     private val _scannerState = MutableStateFlow(ScannerUiState())
@@ -195,9 +192,19 @@ class InventoryViewModel @Inject constructor(
                 exportDataInFirebase()
             }
 
+            is ProductEvent.ImportDataFromFirebase -> {
+                importDataFromFirebase()
+            }
 
             else -> {}
         }
+    }
+
+    private fun importDataFromFirebase() {
+        viewModelScope.launch {
+            getDataFromFirebaseUseCase.invoke()
+        }
+        SnackbarManager.showMessage("Импорт данных произведен")
     }
 
     private fun exportDataInFirebase(){
@@ -407,6 +414,7 @@ class InventoryViewModel @Inject constructor(
                     if (productIds.any { it!!.id == data }) {
                         _scannerState.update {
                             it.copy(data = data)
+
                         }
                     } else {
                         SnackbarManager.showMessage(R.string.nothing_found)
@@ -414,6 +422,7 @@ class InventoryViewModel @Inject constructor(
                 }
             }
         }
+
     }
 
     private fun clearScannerState() {

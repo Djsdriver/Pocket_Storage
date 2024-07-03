@@ -3,11 +3,12 @@ package com.example.pocketstorage.di.auth
 
 import com.example.pocketstorage.domain.repository.AuthRepository
 import com.example.pocketstorage.domain.repository.DatabaseFirebaseRealtimeRepository
-import com.example.pocketstorage.domain.usecase.GetAuthStateUseCase
-import com.example.pocketstorage.domain.usecase.LogOutUseCase
-import com.example.pocketstorage.domain.usecase.SignInUseCase
-import com.example.pocketstorage.domain.usecase.SignUpUseCase
+import com.example.pocketstorage.domain.usecase.firebase.GetAuthStateUseCase
+import com.example.pocketstorage.domain.usecase.firebase.LogOutUseCase
+import com.example.pocketstorage.domain.usecase.firebase.SignInUseCase
+import com.example.pocketstorage.domain.usecase.firebase.SignUpUseCase
 import com.example.pocketstorage.domain.usecase.firebase.CreateUserAndLinkDatabaseUseCase
+import com.example.pocketstorage.domain.usecase.firebase.GetDataFromFirebaseUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,6 +41,11 @@ class DomainModule {
     @Provides
     fun provideCreateDatabaseRealtimeUseCase(databaseFirebaseRealtimeRepository: DatabaseFirebaseRealtimeRepository): CreateUserAndLinkDatabaseUseCase {
         return CreateUserAndLinkDatabaseUseCase(databaseFirebaseRealtimeRepository =  databaseFirebaseRealtimeRepository)
+    }
+
+    @Provides
+    fun provideGetDataFromFirebaseUseCase(databaseFirebaseRealtimeRepository: DatabaseFirebaseRealtimeRepository): GetDataFromFirebaseUseCase {
+        return GetDataFromFirebaseUseCase(databaseFirebaseRealtimeRepository =  databaseFirebaseRealtimeRepository)
     }
 
 

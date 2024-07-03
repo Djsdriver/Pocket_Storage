@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
 import com.example.pocketstorage.utils.SnackbarManager
-import com.example.pocketstorage.domain.usecase.SignUpUseCase
+import com.example.pocketstorage.domain.usecase.firebase.SignUpUseCase
 import com.example.pocketstorage.presentation.ui.screens.auth.AuthFlowScreenState
 import com.example.pocketstorage.presentation.ui.screens.auth.ErrorType
 import com.example.pocketstorage.presentation.ui.screens.auth.SignUpUiState

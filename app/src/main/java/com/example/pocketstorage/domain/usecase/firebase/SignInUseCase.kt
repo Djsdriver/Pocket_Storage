@@ -1,4 +1,4 @@
-package com.example.pocketstorage.domain.usecase
+package com.example.pocketstorage.domain.usecase.firebase
 
 import com.example.pocketstorage.domain.repository.AuthRepository
 

@@ -514,7 +514,12 @@ fun InventoryScreen(
                         Text(text = "Import from Firebase", fontSize = 16.sp)
                     },
                     onClick = {
-
+                        if (viewModel.getAuth()){
+                            onEvent(ProductEvent.ImportDataFromFirebase)
+                            showBottomSheetImport = false
+                        } else {
+                            shouldShowDialogNoAuthUser.value = true
+                        }
                     }
                 )
                 ButtonInventoryScreen(
