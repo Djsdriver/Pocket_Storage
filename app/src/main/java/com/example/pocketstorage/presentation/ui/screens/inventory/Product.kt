@@ -90,6 +90,8 @@ import com.example.pocketstorage.graphs.HomeNavGraph
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.InventoryViewModel
 import com.example.pocketstorage.utils.SnackbarManager
+import com.example.pocketstorage.utils.internet.ConnectionState
+import com.example.pocketstorage.utils.internet.connectivityState
 import com.google.firebase.auth.FirebaseAuth
 import com.valentinilk.shimmer.shimmer
 import java.io.File
@@ -442,6 +444,7 @@ fun InventoryScreen(
         openScan.value = !openScan.value
         Log.d("scannerLogUi", "${startScan.data}")
     }
+    val networkConnectivity by connectivityState()
     if (showBottomSheetExport){
         BottomSheetContent(
             sheetState = sheetState,
@@ -456,7 +459,9 @@ fun InventoryScreen(
                     Image(
                         painter = painterResource(id = R.drawable.exporttoexcel),
                         contentDescription = "Export to Excel",
-                        modifier = Modifier.padding(end = 15.dp).size(40.dp)
+                        modifier = Modifier
+                            .padding(end = 15.dp)
+                            .size(40.dp)
                     )
                     Text(text = "Export to Excel", fontSize = 16.sp)
                 },
@@ -484,11 +489,14 @@ fun InventoryScreen(
                     Text(text = "Export to Firebase", fontSize = 16.sp)
                 },
                 onClick = {
-                    if (viewModel.getAuth()){
+                    if (viewModel.getAuth() && networkConnectivity == ConnectionState.Available){
                         onEvent(ProductEvent.ExportDataInFirebase)
                         showBottomSheetExport = false
-                    } else {
-                       shouldShowDialogNoAuthUser.value = true
+                    } else if (!viewModel.getAuth()) {
+                        shouldShowDialogNoAuthUser.value = true
+                    } else if (networkConnectivity == ConnectionState.Unavailable){
+                        SnackbarManager.showMessage("Связь с интернетом отсутствует")
+                        showBottomSheetExport = false
                     }
                 }
             )
@@ -509,16 +517,21 @@ fun InventoryScreen(
                         Image(
                             painter = painterResource(id = R.drawable.importfromfirebase),
                             contentDescription = "Import from Firebase",
-                            modifier = Modifier.padding(end = 15.dp).size(40.dp)
+                            modifier = Modifier
+                                .padding(end = 15.dp)
+                                .size(40.dp)
                         )
                         Text(text = "Import from Firebase", fontSize = 16.sp)
                     },
                     onClick = {
-                        if (viewModel.getAuth()){
+                        if (viewModel.getAuth() && networkConnectivity == ConnectionState.Available){
                             onEvent(ProductEvent.ImportDataFromFirebase)
                             showBottomSheetImport = false
-                        } else {
+                        } else if (!viewModel.getAuth()) {
                             shouldShowDialogNoAuthUser.value = true
+                        } else if (networkConnectivity == ConnectionState.Unavailable){
+                            SnackbarManager.showMessage("Связь с интернетом отсутствует")
+                            showBottomSheetImport = false
                         }
                     }
                 )
