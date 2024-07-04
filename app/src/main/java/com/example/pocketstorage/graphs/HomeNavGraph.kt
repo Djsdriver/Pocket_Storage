@@ -40,6 +40,9 @@ fun HomeNavGraph(navController: NavHostController) {
                 {
                     navController.navigate(Graph.AUTHENTICATION)
                 },
+                {
+                    navController.navigate(Graph.AUTHENTICATION)
+                },
                 {idProductFromQrCode->
                     navController.navigate(InventoryScreenState.InfoProduct(idProductFromQrCode).route)
                 },

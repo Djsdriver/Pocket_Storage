@@ -1,22 +1,17 @@
 package com.example.pocketstorage.presentation.ui.screens.auth.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.R
-import com.example.pocketstorage.domain.usecase.GetAuthStateUseCase
-import com.example.pocketstorage.domain.usecase.SignInUseCase
+import com.example.pocketstorage.domain.usecase.firebase.GetAuthStateUseCase
+import com.example.pocketstorage.domain.usecase.firebase.SignInUseCase
 import com.example.pocketstorage.presentation.ui.screens.auth.ErrorType
 import com.example.pocketstorage.presentation.ui.screens.auth.SignInFlowScreenState
 import com.example.pocketstorage.presentation.ui.screens.auth.SignInUiState
 import com.example.pocketstorage.presentation.ui.screens.auth.TaskResult
 import com.example.pocketstorage.utils.SnackbarManager
-import com.example.pocketstorage.utils.isValidEmail
-import com.example.pocketstorage.utils.isValidPassword
-import com.example.pocketstorage.utils.passwordMatches
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
