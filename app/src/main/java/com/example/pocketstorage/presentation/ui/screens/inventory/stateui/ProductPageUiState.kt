@@ -2,6 +2,7 @@ package com.example.pocketstorage.presentation.ui.screens.inventory.stateui
 
 import android.graphics.Bitmap
 import com.example.pocketstorage.domain.model.Inventory
+import com.example.pocketstorage.domain.model.Location
 
 data class ProductPageUiState(
     val idProduct: String = "",
@@ -12,5 +13,6 @@ data class ProductPageUiState(
     val nameCategory: String = "",
     val nameBuilding: String = "",
     val pathToImage : String = "",
-    val generatedBitmap: Bitmap? = null
+    val generatedBitmap: Bitmap? = null,
+    val listLocation: List<Location> = emptyList(),
 )
