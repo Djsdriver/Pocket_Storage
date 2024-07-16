@@ -55,4 +55,6 @@ interface DatabaseRepository {
     suspend fun getCategoryNameById(categoryId: String): String
 
     suspend fun getLocationNameById(locationId: String): String
+
+    suspend fun updateInventoryName(inventoryId: String, newName: String)
 }

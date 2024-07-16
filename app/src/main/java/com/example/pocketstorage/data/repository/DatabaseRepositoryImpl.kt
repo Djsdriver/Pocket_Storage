@@ -243,4 +243,8 @@ class DatabaseRepositoryImpl @Inject constructor(
     override suspend fun getLocationNameById(locationId: String): String {
         return appDatabase.locationDao().getLocationNameById(locationId)
     }
+
+    override suspend fun updateInventoryName(inventoryId: String, newName: String) {
+        appDatabase.inventoryDao().updateInventoryName(inventoryId, newName)
+    }
 }
