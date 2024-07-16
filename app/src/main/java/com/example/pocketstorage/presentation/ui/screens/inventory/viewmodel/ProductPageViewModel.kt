@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.pocketstorage.domain.usecase.db.GetCategoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationByIdUseCase
+import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
+import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import com.example.pocketstorage.domain.usecase.product.GenerationQrCodeProductUseCase
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductPageEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.stateui.ProductPageUiState
@@ -22,7 +24,9 @@ class ProductPageViewModel @Inject constructor(
     private val getInventoryByIdUseCase: GetInventoryByIdUseCase,
     private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
     private val getLocationByIdUseCase: GetLocationByIdUseCase,
-    private val generationQrCodeProductUseCase: GenerationQrCodeProductUseCase
+    private val getLocationsUseCase: GetLocationsUseCase,
+    private val generationQrCodeProductUseCase: GenerationQrCodeProductUseCase,
+    private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase
 ) : ViewModel() {
 
 
@@ -43,6 +47,10 @@ class ProductPageViewModel @Inject constructor(
                 _state.update {
                     it.copy(generatedBitmap = generateQRCode(productPageEvent.content))
                 }
+            }
+
+            is ProductPageEvent.ShowListLocation -> {
+                showListLocation()
             }
         }
     }
@@ -69,9 +77,19 @@ class ProductPageViewModel @Inject constructor(
         }
     }
 
-    fun generateQRCode(content: String): Bitmap? {
+     private fun generateQRCode(content: String): Bitmap? {
         return generationQrCodeProductUseCase.invoke(content)
     }
 
-
+    private fun showListLocation(){
+        viewModelScope.launch {
+            getLocationsUseCase.invoke().collect{ list ->
+                _state.update {
+                    it.copy(
+                        listLocation = list
+                    )
+                }
+            }
+        }
+    }
 }
