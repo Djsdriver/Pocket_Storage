@@ -24,6 +24,9 @@ interface InventoryDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateInventory(inventory: InventoryEntity)
 
+    @Query("UPDATE inventory_table SET name = :newName WHERE id = :inventoryId")
+    suspend fun updateInventoryName(inventoryId: String, newName: String)
+
     @Query("SELECT * FROM inventory_table")
     suspend fun getInventories(): List<InventoryEntity>
 

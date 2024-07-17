@@ -8,10 +8,13 @@ import com.example.pocketstorage.domain.usecase.db.GetCategoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetInventoryByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationByIdUseCase
 import com.example.pocketstorage.domain.usecase.db.GetLocationsUseCase
+import com.example.pocketstorage.domain.usecase.db.UpdateInventoryNameUseCase
+import com.example.pocketstorage.domain.usecase.db.UpdateInventoryUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import com.example.pocketstorage.domain.usecase.product.GenerationQrCodeProductUseCase
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductPageEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.stateui.ProductPageUiState
+import com.example.pocketstorage.utils.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +29,7 @@ class ProductPageViewModel @Inject constructor(
     private val getLocationByIdUseCase: GetLocationByIdUseCase,
     private val getLocationsUseCase: GetLocationsUseCase,
     private val generationQrCodeProductUseCase: GenerationQrCodeProductUseCase,
+    private val updateInventoryNameUseCase: UpdateInventoryNameUseCase,
     private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase
 ) : ViewModel() {
 
@@ -52,6 +56,23 @@ class ProductPageViewModel @Inject constructor(
             is ProductPageEvent.ShowListLocation -> {
                 showListLocation()
             }
+
+            is ProductPageEvent.UpdateNameProduct -> {
+                updateNameProduct(productPageEvent.inventoryId, productPageEvent.newName)
+
+            }
+        }
+    }
+
+    private fun updateNameProduct(inventoryId: String, newName: String){
+        viewModelScope.launch {
+            if (newName.isNotEmpty()){
+                updateInventoryNameUseCase.invoke(inventoryId, newName)
+                showInfoProductById(_state.value.idProduct)
+            } else {
+                SnackbarManager.showMessage("Поле пустое")
+            }
+
         }
     }
 
@@ -73,7 +94,6 @@ class ProductPageViewModel @Inject constructor(
                     )
                 }
             }
-            Log.d("_stateP", "${_state.value.nameBuilding}")
         }
     }
 

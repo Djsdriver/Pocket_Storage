@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,7 +27,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -59,20 +57,21 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pocketstorage.R
+import com.example.pocketstorage.components.EditorNameComponent
+import com.example.pocketstorage.components.SnackBarToast
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductPageEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.ProductPageViewModel
 import com.example.pocketstorage.ui.theme.PocketStorageTheme
+import com.example.pocketstorage.utils.SnackbarManager
 import java.io.File
 
 @Composable
@@ -123,6 +122,12 @@ fun ScaffoldWithTopBarProductPage(
     onEvent: (ProductPageEvent) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
+    
+    val editorName = remember {
+        mutableStateOf(false)
+    }
+    val productName = remember { mutableStateOf(state.name) }
 
     LaunchedEffect(Unit) {
         onEvent(ProductPageEvent.ShowInfoProduct(id))
@@ -158,7 +163,7 @@ fun ScaffoldWithTopBarProductPage(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = state.name, fontSize = 20.sp)
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { editorName.value = true }) {
                         Icon(
                             painter = painterResource(id = R.drawable.edit_square),
                             contentDescription = "edit"
@@ -170,6 +175,21 @@ fun ScaffoldWithTopBarProductPage(
             }
         }
     )
+    
+    if(editorName.value){
+        val inventoryId = state.idProduct
+        EditorNameComponent(
+            productName = productName,
+            onDismiss = { editorName.value = false}
+        ) { newName ->
+            if (newName.isNotEmpty()){
+                onEvent(ProductPageEvent.UpdateNameProduct(inventoryId,newName))
+                editorName.value = false
+            }
+        }
+    }
+
+    SnackBarToast(snackbarMessage = snackbarMessage, context = LocalContext.current)
 
 }
 
