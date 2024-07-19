@@ -57,4 +57,6 @@ interface DatabaseRepository {
     suspend fun getLocationNameById(locationId: String): String
 
     suspend fun updateInventoryName(inventoryId: String, newName: String)
+
+    suspend fun transferInventoryAnotherBuilding(inventoryId: String, newLocationId: String, newCategoryId: String)
 }

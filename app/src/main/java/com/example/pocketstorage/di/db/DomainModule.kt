@@ -27,6 +27,7 @@ import com.example.pocketstorage.domain.usecase.db.InsertLocationFromExcelUseCas
 import com.example.pocketstorage.domain.usecase.db.InsertLocationUseCase
 import com.example.pocketstorage.domain.usecase.db.SaveImageToPrivateStorageBitmapUseCase
 import com.example.pocketstorage.domain.usecase.db.SaveImageToPrivateStorageUseCase
+import com.example.pocketstorage.domain.usecase.db.TransferInventoryAnotherBuildingUseCase
 import com.example.pocketstorage.domain.usecase.db.UpdateInventoryNameUseCase
 import com.example.pocketstorage.domain.usecase.db.UpdateInventoryUseCase
 import dagger.Module
@@ -200,5 +201,10 @@ class DomainModule {
     fun provideUpdateInventoryNameUseCase(databaseRepository: DatabaseRepository)
             : UpdateInventoryNameUseCase {
         return UpdateInventoryNameUseCase(databaseRepository)
+    }
+    @Provides
+    fun provideTransferInventoryAnotherBuildingUseCase(databaseRepository: DatabaseRepository)
+            : TransferInventoryAnotherBuildingUseCase {
+        return TransferInventoryAnotherBuildingUseCase(databaseRepository)
     }
 }

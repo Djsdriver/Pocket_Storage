@@ -247,4 +247,13 @@ class DatabaseRepositoryImpl @Inject constructor(
     override suspend fun updateInventoryName(inventoryId: String, newName: String) {
         appDatabase.inventoryDao().updateInventoryName(inventoryId, newName)
     }
+
+    override suspend fun transferInventoryAnotherBuilding(
+        inventoryId: String,
+        newLocationId: String,
+        newCategoryId: String
+    ) {
+        appDatabase.inventoryDao()
+            .transferInventoryAnotherBuilding(inventoryId, newLocationId, newCategoryId)
+    }
 }

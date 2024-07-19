@@ -2,6 +2,7 @@ package com.example.pocketstorage.presentation.ui.screens.inventory
 
 import android.os.Environment
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -31,20 +33,27 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,8 +74,10 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pocketstorage.R
+import com.example.pocketstorage.components.BottomSheetContent
 import com.example.pocketstorage.components.EditorNameComponent
 import com.example.pocketstorage.components.SnackBarToast
+import com.example.pocketstorage.domain.model.Category
 import com.example.pocketstorage.domain.model.Location
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductPageEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.ProductPageViewModel
@@ -397,9 +408,13 @@ fun QRScreen(
 }
 
 //@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationsScreen(onEvent: (ProductPageEvent) -> Unit, viewModel: ProductPageViewModel) {
     val state by viewModel.state.collectAsState()
+    val showBottomSheet = rememberSaveable { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         onEvent(ProductPageEvent.ShowListLocation)
@@ -409,30 +424,48 @@ fun LocationsScreen(onEvent: (ProductPageEvent) -> Unit, viewModel: ProductPageV
             .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
-
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            ButtonSaveProductPage {
-                //click
-            }
-
+            Text(
+                modifier = Modifier
+                    .padding(start = 24.dp, end = 24.dp, bottom = 10.dp),
+                text = "Выберите здание для переноса объекта")
             LazyColumn(
                 modifier = Modifier
                     .padding(start = 24.dp, end = 24.dp, bottom = 10.dp)
                     .background(Color.White)
             ) {
                 items(state.listLocation) { listLocation ->
-                    ListRowForLocationProduct(location = listLocation, viewModel = viewModel)
+                    ListRowForLocationProduct(location = listLocation, viewModel = viewModel){
+                        onEvent(ProductPageEvent.SelectedBuildingIdForTransfer(it))
+                        showBottomSheet.value = true
+                    }
                 }
             }
         }
 
     }
+    if(showBottomSheet.value){
+        BottomSheetContent(sheetState = sheetState, onDismissRequest = { showBottomSheet.value = false }) {
+            onEvent(ProductPageEvent.ShowListCategory)
+            Text(text = "Select a category from the selected building", modifier = Modifier.padding(8.dp))
+            BaseDropdownMenuCategoryForProductPage(listOfElements = state.listCategory, modifier = Modifier.padding(8.dp)) {
+                onEvent(ProductPageEvent.SelectedCategoryIdForTransfer(it))
+            }
+            ButtonSaveProductPage(modifier = Modifier.wrapContentWidth(align = Alignment.CenterHorizontally)){
+                showBottomSheet.value = false
+                onEvent(ProductPageEvent.SaveTransferToAnotherBuilding)
+            }
+
+        }
+    }
+
 }
 
 
 @Composable
-fun ButtonSaveProductPage(onClick: () -> Unit) {
+fun ButtonSaveProductPage(modifier: Modifier,onClick: () -> Unit) {
     Button(
+        modifier = modifier,
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.RetroBlue)),
         shape = RoundedCornerShape(8.dp),
@@ -469,7 +502,7 @@ fun DetailsScreen(id: String, viewModel: ProductPageViewModel) {
             }
             Row {
                 Text(text = "Location: ", fontSize = 12.sp)
-                Text(text = state.nameBuilding, fontSize = 12.sp)
+                Text(text = "${state.nameBuilding}, ${state.address}", fontSize = 12.sp)
             }
         }
 
@@ -479,7 +512,7 @@ fun DetailsScreen(id: String, viewModel: ProductPageViewModel) {
 }
 
 @Composable
-fun ListRowForLocationProduct(location: Location, viewModel: ProductPageViewModel) {
+fun ListRowForLocationProduct(location: Location, viewModel: ProductPageViewModel, onClick: (String) -> Unit) {
     val state by viewModel.state.collectAsState()
 
     val animatedColorState = animateColorAsState(
@@ -495,28 +528,87 @@ fun ListRowForLocationProduct(location: Location, viewModel: ProductPageViewMode
             .height(IntrinsicSize.Min)
             .wrapContentHeight()
             .fillMaxWidth()
-            .background(animatedColorState.value),
+            .background(animatedColorState.value)
+            .clickable {
+                onClick(location.id)
+            },
     ) {
         Text(
             modifier = Modifier.padding(start = 12.dp, top = 9.dp, bottom = 2.dp, end = 70.dp),
-            text = location.name,
+            text = "Здание: ${location.name}",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White
         )
         Text(
             modifier = Modifier.padding(start = 12.dp, bottom = 2.dp, end = 70.dp),
-            text = location.index,
+            text = "Корпус: ${location.index}",
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White
         )
         Text(
             modifier = Modifier.padding(start = 12.dp, bottom = 2.dp, end = 70.dp),
-            text = location.address,
+            text = "Адрес: ${location.address}",
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White
         )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun BaseDropdownMenuCategoryForProductPage(
+    listOfElements: List<Category>,
+    modifier: Modifier,
+    onItemSelected: (String) -> Unit
+) {
+
+    var expanded by remember { mutableStateOf(false) }
+    var selectedElement by remember { mutableStateOf(listOfElements.getOrNull(0)) }
+
+    var value = "${selectedElement?.name} "
+
+    // menu box
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        // textfield
+        OutlinedTextField(
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            value = selectedElement?.name ?: "without category",
+            onValueChange = { value = it },
+            label = { Text(text = "without building") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = colorResource(id = R.color.AdamantineBlue),
+                unfocusedBorderColor = colorResource(id = R.color.SpanishGrey),
+            )
+        )
+
+        // menu
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            // menu items
+            listOfElements.forEach { selectionOption ->
+                DropdownMenuItem(
+                    text = { Text("${selectionOption.name}") },
+                    onClick = {
+                        selectedElement = selectionOption
+                        expanded = false
+                        onItemSelected(selectionOption.id)
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+            }
+        }
     }
 }

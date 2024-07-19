@@ -38,4 +38,10 @@ interface InventoryDao {
 
     @Query("SELECT * FROM inventory_table WHERE locationId = :locationId")
     suspend fun getInventoriesByLocationId(locationId: String): List<InventoryEntity>
+
+    /*@Query("UPDATE inventory_table SET locationId = :newLocationId AND categoryId = :newCategoryId WHERE id = :inventoryId")
+    suspend fun transferInventoryAnotherBuilding(newLocationId: String,newCategoryId: String,inventoryId: String)*/
+
+    @Query("UPDATE inventory_table SET locationId = :newLocationId, categoryId = :newCategoryId WHERE id = :inventoryId")
+    suspend fun transferInventoryAnotherBuilding(inventoryId: String, newLocationId: String, newCategoryId: String)
 }
