@@ -1,5 +1,9 @@
 package com.example.pocketstorage.presentation.ui.screens.inventory
 
+import android.app.Activity
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
@@ -31,6 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -71,6 +76,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
+import androidx.print.PrintHelper
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pocketstorage.R
@@ -84,6 +91,7 @@ import com.example.pocketstorage.presentation.ui.screens.inventory.viewmodel.Pro
 import com.example.pocketstorage.ui.theme.PocketStorageTheme
 import com.example.pocketstorage.utils.SnackbarManager
 import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun ProductPage(
@@ -360,7 +368,10 @@ fun QRScreen(
         onEvent(ProductPageEvent.GenerationQrCode(content))
     }
     val state by viewModel.state.collectAsState()
-
+    
+    val shared = remember {
+        mutableStateOf(false)
+    }
 
     val context = LocalContext.current // Получение доступа к контексту
     Box(
@@ -380,29 +391,43 @@ fun QRScreen(
                         }
                 )
             }
-
+            val activity = LocalContext.current as? Activity
             Row {
-                IconButton(modifier = Modifier.padding(end = 40.dp), onClick = { /*TODO*/ }) {
+                IconButton(modifier = Modifier.padding(end = 40.dp), onClick = {
+                    if (activity != null && state.generatedBitmap != null) {
+                        if (PrintHelper.systemSupportsPrint()) {
+                            val printHelper = PrintHelper(activity)
+                            printHelper.scaleMode = PrintHelper.SCALE_MODE_FIT
+                            printHelper.printBitmap("QRCode", state.generatedBitmap!!)
+                        } else {
+                            Toast.makeText(activity, "Print not supported", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }) {
                     Icon(
                         painter = painterResource(id = R.drawable.print),
                         contentDescription = "print"
                     )
                 }
-                IconButton(modifier = Modifier.padding(end = 40.dp), onClick = { /*TODO*/ }) {
+
+                IconButton(onClick = {
+                    shared.value = true
+                }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.download_qr),
-                        contentDescription = "download_qr"
-                    )
-                }
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.visibility_off),
+                        imageVector = Icons.Default.Share,
                         contentDescription = "visibility_off"
                     )
                 }
             }
         }
 
+    }
+    
+    if(shared.value){
+        state.generatedBitmap?.let { bitmap ->
+            onEvent(ProductPageEvent.SharedQrCode(bitmap))
+        }
+        shared.value= false
     }
 
 }

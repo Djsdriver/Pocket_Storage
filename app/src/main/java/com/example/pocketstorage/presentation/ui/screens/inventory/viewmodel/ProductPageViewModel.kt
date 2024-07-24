@@ -14,6 +14,7 @@ import com.example.pocketstorage.domain.usecase.db.UpdateInventoryNameUseCase
 import com.example.pocketstorage.domain.usecase.db.UpdateInventoryUseCase
 import com.example.pocketstorage.domain.usecase.prefs.GetLocationIdFromDataStorageUseCase
 import com.example.pocketstorage.domain.usecase.product.GenerationQrCodeProductUseCase
+import com.example.pocketstorage.domain.usecase.sharedQrCode.SharedQrCodeUseCase
 import com.example.pocketstorage.presentation.ui.screens.inventory.event.ProductPageEvent
 import com.example.pocketstorage.presentation.ui.screens.inventory.stateui.ProductPageUiState
 import com.example.pocketstorage.utils.SnackbarManager
@@ -34,6 +35,7 @@ class ProductPageViewModel @Inject constructor(
     private val updateInventoryNameUseCase: UpdateInventoryNameUseCase,
     private val getCategoriesByBuildingIdUseCase: GetCategoriesByBuildingIdUseCase,
     private val transferInventoryAnotherBuildingUseCase: TransferInventoryAnotherBuildingUseCase,
+    private val sharedQrCodeUseCase: SharedQrCodeUseCase,
     private val getLocationIdFromDataStorageUseCase: GetLocationIdFromDataStorageUseCase
 ) : ViewModel() {
 
@@ -88,7 +90,15 @@ class ProductPageViewModel @Inject constructor(
             ProductPageEvent.SaveTransferToAnotherBuilding -> {
                 transferToAnotherBuilding()
             }
+
+            is ProductPageEvent.SharedQrCode -> {
+                sharedQrCode(productPageEvent.bitmap)
+            }
         }
+    }
+
+    private fun sharedQrCode(bitmap: Bitmap){
+        sharedQrCodeUseCase.invoke(bitmap)
     }
 
     private fun transferToAnotherBuilding(){
