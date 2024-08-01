@@ -5,6 +5,7 @@ import com.example.pocketstorage.data.repository.PreferencesRepositoryImpl
 import com.example.pocketstorage.data.repository.SharedRepositoryImpl
 import com.example.pocketstorage.domain.repository.PreferencesRepository
 import com.example.pocketstorage.domain.repository.SharedRepository
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,11 +15,8 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class DataModule {
+abstract class DataModule {
 
-    @Provides
-    @Singleton
-    fun provideSharedQrCodeRepository(@ApplicationContext context: Context): SharedRepository {
-        return SharedRepositoryImpl(context)
-    }
+    @Binds
+    abstract fun provideSharedQrCodeRepository(sharedRepositoryImpl: SharedRepositoryImpl): SharedRepository
 }

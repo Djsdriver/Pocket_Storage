@@ -425,7 +425,7 @@ fun QRScreen(
     
     if(shared.value){
         state.generatedBitmap?.let { bitmap ->
-            onEvent(ProductPageEvent.SharedQrCode(bitmap))
+            onEvent(ProductPageEvent.SharedQrCode(bitmap, context.cacheDir,context))
         }
         shared.value= false
     }
